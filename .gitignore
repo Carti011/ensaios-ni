@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Ferramentas
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Dados gerados por ensaios (não versionar saída de medição)
+*.csv
+*.tdms
+*.tdms_index
+dados/
+
+# Config local com nomes de dispositivo reais (versionar só o .exemplo)
+config/canais.toml
+
+# SO / editor
+.DS_Store
+.idea/
+.vscode/
