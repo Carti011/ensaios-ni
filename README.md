@@ -2,22 +2,36 @@
 
 Software de aquisição de dados para hardware **National Instruments** (chassi cDAQ-9184 + 2× NI 9205 + 1× NI 9235), em Python, sobre o driver gratuito **NI-DAQmx**. Substitui LabVIEW/FlexLogger (pagos) por uma aplicação própria que lê os sensores, converte para unidade de engenharia e registra/exibe os ensaios.
 
-> **Status: em planejamento.** Ainda sem código — só documentação e plano. Ver `CLAUDE.md`, `CONTEXT.md` e `docs/`.
+> **Status: Fase 1 (domínio).** Porta `FonteDeAquisicao`, adaptador `fake` e conversão volts→unidade já existem e são testáveis no Mac, sem hardware e sem `nidaqmx`. A aquisição real (`daqmx`) entra na Fase 2, no Windows. Ver `CLAUDE.md`, `CONTEXT.md` e `docs/`.
 
 ## Pré-requisitos
 
-- **Sistema:** Windows (ou Linux x86). **Não roda em macOS nem ARM** — o NI-DAQmx não existe nessas plataformas. O Mac serve só para desenvolver e rodar os testes de domínio.
+- **Desenvolvimento (domínio + fake):** qualquer plataforma com **Python 3.12+**. Recomendado **[uv](https://docs.astral.sh/uv/)** (ARM-native no Mac).
+- **Aquisição real:** **Windows** (ou Linux x86). **Não roda em macOS nem ARM** — o NI-DAQmx não existe nessas plataformas.
 - **Driver NI-DAQmx** (gratuito, [ni.com](https://www.ni.com)) instalado no Windows.
 - **NI-MAX** (vem com o driver) para descobrir/nomear o chassi e validar canais.
-- **Python 3.12+**.
 
 ## Como rodar
 
-> A definir na Fase 0 (setup do ambiente). Será preenchido junto com o `pyproject.toml`.
+### Testes do domínio (Mac/Linux/Windows, sem hardware)
+
+O domínio e o adaptador fake rodam em qualquer plataforma, sem o `nidaqmx`. O `uv` cuida do Python 3.12 e das dependências de teste:
+
+```bash
+uv run pytest
+```
+
+### Aquisição real (só Windows, Fase 2)
+
+Com o driver NI-DAQmx instalado, instale o pacote com o extra de hardware:
+
+```bash
+pip install -e .[hardware]
+```
 
 ## Variáveis de ambiente
 
-> A definir. Nomes de dispositivo e mapeamento de canais vão para `config/canais.toml`, não para o código.
+Não há segredos no código. O mapeamento de canais (nomes de dispositivo e coeficientes de conversão) vai para `config/canais.toml` — copie de `config/canais.exemplo.toml`. O `canais.toml` real é ignorado no git.
 
 ## Documentação
 
@@ -30,16 +44,17 @@ Software de aquisição de dados para hardware **National Instruments** (chassi 
 
 [MIT](LICENSE) — © 2026 Weslley Cardoso.
 
-## Estrutura planejada
+## Estrutura
 
 ```text
 ensaios-ni/
-├── config/canais.toml          # mapeamento canal → conversão (vem do dono do hardware)
+├── config/
+│   └── canais.exemplo.toml      # modelo do mapeamento canal → conversão
 ├── docs/                        # contexto de hardware + ADRs
 ├── src/ensaios_ni/
-│   ├── dominio/                 # conversão volts→unidade (testável no Mac)
+│   ├── dominio/                 # Canal, conversão volts→unidade, erros (testável no Mac)
 │   ├── aquisicao/               # porta + adaptadores (fake / daqmx)
-│   ├── persistencia/            # CSV
+│   ├── persistencia/            # CSV (Fase 2)
 │   └── apresentacao/            # dashboard (Fase 3)
-└── tests/
+└── tests/                       # dominio / aquisicao / arquitetura
 ```
