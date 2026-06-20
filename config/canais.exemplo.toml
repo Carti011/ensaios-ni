@@ -1,0 +1,22 @@
+# Mapeamento de canal físico -> conversão para unidade de engenharia.
+#
+# Copie para `config/canais.toml` (ignorado no git) e preencha com os
+# coeficientes REAIS fornecidos pelo dono do hardware. O nome de cada canal
+# (ex.: "cDAQ9184-1820306Mod1/ai0") vem do NI-MAX.
+#
+# Conversão atual: linear -> valor = ganho * volts + offset
+# Sensores não-lineares (termopar, strain) virão depois; ver docs/adr/002.
+
+# célula de carga fictícia: 0 V = 0 kgf, 10 V = 1000 kgf
+[canais."Mod1/ai0"]
+tipo = "tensao"
+unidade = "kgf"
+ganho = 100.0
+offset = 0.0
+
+# transdutor de pressão fictício: 0 V = 0 bar, 10 V = 250 bar
+[canais."Mod1/ai1"]
+tipo = "tensao"
+unidade = "bar"
+ganho = 25.0
+offset = 0.0
