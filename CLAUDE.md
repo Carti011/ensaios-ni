@@ -4,6 +4,10 @@ Software de aquisição de dados para hardware **National Instruments** (chassi 
 
 > Este `CLAUDE.md` **complementa** o global (`~/.claude/CLAUDE.md`) e o do cofre.
 > Em conflito, vale o mais específico (este). Português em tudo continua valendo.
+>
+> **Todo o desenvolvimento acontece neste Mac.** Windows (do dev e do tio) é só
+> configuração/execução inicial — coberta pelo guia humano [docs/guia-windows.md](docs/guia-windows.md),
+> não por agente.
 
 ---
 

@@ -2,6 +2,8 @@
 
 Software de aquisição de dados para hardware **National Instruments** (chassi cDAQ-9184 + 2× NI 9205 + 1× NI 9235), em Python, sobre o driver gratuito **NI-DAQmx**. Substitui LabVIEW/FlexLogger (pagos) por uma aplicação própria que lê os sensores, converte para unidade de engenharia e registra/exibe os ensaios.
 
+O programa é **config-driven**: o que muda de um ensaio para outro (quais canais, quais sensores, qual conversão) vive em arquivo de configuração, não no código. Medir um prédio, uma ponte ou uma peça é o **mesmo programa** lendo um `config/canais.toml` diferente.
+
 > **Status: Fase 1 (domínio).** Porta `FonteDeAquisicao`, adaptador `fake` e conversão volts→unidade já existem e são testáveis no Mac, sem hardware e sem `nidaqmx`. A aquisição real (`daqmx`) entra na Fase 2, no Windows. Ver `CLAUDE.md`, `CONTEXT.md` e `docs/`.
 
 ## Pré-requisitos
@@ -21,6 +23,19 @@ O domínio e o adaptador fake rodam em qualquer plataforma, sem o `nidaqmx`. O `
 uv run pytest
 ```
 
+### Ver o programa rodar (demonstração no Mac, sem hardware)
+
+Roda um ensaio ponta a ponta com o adaptador **fake** e um sinal sintético, gerando um
+CSV de exemplo (`ensaio-demo.csv`). Mostra o fluxo completo — ler → converter → gravar —
+antes de existir o adaptador real:
+
+```bash
+PYTHONPATH=src uv run python -m ensaios_ni
+```
+
+> No Mac o pacote não é instalado (`package = false`), por isso o `PYTHONPATH=src`.
+> No Windows, após `pip install -e .[hardware]`, basta `python -m ensaios_ni`.
+
 ### Aquisição real (só Windows, Fase 2)
 
 Com o driver NI-DAQmx instalado, instale o pacote com o extra de hardware:
@@ -28,6 +43,9 @@ Com o driver NI-DAQmx instalado, instale o pacote com o extra de hardware:
 ```bash
 pip install -e .[hardware]
 ```
+
+**Passo a passo simples para o Windows** (instalação, driver NI, configuração de
+canais — com ou sem Claude Code): [docs/guia-windows.md](docs/guia-windows.md).
 
 ## Variáveis de ambiente
 
