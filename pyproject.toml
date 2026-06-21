@@ -1,0 +1,31 @@
+[project]
+name = "ensaios-ni"
+version = "0.1.0"
+description = "Aquisição de dados para hardware National Instruments (cDAQ-9184 + 9205 + 9235) sobre NI-DAQmx"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+# nidaqmx só roda em Windows/Linux x86 — dependência opcional, não instalada no Mac.
+# No Windows: `pip install -e .[hardware]`
+[project.optional-dependencies]
+hardware = ["nidaqmx>=1.0"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ensaios_ni"]
+
+# No Mac não instalamos o próprio pacote; o pytest acha o código via pythonpath.
+# No Windows o `pip install -e .` usa o build-system acima normalmente.
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
