@@ -4,7 +4,7 @@ Software de aquisição de dados para hardware **National Instruments** (chassi 
 
 O programa é **config-driven**: o que muda de um ensaio para outro (quais canais, quais sensores, qual conversão) vive em arquivo de configuração, não no código. Medir um prédio, uma ponte ou uma peça é o **mesmo programa** lendo um `config/canais.toml` diferente.
 
-> **Status: Fase 1 (domínio).** Porta `FonteDeAquisicao`, adaptador `fake` e conversão volts→unidade já existem e são testáveis no Mac, sem hardware e sem `nidaqmx`. A aquisição real (`daqmx`) entra na Fase 2, no Windows. Ver `CLAUDE.md`, `CONTEXT.md` e `docs/`.
+> **Status: Fase 2 (aquisição de tensão).** Porta `FonteDeAquisicao` (multi-canal, com taxa), adaptador `fake`, conversão volts→unidade e persistência CSV são testáveis no Mac sem `nidaqmx`. O adaptador real `daqmx` **lê tensão (9205)** e roda no Windows. Strain (9235) entra numa fatia seguinte, com o gage factor do dono. Ver `CLAUDE.md`, `CONTEXT.md` e `docs/`.
 
 ## Pré-requisitos
 
@@ -36,13 +36,24 @@ PYTHONPATH=src uv run python -m ensaios_ni
 > No Mac o pacote não é instalado (`package = false`), por isso o `PYTHONPATH=src`.
 > No Windows, após `pip install -e .[hardware]`, basta `python -m ensaios_ni`.
 
-### Aquisição real (só Windows, Fase 2)
+### Aquisição real de tensão (só Windows)
 
 Com o driver NI-DAQmx instalado, instale o pacote com o extra de hardware:
 
 ```bash
 pip install -e .[hardware]
 ```
+
+Rode um ensaio lendo os canais de tensão (hardware ou dispositivos simulados do NI-MAX),
+escolhendo a fonte e os parâmetros por linha de comando:
+
+```bash
+python -m ensaios_ni --fonte daqmx --config config/canais.toml --taxa 1024 --amostras 1024 --saida ensaio.csv
+```
+
+> `--fonte fake` (padrão) roda a demonstração sintética em qualquer plataforma; `--fonte daqmx`
+> exige Windows + NI-DAQmx. Os nomes dos canais no `canais.toml` vêm do NI-MAX.
+> **Critério de "funcionou": a leitura bate com o test panel do NI-MAX** no mesmo canal.
 
 **Passo a passo simples para o Windows** (instalação, driver NI, configuração de
 canais — com ou sem Claude Code): [docs/guia-windows.md](docs/guia-windows.md).
