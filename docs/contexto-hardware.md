@@ -43,6 +43,7 @@ Documento fonte-da-verdade do hardware. Objetivo do projeto: substituir LabVIEW/
 - **Tensão e strain são tipos diferentes → tasks separadas.** Não misturar `add_ai_voltage_chan` com `add_ai_strain_gage_chan` na mesma task.
 - Os **dois 9205 podem compartilhar uma única task** (mesmo tipo de medição, mesmo chassi, mesmo sample clock). O **9235 fica em task própria**.
 - Se os ensaios exigem todos os canais alinhados no tempo, sincroniza-se as duas tasks compartilhando o sample clock / start trigger do chassi. Para o MVP, rodar uma de cada vez já basta.
+- **No cDAQ-9184 (Ethernet), o 9235 (delta-sigma) exige `cfg_samp_clk_timing` explícito — leitura on-demand (`task.read()` sem timing) falha.** Os 9205 toleraram on-demand no mesmo chassi, mas ambas as tasks devem configurar sample clock por consistência. _Descoberto na validação com dispositivos simulados no NI-MAX (22/06/2026)._
 
 ---
 
@@ -159,8 +160,8 @@ Decisão registrada em [adr/001-arquitetura-porta-adaptador.md](adr/001-arquitet
 
 ## 8. Plano em fases
 
-0. **Ambiente (Windows do dev):** instalar NI-DAQmx + NI-MAX; criar dispositivos simulados (cDAQ-9184 + 2× 9205 + 1× 9235); `pip install nidaqmx`; rodar o snippet de listar dispositivos.
-1. **Prova de vida (simulado):** ler canais de tensão e de strain dos dispositivos simulados e imprimir. Valida a API sem hardware.
+0. **Ambiente (Windows do dev):** instalar NI-DAQmx + NI-MAX; criar dispositivos simulados (cDAQ-9184 + 2× 9205 + 1× 9235); `pip install nidaqmx`; rodar o snippet de listar dispositivos. ✅ **Concluída (22/06/2026)** — simulados `cDAQ1` + `cDAQ1Mod1`/`Mod2` (9205) + `cDAQ1Mod3` (9235); Python enxerga todos via `nidaqmx`. _Nomes são do simulado; no hardware real serão outros (ex.: `cDAQ9184-1820306Mod1`)._
+1. **Prova de vida (simulado):** ler canais de tensão e de strain dos dispositivos simulados e imprimir. Valida a API sem hardware. ✅ **Concluída (22/06/2026)** — 9205 e 9235 lidos via `nidaqmx`; ver descoberta do clock explícito no §3.
 2. **Camada de aquisição:** task de tensão (os dois 9205), task de strain (9235 com os parâmetros corretos), aquisição contínua, gravação em CSV.
 3. **Conversão + dashboard:** aplicar conversão para unidade de engenharia; construir a visualização.
 4. **Validação real (no hardware):** trocar nomes simulados pelos reais, validar contra NI-MAX, calibrar/zerar a extensometria com apoio do dono do hardware.
