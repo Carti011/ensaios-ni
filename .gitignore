@@ -31,3 +31,6 @@ config/canais.toml
 .DS_Store
 .idea/
 .vscode/
+
+# Imagens
+docs/img/
