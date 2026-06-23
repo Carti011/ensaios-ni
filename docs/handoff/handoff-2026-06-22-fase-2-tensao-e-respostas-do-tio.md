@@ -1,7 +1,7 @@
 # Handoff: Fase 2 (aquisição de tensão) + respostas do tio e replanejamento
 
 **Data:** 2026-06-22
-**Status:** Fase 2 (tensão) pronta e testada no Mac; **PR #2 aberta** (develop→main) aguardando validação no Windows e merge do Weslley. Rodada 2 do tio respondida — replanejamento feito (ADRs 005/006/007).
+**Status:** Fase 2 (tensão) **validada no Windows** (dispositivos simulados); **PR #2 pronta para merge** (develop→main — o Weslley faz o merge no GitHub). Rodada 2 do tio respondida — replanejamento feito (ADRs 005/006/007). **Próxima fatia: calibração por pontos (ADR-006).**
 
 ## 1. Objetivo
 
@@ -55,38 +55,42 @@ Detalhe em [respostas-tio.md](../respostas-tio.md). Pontos que mudaram o plano:
 ## 3. Estado atual
 
 - **30 testes verdes** (`uv run pytest`) no Mac, sem `nidaqmx`. Teste-guarda de arquitetura verde.
+- **Validação no Windows (22/06/2026): ✅ concluída.** Python 3.12.10, `nidaqmx` 1.5.0, **30 testes verdes no Windows**; o `daqmx` leu os 9205 simulados via CLI sem erro (CSV correto, faixa ±10 V); **DIFF e sample clock funcionaram** (nenhum erro de terminal config nem de on-demand). No simulado a comparação com o test panel é qualitativa.
 - **`develop` pushada; PR #2** (develop→main) aberta com descrição completa:
-  https://github.com/Carti011/ensaios-ni/pull/2
+  <https://github.com/Carti011/ensaios-ni/pull/2>
 - Código: `dominio/` (canais, conversão, erros), `aquisicao/` (porta, fake, **daqmx**),
   `persistencia/` (csv), `aplicacao/` (ensaio, demo), `__main__.py` (CLI).
 - ADRs 001–007 (006 e 007 em *Proposto*). Glossário e contexto-hardware refletem a rodada 2.
 
 ## 4. Bloqueios e dependências
 
-- **Validação no Windows pendente (próximo passo nº 1).** O `daqmx` de tensão só foi testado por
-  mock no Mac. Critério objetivo de "funcionou" = bater com o **test panel do NI-MAX** no mesmo
-  canal. O Weslley faz: `git pull` no Windows → branch `develop` → testar → se ok, **merge da PR #2**
-  (o merge é dele; nunca autônomo).
+- **Validação no Windows: ✅ feita (22/06/2026).** Resta apenas o **merge da PR #2** (o Weslley faz
+  manualmente no GitHub). No hardware real do tio (Fase 4) a validação será quantitativa contra o
+  test panel do NI-MAX.
 - **Rodada 3 de perguntas ao tio** (reservada em [respostas-tio.md](../respostas-tio.md)): fiação
   do 9205 (diff/SE), célula de carga, sensibilidades/faixas dos sensores, taxa dos ensaios lentos,
   formato de arquivo p/ AqDados/AqDAnalysis, modelo do acelerômetro.
 
 ## 5. Próximos passos (roadmap)
 
-1. **Validar tensão no Windows** contra o NI-MAX (fecha a Fase 2 de tensão). ← decidido como a 1ª fatia.
-2. **Calibração por pontos + tara** ([ADR-006](../adr/006-calibracao-por-pontos.md)) — faz o número
-   virar grandeza física real; estilo AqDados. Revisa o ADR-002.
-3. **Strain do 9235**: quarter-bridge 120 Ω, **3 fios**, gage factor 2,14–2,16, microstrain, null.
-4. **Aquisição contínua** ([ADR-007](../adr/007-aquisicao-continua.md)) — monitoramento de longa duração.
-5. **Análise/FFT** (estilo AqDAnalysis) — não depende do tio, só os números reais dependem.
-6. **Dashboard** (Fase 3) — vira ADR de escolha de stack.
+1. **Calibração por pontos + tara** ([ADR-006](../adr/006-calibracao-por-pontos.md)) — **próxima
+   fatia (decidida)**. Núcleo de domínio, TDD no Mac: interpolação por pontos (linear = caso de 2
+   pontos), tara/null por canal, microstrain, config estendida com `pontos`. **NÃO inclui** a
+   captura interativa (Fase 3). **3 decisões a fechar no início (plan mode):** (a) formato dos pontos
+   na config — recomendo aceitar `pontos=[[v,val]]` e cair pra `ganho/offset` quando ausente; (b)
+   fora da faixa — recomendo **clamp + aviso**; (c) como modelar a **tara** em runtime (ler N
+   amostras de repouso, média, subtrai; opcional por canal).
+2. **Strain do 9235**: quarter-bridge 120 Ω, **3 fios**, gage factor 2,14–2,16, microstrain, null.
+3. **Aquisição contínua** ([ADR-007](../adr/007-aquisicao-continua.md)) — monitoramento de longa duração.
+4. **Análise/FFT** (estilo AqDAnalysis) — não depende do tio, só os números reais dependem.
+5. **Dashboard** (Fase 3) — vira ADR de escolha de stack.
 
 ## 6. Como iniciar a próxima sessão (no Mac)
 
 1. Ler este handoff, `CLAUDE.md`, `CONTEXT.md` e os ADRs 005/006/007.
 2. `uv run pytest` → **30 passed**. Se não, recriar o venv (`uv venv --python 3.12`).
-3. Confirmar com o Weslley se a **PR #2 foi mergeada** (validação no Windows). Se sim, a Fase 2 de
-   tensão está fechada → atacar a **calibração por pontos** (ADR-006) via TDD no domínio, ou o que o
-   Weslley priorizar do roadmap.
+3. Confirmar com o Weslley se a **PR #2 foi mergeada** (a validação no Windows já passou em 22/06).
+   Atacar a **calibração por pontos** (ADR-006) via TDD no domínio — fechar as 3 decisões de design
+   da §5 com o Weslley no início (plan mode).
 4. Manter as regras: import `nidaqmx` só no `daqmx.py` (lazy); teste-guarda verde; commits separados
    por camada; nada de commit/push/merge autônomo; português em tudo.

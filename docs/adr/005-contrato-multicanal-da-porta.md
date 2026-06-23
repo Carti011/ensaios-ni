@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito
+Aceito — **validado no Windows** com dispositivos simulados do NI-MAX em 22/06/2026 (Python 3.12.10, `nidaqmx` 1.5.0): o `daqmx` leu os 9205 simulados via CLI sem erro, com DIFF e sample clock funcionando. Validação quantitativa contra o test panel fica para o hardware real (Fase 4).
 
 ## Contexto
 

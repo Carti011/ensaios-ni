@@ -4,7 +4,7 @@ Software de aquisição de dados para hardware **National Instruments** (chassi 
 
 O programa é **config-driven**: o que muda de um ensaio para outro (quais canais, quais sensores, qual conversão) vive em arquivo de configuração, não no código. Medir um prédio, uma ponte ou uma peça é o **mesmo programa** lendo um `config/canais.toml` diferente.
 
-> **Status: Fase 2 (aquisição de tensão).** Porta `FonteDeAquisicao` (multi-canal, com taxa), adaptador `fake`, conversão volts→unidade e persistência CSV são testáveis no Mac sem `nidaqmx`. O adaptador real `daqmx` **lê tensão (9205)** e roda no Windows. Strain (9235) entra numa fatia seguinte, com o gage factor do dono. Ver `CLAUDE.md`, `CONTEXT.md` e `docs/`.
+> **Status: Fase 2 (aquisição de tensão) — validada no Windows.** Porta `FonteDeAquisicao` (multi-canal, com taxa), adaptador `fake`, conversão volts→unidade e persistência CSV rodam no Mac sem `nidaqmx`. O adaptador real `daqmx` **lê tensão (9205)** e foi **validado no Windows com dispositivos simulados (22/06/2026)**. Próxima fatia: **calibração por pontos** (ADR-006); strain (9235) na sequência. Ver `CLAUDE.md`, `CONTEXT.md` e `docs/`.
 
 ## Pré-requisitos
 
