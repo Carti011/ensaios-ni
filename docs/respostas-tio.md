@@ -2,7 +2,7 @@
 
 Registro do que o dono do equipamento (tio do Weslley) informou sobre o setup físico dos ensaios. É a **fonte de verdade para o futuro `config/canais.toml`** e para a configuração das tasks de aquisição. Atualizar a cada rodada de perguntas.
 
-> As duas informações que **bloqueiam a Fase 3 (conversão)** estão marcadas com 🔴. Sem elas o software lê os volts mas o número não vira grandeza física.
+> **Atualização 22/06/2026:** a rodada 2 foi respondida (2 áudios). Os bloqueios 🔴 caíram. A grande revelação: a conversão **não é uma fórmula linear fixa** — o dono trabalha com **calibração empírica por pontos + tara (null)**, como o AqDados da Lynx faz. Isso vira [ADR-006](adr/006-calibracao-por-pontos.md) e revisa o [ADR-002](adr/002-conversao-linear-e-contrato-da-porta.md).
 
 ---
 
@@ -10,83 +10,63 @@ Registro do que o dono do equipamento (tio do Weslley) informou sobre o setup f�
 
 | Frente | O que precisamos | Status |
 | ------ | ---------------- | ------ |
-| Divisão dos módulos | qual é strain, quais são tensão | ✅ respondido |
-| Excitação no 9205 | os módulos de tensão fornecem excitação? | ✅ não fornecem |
-| Rede | topologia e tipo de IP | 🟡 falta o número do IP |
-| Amostragem (vibração) | taxa em Hz | ✅ 1024 Hz |
-| Amostragem (carga × deformação) | taxa dos ensaios lentos | ❌ pendente |
-| **9235 — gage factor** | fator do extensômetro (vem da caixa) | 🔴 **bloqueia conversão** |
-| 9235 — ponte/resistência | 120 Ω em quarter-bridge | ✅ confirmado pela etiqueta física (22/06/2026) |
-| 9235 — canais | quantos canais e o que cada um mede; comprimento dos cabos | ❌ pendente |
-| **9205 — conversão** | fórmula volts→unidade por canal | 🔴 **bloqueia conversão** |
-| 9205 — canais | que sensor em cada canal; diferencial ou single-ended | ❌ pendente |
-| Ensaio | duração típica e o que é um "resultado" a salvar | ❌ pendente |
+| Divisão dos módulos | qual é strain, quais são tensão | ✅ 9235 strain; 2× 9205 tensão |
+| Excitação no 9205 | os módulos de tensão fornecem excitação? | ✅ não fornecem (sensores alimentados por fora) |
+| Rede | topologia e tipo de IP | ✅ direto no PC, IP fixo (número no cofre privado) |
+| Amostragem (vibração) | taxa em Hz | ✅ 1024 Hz (acelerômetro) |
+| Amostragem (carga × deformação) | taxa dos ensaios lentos | 🟡 não dito explicitamente (presumir baixa) |
+| 9235 — gage factor | fator do extensômetro | ✅ **2,14–2,16, varia por lote** (configurável) |
+| 9235 — ponte/resistência | 120 Ω em quarter-bridge | ✅ etiqueta + voz; cabo longo = **3 fios, 22 AWG** |
+| 9235 — canais | quantos e o que medem | 🟡 varia por obra; não há número fixo |
+| 9205 — conversão | volts→unidade por canal | ✅ **calibração por pontos + tara** (ver ADR-006) |
+| 9205 — canais | que sensor em cada canal | ✅ LVDT, acelerômetro (alim. externa); célula de carga em dúvida |
+| 9205 — fiação | diferencial ou single-ended | ❌ ainda não dito |
+| Ensaio | duração e o que é "resultado" | ✅ de 1 h a **1 ano contínuo** → exige aquisição contínua |
 
 ---
 
-## Rodada 1 — 21/06/2026 (4 áudios)
+## Rodada 2 — respondida 22/06/2026 (2 áudios)
 
-### Confirmado
+Transcrito local com `mlx-whisper` (`large-v3-turbo`). Trechos óbvios corrigidos.
 
-- **Divisão dos módulos:** o **9235** é usado **só para strain gauge**; os **dois 9205** são usados **só para leitura de tensão**.
-- **Excitação:** os 9205 **não fornecem excitação nem alimentam os sensores** — logo os transdutores de tensão já chegam com sinal "pronto" (saída condicionada ou alimentação externa). *(confirmado por voz pelo Weslley após reescutar o áudio 1.)*
-- **Rede:** chassi ligado **direto no PC** (sem switch), com **IP fixo** configurado pelo dono.
-- **Amostragem (vibração):** **1024 Hz**.
+### Áudio 1 — sobre o software (grátis × pago)
 
-### Transcrição dos áudios
+> "Que top! Na verdade você tá lendo um canal flutuante, e colocou os módulos, as placas, simulando aqui as placas. Esse programa aí é o **NI-MAX**. Tem o **FlexLogger** que dá pra acessar e começar a mexer. Esse aí, FlexLogger, **é o que você precisa criar** — pra não ficar refém, senão eu vou ter que **pagar assinatura** pra esses caras do FlexLogger."
 
-Transcrito local com `mlx-whisper` (modelo `large-v3-turbo`). Áudios curtos; correções óbvias da transcrição marcadas entre colchetes.
+**Leitura:** o dono entende o objetivo certo. A pilha NI: **NI-DAQmx (driver, grátis)** + **NI-MAX (grátis)** já fazem o hardware funcionar; o único pago é o **FlexLogger** (assinatura) — e é exatamente a camada que este projeto reescreve. **Ele não precisa pagar nada** para o hardware funcionar.
 
-- **Áudio 1:** "Tenho a placa **9235** [«29235»], ela é só pra **strain gauge** [«stringage»]. As outras são só tensão, só leem tensão — não têm **voltagem** [«vontade»] nelas, não têm excitação." — *confirmado pelo Weslley.*
-- **Áudio 2:** "Estou conectando ela no IP fixo que coloquei nela, do chassi direto no PC, direto no **notebook** [«notch»]."
-- **Áudio 3:** "O tipo de amostragem do ensaio: pra vibração a gente usa 1024 Hz."
-- **Áudio 4:** "Amostragem de 1024 Hz." *(confirma o áudio 3.)*
+### Áudio 2 — respostas técnicas
+
+- **Gage factor (9235):** quarter-bridge, 120 Ω, **fator varia entre 2,14 e 2,16** ("sempre variando", depende do lote do extensômetro). → tem de ser **parâmetro configurável por canal/ensaio**, nunca fixo.
+- **Conversão (o método real dele):** não há fórmula fixa. Ele liga o sensor, lê a tensão atual e **declara aquele ponto como zero (null/tara)**; para strain, lê e **multiplica por 1.000.000 → microstrain**. Para os demais sensores, "a correlação voltagem→engenharia **depende de cada sensor**" → ele monta uma **planilha/painel de calibração**: aplica carga conhecida, registra a voltagem e **vai construindo a curva ponto a ponto** (igual o canal de calibração do AqDados/Lynx). Disse: "no NI-DAQmx eu não sei como faz essa curva." → **oportunidade do projeto.**
+- **Cabos (9235):** cabo longo → **3 vias, 22 AWG** (three-wire quarter-bridge, p/ compensar resistência). Varia por obra (às vezes curto, às vezes longo).
+- **Célula de carga:** usa também, "mas **nessa placa parece que não liga** a célula de carga, não sei se dá certo" (dúvida dele — célula de ponte precisa de excitação que o 9205 não fornece).
+- **9205 — sensores:** **LVDT** (deslocamento) e **acelerômetro** (excitado por **5 V de alimentação externa**, já que a placa não excita). Também cita pressão (**MPa**) e carga (**kgf**) como grandezas de saída.
+- **Vibração:** medida com **acelerômetro**, sensibilidade **2G**, a **1024 Hz**.
+- **Duração:** "depende — de **uma hora a um mês contínuo, ou um ano**; prova de carga 24 h." → monitoramento de **longa duração** é requisito real.
+- **IP fixo:** respondeu o número (registrado no **cofre privado**, não versionado).
 
 ### Consequências para o software
 
-- As tasks de tensão (9205) são **leitura crua de volts, sem configurar excitação** — alinhado com a [ADR-001](adr/001-arquitetura-porta-adaptador.md) e o [contexto-hardware](contexto-hardware.md).
-- A "armadilha do strain" (9235 com defaults errados da API) **continua aberta**: sem o gage factor e a confirmação de 120 Ω / quarter-bridge, não dá pra configurar a task de strain corretamente.
-- 1024 Hz vale para **vibração**; falta a taxa dos ensaios de carga × deformação (provavelmente bem menor).
+- **Revisar a conversão:** o [ADR-002](adr/002-conversao-linear-e-contrato-da-porta.md) (linear `ganho·V+offset` fixo em config) é insuficiente. O modelo real é **calibração por pontos + tara** → [ADR-006](adr/006-calibracao-por-pontos.md). O linear vira caso particular (2 pontos).
+- **Aquisição contínua de longa duração** → [ADR-007](adr/007-aquisicao-continua.md). A leitura finita atual (lê N e para) não cobre monitoramento de meses.
+- **Task de strain (fatia futura):** quarter-bridge 120 Ω, **3 fios**, gage factor 2,14–2,16 configurável, conversão para **microstrain**, com **null** inicial.
+- **Compatibilidade Lynx:** AqDados (aquisição/calibração/gravação) e AqDAnalysis (tempo/frequência/filtros/relatórios) são a referência funcional. Vale alinhar o formato de arquivo para abrir nos dois.
 
 ---
 
-## Pendências
+## Rodada 3 — perguntas reservadas (a enviar)
 
-### 🔴 Bloqueiam a conversão (Fase 3)
-
-1. **Gage factor** dos extensômetros + confirmação de **120 Ω em quarter-bridge** (9235).
-2. **Fórmula volts→unidade** de cada canal de tensão (9205) — ou a folha/planilha de calibração de cada sensor.
-
-### Demais
-
-- 9235: quantos canais, o que cada um mede, comprimento dos cabos.
-- 9205: que sensor em cada canal; ligação **diferencial** ou **single-ended**.
-- Com qual sensor a **vibração (1024 Hz)** é medida — strain (9235) ou algo no 9205.
-- Taxa de amostragem dos ensaios de **carga × deformação**.
-- Duração típica de um ensaio e o que é um "resultado" a exibir/exportar.
-- Número do **IP fixo** do chassi *(quando vier, fica só no cofre privado — não versionar, repo pode ser público).*
+1. **Célula de carga:** a sua é de **saída em tensão** (condicionada/amplificada, ex. 0–10 V) ou de **ponte crua** (mV/V)? É o que define se liga no 9205 (que não excita).
+2. **Sensibilidade/faixa dos sensores** (para semear a calibração): acelerômetro (**mV/g**, faixa ±2G), LVDT (faixa em **mm** e **V/mm**), pressão (faixa **MPa** e **V/MPa**), célula (**kgf** e V).
+3. **Acelerômetro:** marca/modelo (no áudio soou "de tram") e sensibilidade exata.
+4. **Fiação no 9205:** **diferencial** ou **single-ended**?
+5. **Taxa dos ensaios lentos** (carga × deformação) — é bem menor que 1024 Hz? Quanto?
+6. **Formato de arquivo:** o AqDados/AqDAnalysis importa **CSV**? Que layout/extensão você precisa para abrir os dados lá?
+7. **Tara:** confirma que você **zera (null) cada canal no início** de todo ensaio?
 
 ---
 
-## Perguntas enviadas — Rodada 2 (21/06/2026)
+## Rodada 1 — 21/06/2026 (histórico)
 
-Reformuladas na linguagem do dono (engenharia/instrumentação), as duas críticas no topo:
-
-1. **9235 (strain gauge):** qual o **gage factor** dos extensômetros (número da caixa, tipo 2,0 / 2,1)? São de **120 Ω em 1/4 de ponte**?
-2. **9205 (tensão):** para cada sensor, **quando ele lê X volts equivale a quanto** na unidade real (ex.: 10 V = tantos kgf)? Ou a folha/planilha de calibração de cada um.
-3. **9235:** quantos canais e o que cada um mede? Cabos longos?
-4. **9205:** o que há em cada canal (célula de carga, deslocamento, pressão…)? Ligação **diferencial** ou **single-ended**?
-5. Os **1024 Hz** de vibração são medidos com qual sensor? E os ensaios de **carga × deformação**, qual taxa?
-6. **Duração** de um ensaio típico? O que precisa **ver/salvar** no fim (gráfico carga × deformação, valor máximo, planilha)?
-7. Número do **IP fixo** do chassi.
-
----
-
-## Para o dono confirmar
-
-Lista em linguagem do dono — marcar o que está certo ou corrigir:
-
-- [ ] O módulo **9235** é usado **só para strain gauge** (extensometria).
-- [ ] Os **dois 9205** são usados **só para ler tensão**; eles **não alimentam nem excitam** os sensores (os sensores de tensão são alimentados/condicionados por fora).
-- [ ] O chassi liga **direto no computador** (sem switch), com **IP fixo**.
-- [ ] A amostragem de **1024 Hz** é a usada nos ensaios de **vibração**.
+Confirmado: 9235 só strain; 2× 9205 só tensão (sem excitação); chassi direto no PC com IP fixo; vibração a 1024 Hz. Transcrições e detalhes preservados no histórico do git (commit `db48757`+).

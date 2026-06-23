@@ -125,29 +125,31 @@ Decisão registrada em [adr/001-arquitetura-porta-adaptador.md](adr/001-arquitet
 
 ---
 
-## 6. O que falta levantar com o dono do hardware (gargalo real, não o código)
+## 6. Levantamento com o dono do hardware (majoritariamente respondido)
 
-**9235 (strain):**
+> Detalhe completo, transcrições e o que ainda falta (rodada 3) em [respostas-tio.md](respostas-tio.md).
+> Resumo do que ficou definido (rodada 2, 22/06/2026):
 
-- O que cada canal mede fisicamente (qual peça / ponto de medição)?
-- Gage factor dos extensômetros usados?
-- São quarter-bridge 120 Ω (compatível com o módulo)?
-- Comprimento / resistência dos cabos (lead wire resistance)?
+**9235 (strain):** quarter-bridge **120 Ω**; **gage factor 2,14–2,16** (varia por lote →
+configurável); cabo longo usa **3 fios, 22 AWG** (compensação de lead wire); nº de canais varia
+por obra. Saída em **microstrain** (×1.000.000), com **null/tara** no início.
 
-**9205 (tensão):**
+**9205 (tensão):** **LVDT** (deslocamento) e **acelerômetro** (excitado por **5 V externos**,
+pois a placa não excita); também pressão (MPa) e carga (kgf). Célula de carga: o dono tem dúvida
+se liga (precisa de saída em tensão, não ponte crua). **Fiação diferencial/single-ended: ainda
+não dito.**
 
-- Que transdutor está em cada canal? (célula de carga 0–10 V? transdutor de pressão? termopar? tensão crua?)
-- **Fórmula de conversão volts → unidade de engenharia por canal** — o item mais importante de todos.
-- Fiação diferencial ou single-ended?
+**Conversão:** **não é fórmula fixa** — é **calibração empírica por pontos + tara**, como no
+AqDados/Lynx. Ver [ADR-006](adr/006-calibracao-por-pontos.md).
 
-**Ensaio:**
+**Ensaio:** vibração com **acelerômetro 2G a 1024 Hz**; carga × deformação a taxa baixa (não
+quantificada). Duração de **1 h a 1 ano contínuo** → exige aquisição contínua
+([ADR-007](adr/007-aquisicao-continua.md)).
 
-- Taxa de amostragem necessária (Hz) e duração típica de um ensaio?
-- O que é um "resultado" — o que precisa aparecer na tela, ser registrado e exportado?
+**Rede:** chassi **direto no PC, IP fixo** (número no cofre privado, fora do repo).
 
-**Rede:**
-
-- O cDAQ-9184 conecta direto no PC por Ethernet ou via switch/LAN? IP fixo ou DHCP? (afeta a descoberta no NI-MAX)
+**Ainda em aberto (rodada 3):** fiação do 9205, célula de carga, sensibilidades/faixas dos
+sensores, taxa dos ensaios lentos, formato de arquivo para compatibilidade com AqDados/AqDAnalysis.
 
 ---
 
