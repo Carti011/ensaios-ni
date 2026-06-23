@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito
+Aceito — **estendido por [ADR-006](006-calibracao-por-pontos.md)** (calibração por pontos + tara) e por [ADR-005](005-contrato-multicanal-da-porta.md) (contrato multi-canal). O `ganho·V + offset` deixa de ser o modelo único e passa a ser o caso particular de uma calibração de 2 pontos.
 
 ## Contexto
 

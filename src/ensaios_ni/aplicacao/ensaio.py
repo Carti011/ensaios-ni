@@ -13,12 +13,13 @@ def executar_ensaio(
     taxa_hz: float,
     caminho: Path,
 ) -> None:
-    """Lê cada canal configurado, converte para unidade de engenharia e grava em CSV."""
+    """Lê os canais configurados, converte para unidade de engenharia e grava em CSV."""
+    nomes = list(canais)
+    leituras = fonte.ler_tensao(nomes, amostras, taxa_hz)
     valores_por_canal: dict[str, list[float]] = {}
     unidades: dict[str, str] = {}
-    for nome in canais:
+    for nome in nomes:
         canal = canais[nome]
-        volts = fonte.ler_tensao(nome, amostras)
-        valores_por_canal[nome] = [converter(v, canal) for v in volts]
+        valores_por_canal[nome] = [converter(v, canal) for v in leituras[nome]]
         unidades[nome] = canal.unidade
     gravar_ensaio(caminho, valores_por_canal, taxa_hz, unidades)

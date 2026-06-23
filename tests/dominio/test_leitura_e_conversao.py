@@ -18,9 +18,9 @@ def test_le_tensao_do_fake_e_converte_para_unidade_de_engenharia(tmp_path):
     canais = carregar_canais(config)
     fake = AquisicaoFake(tensoes={"Mod1/ai0": [2.0]})
 
-    volts = fake.ler_tensao("Mod1/ai0", amostras=1)
+    leituras = fake.ler_tensao(["Mod1/ai0"], amostras=1, taxa_hz=100.0)
     canal = canais["Mod1/ai0"]
-    resultado = [converter(v, canal) for v in volts]
+    resultado = [converter(v, canal) for v in leituras["Mod1/ai0"]]
 
     # 2,0 V * 100 kgf/V + 0 = 200 kgf
     assert resultado == [200.0]

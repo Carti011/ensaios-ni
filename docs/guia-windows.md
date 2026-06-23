@@ -4,11 +4,11 @@ Este guia é para um **humano** colocar o projeto pra funcionar num computador W
 seja o do Weslley (com dispositivos simulados) ou o do tio (com o hardware de verdade).
 Não precisa saber programar. Siga na ordem.
 
-> **O que este projeto já faz hoje:** ele lê sinais, converte para a unidade certa
-> (kgf, bar, etc.) e grava num arquivo de planilha (CSV). A parte que conversa com o
-> hardware da National Instruments **ainda está sendo construída** (é a próxima etapa,
-> feita justamente no Windows). Então, por enquanto, no Windows dá pra **montar o
-> ambiente e rodar os testes** — ler o hardware de verdade vem logo em seguida.
+> **O que este projeto já faz hoje:** ele **lê a tensão** dos módulos NI 9205, converte
+> para a unidade configurada e grava num arquivo de planilha (CSV) — **já validado no
+> Windows com dispositivos simulados (22/06/2026)**. A leitura de **strain** (NI 9235) e a
+> **calibração por pontos** são as próximas etapas. No Windows dá pra montar o ambiente,
+> rodar os testes e executar a leitura de tensão de verdade.
 
 ---
 
@@ -29,15 +29,20 @@ Ele vai executar tudo e te avisar se faltar instalar o driver da NI. O resto des
 
 ### Passo 1 — Instalar o Python
 
+> **Importante: tem que ser Python 3.12 ou mais novo.** Versões antigas (ex.: 3.11)
+> bloqueiam a instalação da peça que fala com a NI (`nidaqmx`). Se já houver uma versão
+> antiga, instale a 3.12 por cima.
+
 1. Baixe o Python 3.12 (ou mais novo) em <https://www.python.org/downloads/>.
-2. No instalador, **marque a caixinha "Add Python to PATH"** antes de clicar em instalar.
+   - **Atalho (mais fácil):** no Prompt de Comando, rode `winget install Python.Python.3.12`.
+2. No instalador (se usar o site), **marque a caixinha "Add Python to PATH"** antes de instalar.
 3. Para conferir, abra o **Prompt de Comando** (tecla Windows → digite `cmd`) e rode:
 
    ```text
    python --version
    ```
 
-   Tem que aparecer algo como `Python 3.12.x`.
+   Tem que aparecer algo como `Python 3.12.x` (não pode ser 3.11 ou menor).
 
 ### Passo 2 — Instalar o driver da National Instruments
 
@@ -79,7 +84,7 @@ Rode os testes:
 pytest
 ```
 
-Se aparecer algo como **"19 passed"** (ou mais), o projeto está saudável nesta máquina.
+Se aparecer algo como **"30 passed"** (ou mais), o projeto está saudável nesta máquina.
 
 ### Passo 6 — Configurar os canais (o mapa dos sensores)
 

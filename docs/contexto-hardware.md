@@ -43,6 +43,7 @@ Documento fonte-da-verdade do hardware. Objetivo do projeto: substituir LabVIEW/
 - **Tensão e strain são tipos diferentes → tasks separadas.** Não misturar `add_ai_voltage_chan` com `add_ai_strain_gage_chan` na mesma task.
 - Os **dois 9205 podem compartilhar uma única task** (mesmo tipo de medição, mesmo chassi, mesmo sample clock). O **9235 fica em task própria**.
 - Se os ensaios exigem todos os canais alinhados no tempo, sincroniza-se as duas tasks compartilhando o sample clock / start trigger do chassi. Para o MVP, rodar uma de cada vez já basta.
+- **No cDAQ-9184 (Ethernet), o 9235 (delta-sigma) exige `cfg_samp_clk_timing` explícito — leitura on-demand (`task.read()` sem timing) falha.** Os 9205 toleraram on-demand no mesmo chassi, mas ambas as tasks devem configurar sample clock por consistência. _Descoberto na validação com dispositivos simulados no NI-MAX (22/06/2026)._
 
 ---
 
@@ -124,29 +125,31 @@ Decisão registrada em [adr/001-arquitetura-porta-adaptador.md](adr/001-arquitet
 
 ---
 
-## 6. O que falta levantar com o dono do hardware (gargalo real, não o código)
+## 6. Levantamento com o dono do hardware (majoritariamente respondido)
 
-**9235 (strain):**
+> Detalhe completo, transcrições e o que ainda falta (rodada 3) em [respostas-tio.md](respostas-tio.md).
+> Resumo do que ficou definido (rodada 2, 22/06/2026):
 
-- O que cada canal mede fisicamente (qual peça / ponto de medição)?
-- Gage factor dos extensômetros usados?
-- São quarter-bridge 120 Ω (compatível com o módulo)?
-- Comprimento / resistência dos cabos (lead wire resistance)?
+**9235 (strain):** quarter-bridge **120 Ω**; **gage factor 2,14–2,16** (varia por lote →
+configurável); cabo longo usa **3 fios, 22 AWG** (compensação de lead wire); nº de canais varia
+por obra. Saída em **microstrain** (×1.000.000), com **null/tara** no início.
 
-**9205 (tensão):**
+**9205 (tensão):** **LVDT** (deslocamento) e **acelerômetro** (excitado por **5 V externos**,
+pois a placa não excita); também pressão (MPa) e carga (kgf). Célula de carga: o dono tem dúvida
+se liga (precisa de saída em tensão, não ponte crua). **Fiação diferencial/single-ended: ainda
+não dito.**
 
-- Que transdutor está em cada canal? (célula de carga 0–10 V? transdutor de pressão? termopar? tensão crua?)
-- **Fórmula de conversão volts → unidade de engenharia por canal** — o item mais importante de todos.
-- Fiação diferencial ou single-ended?
+**Conversão:** **não é fórmula fixa** — é **calibração empírica por pontos + tara**, como no
+AqDados/Lynx. Ver [ADR-006](adr/006-calibracao-por-pontos.md).
 
-**Ensaio:**
+**Ensaio:** vibração com **acelerômetro 2G a 1024 Hz**; carga × deformação a taxa baixa (não
+quantificada). Duração de **1 h a 1 ano contínuo** → exige aquisição contínua
+([ADR-007](adr/007-aquisicao-continua.md)).
 
-- Taxa de amostragem necessária (Hz) e duração típica de um ensaio?
-- O que é um "resultado" — o que precisa aparecer na tela, ser registrado e exportado?
+**Rede:** chassi **direto no PC, IP fixo** (número no cofre privado, fora do repo).
 
-**Rede:**
-
-- O cDAQ-9184 conecta direto no PC por Ethernet ou via switch/LAN? IP fixo ou DHCP? (afeta a descoberta no NI-MAX)
+**Ainda em aberto (rodada 3):** fiação do 9205, célula de carga, sensibilidades/faixas dos
+sensores, taxa dos ensaios lentos, formato de arquivo para compatibilidade com AqDados/AqDAnalysis.
 
 ---
 
@@ -159,8 +162,8 @@ Decisão registrada em [adr/001-arquitetura-porta-adaptador.md](adr/001-arquitet
 
 ## 8. Plano em fases
 
-0. **Ambiente (Windows do dev):** instalar NI-DAQmx + NI-MAX; criar dispositivos simulados (cDAQ-9184 + 2× 9205 + 1× 9235); `pip install nidaqmx`; rodar o snippet de listar dispositivos.
-1. **Prova de vida (simulado):** ler canais de tensão e de strain dos dispositivos simulados e imprimir. Valida a API sem hardware.
+0. **Ambiente (Windows do dev):** instalar NI-DAQmx + NI-MAX; criar dispositivos simulados (cDAQ-9184 + 2× 9205 + 1× 9235); `pip install nidaqmx`; rodar o snippet de listar dispositivos. ✅ **Concluída (22/06/2026)** — simulados `cDAQ1` + `cDAQ1Mod1`/`Mod2` (9205) + `cDAQ1Mod3` (9235); Python enxerga todos via `nidaqmx`. _Nomes são do simulado; no hardware real serão outros (ex.: `cDAQ9184-1820306Mod1`)._
+1. **Prova de vida (simulado):** ler canais de tensão e de strain dos dispositivos simulados e imprimir. Valida a API sem hardware. ✅ **Concluída (22/06/2026)** — 9205 e 9235 lidos via `nidaqmx`; ver descoberta do clock explícito no §3.
 2. **Camada de aquisição:** task de tensão (os dois 9205), task de strain (9235 com os parâmetros corretos), aquisição contínua, gravação em CSV.
 3. **Conversão + dashboard:** aplicar conversão para unidade de engenharia; construir a visualização.
 4. **Validação real (no hardware):** trocar nomes simulados pelos reais, validar contra NI-MAX, calibrar/zerar a extensometria com apoio do dono do hardware.

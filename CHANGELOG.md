@@ -22,3 +22,10 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - ADR-004 — camada de aplicação (caso de uso `executar_ensaio`) e ponto de entrada de demonstração.
 - Guia de instalação no Windows para humano (`docs/guia-windows.md`), com trilha para quem tem Claude Code e para quem não tem.
 - Seções no `CLAUDE.md`: regras essenciais auto-suficientes (válidas sem o CLAUDE.md global) e runbook de onboarding no Windows.
+- Adaptador real `aquisicao/daqmx.py` para leitura de tensão (9205): monta a task, configura sample clock explícito e normaliza o retorno em `dict[canal -> list]`; import `nidaqmx` lazy, testado no Mac via mock (`sys.modules`).
+- Ponto de entrada de produção: `python -m ensaios_ni` agora aceita `--fonte {fake,daqmx}`, `--config`, `--taxa`, `--amostras` e `--saida` (argparse), permitindo rodar a leitura real no Windows sem editar código.
+- ADR-005 — contrato multi-canal da porta, adaptador DAQmx de tensão, aquisição finita e estratégia de teste por mock.
+
+### Alterado
+
+- Contrato da porta `FonteDeAquisicao.ler_tensao` passou a ser **multi-canal com taxa**: `ler_tensao(canais, amostras, taxa_hz) -> dict[str, list[float]]`. Lê todos os canais numa única task sob o mesmo sample clock, mantendo-os alinhados no tempo (necessário para carga × deformação e FFT). O fake e o caso de uso `executar_ensaio` foram adaptados.

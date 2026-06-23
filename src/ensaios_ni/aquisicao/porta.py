@@ -9,6 +9,13 @@ class FonteDeAquisicao(ABC):
     """
 
     @abstractmethod
-    def ler_tensao(self, canal: str, amostras: int) -> list[float]:
-        """Lê `amostras` de tensão (volts brutos) do canal físico informado."""
+    def ler_tensao(
+        self, canais: list[str], amostras: int, taxa_hz: float
+    ) -> dict[str, list[float]]:
+        """Lê `amostras` de tensão (volts brutos) dos canais informados.
+
+        Lê todos os canais numa única task, amostrados pelo mesmo sample clock
+        (`taxa_hz`), para que fiquem alinhados no tempo. Devolve um dicionário
+        canal → lista de volts.
+        """
         ...
