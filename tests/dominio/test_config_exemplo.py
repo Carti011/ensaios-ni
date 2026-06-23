@@ -11,4 +11,10 @@ def test_config_exemplo_carrega_e_e_valido():
     for nome in canais:
         canal = canais[nome]
         assert canal.unidade
-        assert isinstance(canal.ganho, float)
+        # cada canal é por pontos OU linear (ganho/offset)
+        assert canal.pontos is not None or isinstance(canal.ganho, float)
+
+
+def test_config_exemplo_tem_canal_calibrado_por_pontos():
+    canais = carregar_canais(EXEMPLO)
+    assert any(canais[nome].pontos is not None for nome in canais)
