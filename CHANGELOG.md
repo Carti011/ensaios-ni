@@ -25,6 +25,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - Adaptador real `aquisicao/daqmx.py` para leitura de tensão (9205): monta a task, configura sample clock explícito e normaliza o retorno em `dict[canal -> list]`; import `nidaqmx` lazy, testado no Mac via mock (`sys.modules`).
 - Ponto de entrada de produção: `python -m ensaios_ni` agora aceita `--fonte {fake,daqmx}`, `--config`, `--taxa`, `--amostras` e `--saida` (argparse), permitindo rodar a leitura real no Windows sem editar código.
 - ADR-005 — contrato multi-canal da porta, adaptador DAQmx de tensão, aquisição finita e estratégia de teste por mock.
+- Calibração por pontos no domínio (`pontos = [[volts, valor], ...]` por canal): interpolação linear por segmento e **clamp** fora da faixa, espelhando a *Table scale* do NI-DAQmx. O `ganho/offset` linear segue valendo como fallback (caso de 2 pontos).
+- Tara (zero) por canal no domínio: `calcular_tara` tira a média do repouso na unidade de engenharia e `converter(..., tara=)` a subtrai — à la "Zero Channel" do FlexLogger; em repouso a leitura tarada é zero mesmo com escala deslocada.
+- ADR-006 (Aceito) — calibração por pontos e tara, com as 3 decisões de design fundamentadas no comportamento do FlexLogger/DAQmx.
+- ADR-008 — paridade funcional com o FlexLogger (norte de design); `docs/referencia-flexlogger.md` com a pesquisa e fontes.
+- `config/canais.exemplo.toml` ganhou um canal calibrado por pontos (LVDT fictício) e documentação das duas formas de conversão.
 
 ### Alterado
 

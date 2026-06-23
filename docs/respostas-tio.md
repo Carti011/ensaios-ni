@@ -57,13 +57,26 @@ Transcrito local com `mlx-whisper` (`large-v3-turbo`). Trechos óbvios corrigido
 
 ## Rodada 3 — perguntas reservadas (a enviar)
 
+> **Nota (23/06/2026):** a pesquisa do FlexLogger/DAQmx fechou o **comportamento** do software
+> (escala por tabela de pontos + linear, clamp na leitura, tara estilo "Zero Channel" — ver
+> [referencia-flexlogger.md](referencia-flexlogger.md) e [ADR-008](adr/008-paridade-funcional-flexlogger.md)).
+> O que falta do tio são **números reais** e **confirmações de fluxo** — não mais "como decidir".
+
+**Sobre os sensores (semente das tabelas de calibração):**
+
 1. **Célula de carga:** a sua é de **saída em tensão** (condicionada/amplificada, ex. 0–10 V) ou de **ponte crua** (mV/V)? É o que define se liga no 9205 (que não excita).
-2. **Sensibilidade/faixa dos sensores** (para semear a calibração): acelerômetro (**mV/g**, faixa ±2G), LVDT (faixa em **mm** e **V/mm**), pressão (faixa **MPa** e **V/MPa**), célula (**kgf** e V).
+2. **Sensibilidade/faixa de cada sensor:** acelerômetro (**mV/g**, faixa ±2G), LVDT (faixa em **mm** e **V/mm**), pressão (faixa **MPa** e **V/MPa**), célula (**kgf** e V).
 3. **Acelerômetro:** marca/modelo (no áudio soou "de tram") e sensibilidade exata.
 4. **Fiação no 9205:** **diferencial** ou **single-ended**?
 5. **Taxa dos ensaios lentos** (carga × deformação) — é bem menor que 1024 Hz? Quanto?
-6. **Formato de arquivo:** o AqDados/AqDAnalysis importa **CSV**? Que layout/extensão você precisa para abrir os dados lá?
-7. **Tara:** confirma que você **zera (null) cada canal no início** de todo ensaio?
+
+**Sobre o fluxo (confirmar que replicamos o FlexLogger certo):**
+
+1. **Calibração por pontos:** quando você monta a curva no AqDados, são **quantos pontos** por sensor, em média? Os pontos são **(volts, valor)** mesmo, ou você anota outra coisa?
+2. **Tara:** confirma que você **zera (null) cada canal no início** de todo ensaio? Por quantos segundos/amostras você lê o repouso antes de declarar o zero?
+3. **Fora da faixa:** quando o sinal passa do maior ponto calibrado durante o ensaio, o que você espera ver — o valor **travado no máximo** (como o FlexLogger faz) ou a leitura **continuando além**? E a limpeza de pontos impossíveis você faz **depois**, na análise?
+4. **Formato de arquivo:** o AqDados/AqDAnalysis importa **CSV**? Que **layout/extensão** você precisa para abrir os dados lá (cabeçalho, separador, coluna de tempo)?
+5. **FlexLogger hoje:** tem alguma tela/recurso dele que você usa **toda hora** e faria falta? (pra não esquecermos no nosso.)
 
 ---
 

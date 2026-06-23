@@ -2,7 +2,8 @@
 
 ## Status
 
-Proposto
+Aceito (decisões de design fechadas em 23/06/2026, fundamentadas na pesquisa do FlexLogger/DAQmx —
+ver [referencia-flexlogger.md](../referencia-flexlogger.md) e [ADR-008](008-paridade-funcional-flexlogger.md))
 
 ## Contexto
 
@@ -36,6 +37,28 @@ um **offset de zero dinâmico** (a tara), e não um par fixo de coeficientes har
 - A calibração e a tara vivem no **domínio** (testáveis no Mac, sem `nidaqmx`); a aquisição
   continua devolvendo volts brutos (ADR-002/005 seguem valendo nesse ponto).
 
+### Decisões de design fechadas (23/06/2026)
+
+A pesquisa do FlexLogger/NI-DAQmx fundamentou as três decisões que estavam abertas. Em todas, a
+escolha é **fazer como o FlexLogger** (que é o padrão das Custom Scales do DAQmx — ver
+[referencia-flexlogger.md](../referencia-flexlogger.md)):
+
+- **(a) Formato na config** — `pontos = [[volts, valor], ...]` por canal; **na ausência**, cai pro
+  `ganho`/`offset` linear do ADR-002. Equivale às escalas **Table** e **Linear** do DAQmx, que o
+  FlexLogger expõe lado a lado. Dois pontos = a reta atual. Retrocompatível.
+- **(b) Fora da faixa de calibração** — **clamp** (satura no ponto extremo mais próximo),
+  espelhando o *"Read operations will clip samples outside the table"* do DAQmx. **Não** é
+  extrapolação nem erro. Distinto de **remoção de outliers**, que é etapa de análise/pós-
+  processamento (futura, estilo AqDAnalysis), não da conversão.
+- **(c) Tara (null)** — replica o **"Zero Channel"** do FlexLogger: lê N amostras de repouso,
+  calcula a **média** e a subtrai como zero. Operação **separada da calibração**, opcional por
+  canal, no domínio.
+
+### Modelo de interpolação
+
+Interpolação **linear por segmento** entre pontos (igual à Table scale do DAQmx). Polinômio/spline
+fica reservado para quando houver pontos reais que justifiquem.
+
 ## Consequências
 
 **Melhora:**
@@ -48,8 +71,8 @@ um **offset de zero dinâmico** (a tara), e não um par fixo de coeficientes har
 
 - Exige uma **UX de calibração** (capturar pontos aplicando carga conhecida) — provavelmente
   parte da Fase 3 (dashboard) ou um modo de CLI dedicado. Maior esforço que o linear.
-- Estratégia de **interpolação** (linear por segmento vs. polinomial/spline) ainda não decidida;
-  resolver quando houver pontos reais de calibração do dono.
+- ~~Estratégia de **interpolação** ainda não decidida~~ → **decidida: linear por segmento** (Table
+  scale do DAQmx). Polinômio/spline só se pontos reais justificarem.
 - Persistência da **tabela de calibração** e do **valor de tara** por ensaio (rastreabilidade)
   ainda a definir.
 - Falta confirmar com o dono o **formato de arquivo** para compatibilidade com AqDados/AqDAnalysis.
