@@ -18,6 +18,8 @@ def _parse_args(argv):
                         help="canais.toml (obrigatório com --fonte daqmx)")
     parser.add_argument("--taxa", type=float, default=100.0, help="taxa de amostragem em Hz")
     parser.add_argument("--amostras", type=int, default=100, help="amostras por canal")
+    parser.add_argument("--amostras-tara", type=int, default=0,
+                        help="amostras de repouso para tara/zero por canal (0 = sem tara)")
     parser.add_argument("--saida", type=Path, default=Path("ensaio-demo.csv"))
     return parser.parse_args(argv)
 
@@ -33,7 +35,10 @@ def main(argv=None) -> None:
         if args.config is None:
             raise SystemExit("--config é obrigatório com --fonte daqmx")
         canais = carregar_canais(args.config)
-        executar_ensaio(AdaptadorDaqmx(), canais, args.amostras, args.taxa, args.saida)
+        executar_ensaio(
+            AdaptadorDaqmx(), canais, args.amostras, args.taxa, args.saida,
+            amostras_tara=args.amostras_tara,
+        )
 
     print(f"Ensaio gravado em: {args.saida.resolve()}")
 

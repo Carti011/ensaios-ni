@@ -1,22 +1,49 @@
 # Mapeamento de canal físico -> conversão para unidade de engenharia.
 #
 # Copie para `config/canais.toml` (ignorado no git) e preencha com os
-# coeficientes REAIS fornecidos pelo dono do hardware. O nome de cada canal
+# valores REAIS fornecidos pelo dono do hardware. O nome de cada canal
 # (ex.: "cDAQ9184-1820306Mod1/ai0") vem do NI-MAX.
 #
-# Conversão atual: linear -> valor = ganho * volts + offset
-# Sensores não-lineares (termopar, strain) virão depois; ver docs/adr/002.
+# Duas formas de conversão por canal (espelham as Custom Scales do NI-DAQmx):
+#   - linear:    valor = ganho * volts + offset        (sensor com sensibilidade conhecida)
+#   - por pontos: pontos = [[volts, valor], ...]        (calibração empírica do dono; ADR-006)
+# Use uma OU outra. Fora da faixa dos pontos, a leitura é saturada (clamp).
+# Ver docs/adr/006-calibracao-por-pontos.md e docs/referencia-flexlogger.md.
 
-# célula de carga fictícia: 0 V = 0 kgf, 10 V = 1000 kgf
+# célula de carga fictícia (linear): 0 V = 0 kgf, 10 V = 1000 kgf
 [canais."Mod1/ai0"]
 tipo = "tensao"
 unidade = "kgf"
 ganho = 100.0
 offset = 0.0
 
-# transdutor de pressão fictício: 0 V = 0 bar, 10 V = 250 bar
+# transdutor de pressão fictício (linear): 0 V = 0 bar, 10 V = 250 bar
 [canais."Mod1/ai1"]
 tipo = "tensao"
 unidade = "bar"
 ganho = 25.0
 offset = 0.0
+
+# LVDT fictício calibrado por pontos (curva não-linear montada aplicando deslocamento conhecido)
+[canais."Mod2/ai0"]
+tipo = "tensao"
+unidade = "mm"
+pontos = [[0.0, 0.0], [2.5, 20.0], [5.0, 50.0], [7.5, 90.0]]
+
+# Acelerômetro Dytran 7523A1 (real, do dono): triaxial DC-response, 550 mV/g, ±2g, 5 V DC.
+# Liga no 9205 como tensão; conversão g = volts / 0,550 (ganho ≈ 1,818 g/V).
+# Exemplo (comentado — sensor por eixo, descomentar ao usar):
+# [canais."Mod1/ai2"]
+# tipo = "tensao"
+# unidade = "g"
+# ganho = 1.818
+# offset = 0.0
+
+# Strain (9235): o driver já devolve strain adimensional (gage factor/ponte aplicados pelo
+# DAQmx — ver ConfigStrain em aquisicao/daqmx.py). Para microstrain, basta um canal linear
+# com ganho 1.000.000. Exemplo (comentado até a leitura de strain entrar no fluxo de ensaio):
+# [canais."Mod3/ai0"]
+# tipo = "strain"
+# unidade = "µε"
+# ganho = 1000000.0
+# offset = 0.0

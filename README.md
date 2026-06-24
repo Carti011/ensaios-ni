@@ -4,7 +4,13 @@ Software de aquisição de dados para hardware **National Instruments** (chassi 
 
 O programa é **config-driven**: o que muda de um ensaio para outro (quais canais, quais sensores, qual conversão) vive em arquivo de configuração, não no código. Medir um prédio, uma ponte ou uma peça é o **mesmo programa** lendo um `config/canais.toml` diferente.
 
-> **Status: Fase 2 (aquisição de tensão) — validada no Windows.** Porta `FonteDeAquisicao` (multi-canal, com taxa), adaptador `fake`, conversão volts→unidade e persistência CSV rodam no Mac sem `nidaqmx`. O adaptador real `daqmx` **lê tensão (9205)** e foi **validado no Windows com dispositivos simulados (22/06/2026)**. Próxima fatia: **calibração por pontos** (ADR-006); strain (9235) na sequência. Ver `CLAUDE.md`, `CONTEXT.md` e `docs/`.
+> **Status: aquisição de tensão e strain prontas no backend; domínio de calibração completo.**
+> Porta `FonteDeAquisicao` (multi-canal, com taxa) com `ler_tensao` e `ler_strain`; adaptadores
+> `fake` e `daqmx`. A tensão (9205) foi **validada no Windows com dispositivos simulados
+> (22/06/2026)**; o **strain (9235)** lê com os parâmetros corretos (quarter-bridge 120 Ω / 2,0 V),
+> testado por mock. Conversão volts→unidade por **calibração por pontos + linear**, **tara** e
+> persistência CSV — tudo no Mac sem `nidaqmx`. Próximo: **integrar tensão + strain no fluxo de
+> ensaio** e a **aquisição contínua** (ADR-007). Ver `CLAUDE.md`, `CONTEXT.md` e `docs/`.
 
 ## Pré-requisitos
 
@@ -81,9 +87,10 @@ ensaios-ni/
 │   └── canais.exemplo.toml      # modelo do mapeamento canal → conversão
 ├── docs/                        # contexto de hardware + ADRs
 ├── src/ensaios_ni/
-│   ├── dominio/                 # Canal, conversão volts→unidade, erros (testável no Mac)
-│   ├── aquisicao/               # porta + adaptadores (fake / daqmx)
-│   ├── persistencia/            # CSV (Fase 2)
-│   └── apresentacao/            # dashboard (Fase 3)
-└── tests/                       # dominio / aquisicao / arquitetura
+│   ├── dominio/                 # Canal, conversão (pontos/linear), tara, erros (testável no Mac)
+│   ├── aquisicao/               # porta + adaptadores (fake / daqmx: tensão e strain)
+│   ├── persistencia/            # CSV
+│   ├── aplicacao/               # caso de uso executar_ensaio + demonstração
+│   └── __main__.py              # CLI de produção (--fonte, --config, --amostras-tara…)
+└── tests/                       # dominio / aquisicao / aplicacao / arquitetura
 ```
