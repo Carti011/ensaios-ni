@@ -1,7 +1,7 @@
 import sys
 import types
 
-from ensaios_ni.aquisicao.daqmx import AdaptadorDaqmx
+from ensaios_ni.aquisicao.daqmx import AdaptadorDaqmx, ConfigStrain
 
 
 class _TaskFake:
@@ -26,6 +26,9 @@ class _TaskFake:
     def add_ai_voltage_chan(self, canal, **kwargs):
         self._registro["canais"].append((canal, kwargs))
 
+    def add_ai_strain_gage_chan(self, canal, **kwargs):
+        self._registro["strain"].append((canal, kwargs))
+
     def cfg_samp_clk_timing(self, **kwargs):
         self._registro["timing"].append(kwargs)
 
@@ -35,12 +38,17 @@ class _TaskFake:
 
 
 def _instalar_nidaqmx_fake(monkeypatch, dados):
-    registro = {"canais": [], "timing": [], "read": []}
+    registro = {"canais": [], "strain": [], "timing": [], "read": []}
     nidaqmx_mod = types.ModuleType("nidaqmx")
     nidaqmx_mod.Task = lambda: _TaskFake(registro, dados)
     constantes = types.ModuleType("nidaqmx.constants")
     constantes.AcquisitionType = types.SimpleNamespace(FINITE="FINITE", CONTINUOUS="CONTINUOUS")
     constantes.TerminalConfiguration = types.SimpleNamespace(DIFF="DIFF", RSE="RSE")
+    constantes.StrainGageBridgeType = types.SimpleNamespace(
+        QUARTER_BRIDGE_I="QUARTER_BRIDGE_I", FULL_BRIDGE_I="FULL_BRIDGE_I"
+    )
+    constantes.ExcitationSource = types.SimpleNamespace(INTERNAL="INTERNAL", EXTERNAL="EXTERNAL")
+    constantes.StrainUnits = types.SimpleNamespace(STRAIN="STRAIN")
     nidaqmx_mod.constants = constantes
     monkeypatch.setitem(sys.modules, "nidaqmx", nidaqmx_mod)
     monkeypatch.setitem(sys.modules, "nidaqmx.constants", constantes)
@@ -81,3 +89,52 @@ def test_adiciona_um_canal_de_tensao_por_canal_pedido_com_a_faixa(monkeypatch):
     _, kwargs = registro["canais"][0]
     assert kwargs["min_val"] == -5.0
     assert kwargs["max_val"] == 5.0
+
+
+def test_le_strain_um_canal_normaliza_lista_simples(monkeypatch):
+    _instalar_nidaqmx_fake(monkeypatch, dados=[1e-4, 2e-4, 3e-4])
+    leituras = AdaptadorDaqmx().ler_strain(["cDAQ1Mod3/ai0"], amostras=3, taxa_hz=1024.0)
+    assert leituras == {"cDAQ1Mod3/ai0": [1e-4, 2e-4, 3e-4]}
+
+
+def test_le_strain_varios_canais_normaliza_lista_de_listas(monkeypatch):
+    _instalar_nidaqmx_fake(monkeypatch, dados=[[1e-4, 2e-4], [3e-4, 4e-4]])
+    leituras = AdaptadorDaqmx().ler_strain(
+        ["cDAQ1Mod3/ai0", "cDAQ1Mod3/ai1"], amostras=2, taxa_hz=1024.0
+    )
+    assert leituras == {"cDAQ1Mod3/ai0": [1e-4, 2e-4], "cDAQ1Mod3/ai1": [3e-4, 4e-4]}
+
+
+def test_strain_usa_parametros_do_9235_nunca_os_defaults_da_api(monkeypatch):
+    # ARMADILHA PRINCIPAL DO PROJETO: defaults da API (full-bridge 350 Ω / 2,5 V) dão
+    # número plausível e ERRADO sem lançar erro. Este teste trava isso.
+    registro = _instalar_nidaqmx_fake(monkeypatch, dados=[1e-4])
+    AdaptadorDaqmx().ler_strain(["cDAQ1Mod3/ai0"], amostras=1, taxa_hz=1024.0)
+
+    assert registro["strain"], "add_ai_strain_gage_chan não foi chamado"
+    _, kwargs = registro["strain"][0]
+    assert kwargs["strain_config"] == "QUARTER_BRIDGE_I"   # nunca FULL_BRIDGE
+    assert kwargs["nominal_gage_resistance"] == 120.0       # nunca 350
+    assert kwargs["voltage_excit_val"] == 2.0               # nunca 2,5
+    assert kwargs["voltage_excit_source"] == "INTERNAL"
+    assert kwargs["units"] == "STRAIN"
+    assert kwargs["gage_factor"] == 2.15                    # default seguro (configurável)
+
+
+def test_strain_aceita_gage_factor_configuravel(monkeypatch):
+    registro = _instalar_nidaqmx_fake(monkeypatch, dados=[1e-4])
+    adaptador = AdaptadorDaqmx(config_strain=ConfigStrain(gage_factor=2.14, lead_wire_resistance=1.2))
+    adaptador.ler_strain(["cDAQ1Mod3/ai0"], amostras=1, taxa_hz=1024.0)
+
+    _, kwargs = registro["strain"][0]
+    assert kwargs["gage_factor"] == 2.14
+    assert kwargs["lead_wire_resistance"] == 1.2
+
+
+def test_strain_configura_sample_clock(monkeypatch):
+    # guarda contra regressão pro on-demand (que falha no 9235 no chassi Ethernet)
+    registro = _instalar_nidaqmx_fake(monkeypatch, dados=[1e-4])
+    AdaptadorDaqmx().ler_strain(["cDAQ1Mod3/ai0"], amostras=1, taxa_hz=1024.0)
+    assert registro["timing"], "cfg_samp_clk_timing não foi chamado no strain"
+    assert registro["timing"][0]["rate"] == 1024.0
+    assert registro["timing"][0]["samps_per_chan"] == 1

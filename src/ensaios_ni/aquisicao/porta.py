@@ -19,3 +19,15 @@ class FonteDeAquisicao(ABC):
         canal → lista de volts.
         """
         ...
+
+    @abstractmethod
+    def ler_strain(
+        self, canais: list[str], amostras: int, taxa_hz: float
+    ) -> dict[str, list[float]]:
+        """Lê `amostras` de strain (adimensional) dos canais informados.
+
+        Task separada da tensão (tipo de medição diferente). O driver já aplica
+        gage factor e ponte, devolvendo strain adimensional; a conversão para
+        microstrain (×1.000.000) é do domínio. Devolve canal → lista de strain.
+        """
+        ...

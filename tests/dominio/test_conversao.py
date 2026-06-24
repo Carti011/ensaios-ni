@@ -57,3 +57,11 @@ def test_em_repouso_a_leitura_tarada_e_zero_mesmo_com_offset():
     repouso = [0.1, 0.1, 0.1]
     tara = calcular_tara(repouso, canal)
     assert converter(0.1, canal, tara=tara) == 0.0
+
+
+def test_strain_adimensional_vira_microstrain_com_ganho_milhao():
+    # o driver (9235) devolve strain adimensional; microstrain = strain * 1e6,
+    # ou seja, um canal linear com ganho 1.000.000 (sem código de domínio novo)
+    canal = Canal(nome="Mod3/ai0", tipo="strain", unidade="µε", ganho=1_000_000.0, offset=0.0)
+    assert converter(1.5e-4, canal) == 150.0
+    assert converter(-5e-5, canal) == -50.0

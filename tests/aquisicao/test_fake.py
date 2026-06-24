@@ -41,3 +41,16 @@ def test_taxa_nao_positiva_falha():
     fake = AquisicaoFake(tensoes={"Mod1/ai0": [1.0]})
     with pytest.raises(ValueError, match="taxa_hz"):
         fake.ler_tensao(["Mod1/ai0"], amostras=1, taxa_hz=0.0)
+
+
+def test_ler_strain_devolve_strain_sintetico_por_canal():
+    # strain é adimensional (o driver real já aplica gage factor/ponte)
+    fake = AquisicaoFake(strains={"Mod3/ai0": [1e-4, 2e-4, 3e-4]})
+    leituras = fake.ler_strain(["Mod3/ai0"], amostras=2, taxa_hz=1024.0)
+    assert leituras == {"Mod3/ai0": [1e-4, 2e-4]}
+
+
+def test_canal_sem_dados_de_strain_no_fake_falha_claro():
+    fake = AquisicaoFake(strains={"Mod3/ai0": [1e-4]})
+    with pytest.raises(ValueError, match="Mod3/ai9"):
+        fake.ler_strain(["Mod3/ai9"], amostras=1, taxa_hz=1024.0)
