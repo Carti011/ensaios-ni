@@ -134,10 +134,11 @@ Decisão registrada em [adr/001-arquitetura-porta-adaptador.md](adr/001-arquitet
 configurável); cabo longo usa **3 fios, 22 AWG** (compensação de lead wire); nº de canais varia
 por obra. Saída em **microstrain** (×1.000.000), com **null/tara** no início.
 
-**9205 (tensão):** **LVDT** (deslocamento) e **acelerômetro** (excitado por **5 V externos**,
-pois a placa não excita); também pressão (MPa) e carga (kgf). Célula de carga: o dono tem dúvida
-se liga (precisa de saída em tensão, não ponte crua). **Fiação diferencial/single-ended: ainda
-não dito.**
+**9205 (tensão):** **LVDT** (deslocamento) e **acelerômetro** (alimentado por **5 V externos**,
+pois a placa não excita); também pressão (MPa) e carga (kgf). Célula de carga: liga via
+condicionador com **saída em tensão** (não ponte crua). **Fiação: diferencial** (confirmado pelo
+dono, 23/06). **Acelerômetro: Dytran 7523A1** (triaxial DC-response/capacitivo) — **550 mV/g, ±2g,
+0–1500 Hz, 5 V DC**; vira canal de tensão com ganho ≈ 1,818 g/V.
 
 **Conversão:** **não é fórmula fixa** — é **calibração empírica por pontos + tara**, como no
 AqDados/Lynx. Ver [ADR-006](adr/006-calibracao-por-pontos.md).

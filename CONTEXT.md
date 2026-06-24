@@ -23,7 +23,7 @@ Termos físicos (hardware/extensometria) e termos de software (arquitetura).
 - **Zero Channel** — nome do botão de **tara** no FlexLogger: lê um buffer, tira a média e grava como offset da escala. É a tara da aplicação, **separada** do nulling de ponte do driver (esse é o `initial_bridge_voltage` do strain).
 - **Unidade de engenharia** — o número que importa pro dono (microstrain, kgf, mm, MPa…). Resultado da **conversão/calibração** aplicada sobre tensão/strain crus.
 - **LVDT** — sensor de **deslocamento** (mm), lido como tensão no 9205.
-- **Acelerômetro** — sensor de **vibração** (aceleração), sensibilidade 2G, alimentado por 5 V externos, lido no 9205. É o sensor da vibração a 1024 Hz.
+- **Acelerômetro** — sensor de **vibração** (aceleração), lido como tensão no 9205. Modelo do dono: **Dytran 7523A1** (triaxial DC-response/capacitivo), **550 mV/g**, **±2g**, 0–1500 Hz, **5 V DC** de alimentação. Conversão: ganho ≈ 1,818 g/V. É o sensor da vibração a 1024 Hz.
 - **Célula de carga** — sensor de **força** (kgf). Só liga no 9205 se tiver saída em tensão condicionada (a placa não excita ponte crua) — a confirmar com o dono.
 - **Ensaio** — uma sessão de medição com começo, fim e propósito físico. Dura de 1 h a **1 ano contínuo** (monitoramento). O "resultado" que precisa ser registrado e exibido.
 

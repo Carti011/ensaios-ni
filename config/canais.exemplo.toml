@@ -30,6 +30,15 @@ tipo = "tensao"
 unidade = "mm"
 pontos = [[0.0, 0.0], [2.5, 20.0], [5.0, 50.0], [7.5, 90.0]]
 
+# Acelerômetro Dytran 7523A1 (real, do dono): triaxial DC-response, 550 mV/g, ±2g, 5 V DC.
+# Liga no 9205 como tensão; conversão g = volts / 0,550 (ganho ≈ 1,818 g/V).
+# Exemplo (comentado — sensor por eixo, descomentar ao usar):
+# [canais."Mod1/ai2"]
+# tipo = "tensao"
+# unidade = "g"
+# ganho = 1.818
+# offset = 0.0
+
 # Strain (9235): o driver já devolve strain adimensional (gage factor/ponte aplicados pelo
 # DAQmx — ver ConfigStrain em aquisicao/daqmx.py). Para microstrain, basta um canal linear
 # com ganho 1.000.000. Exemplo (comentado até a leitura de strain entrar no fluxo de ensaio):
