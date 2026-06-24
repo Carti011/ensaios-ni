@@ -30,6 +30,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - ADR-006 (Aceito) — calibração por pontos e tara, com as 3 decisões de design fundamentadas no comportamento do FlexLogger/DAQmx.
 - ADR-008 — paridade funcional com o FlexLogger (norte de design); `docs/referencia-flexlogger.md` com a pesquisa e fontes.
 - `config/canais.exemplo.toml` ganhou um canal calibrado por pontos (LVDT fictício) e documentação das duas formas de conversão.
+- Tara no fluxo de ensaio: `executar_ensaio(..., amostras_tara=)` faz uma leitura de repouso antes da aquisição, calcula a tara por canal e a aplica na conversão; exposto na CLI via `--amostras-tara` (0 = sem tara, comportamento atual).
+- Leitura de strain do 9235: porta `FonteDeAquisicao.ler_strain` (task separada, devolve strain adimensional) implementada no `fake` e no `daqmx`. `ConfigStrain` fixa os parâmetros corretos do 9235 (quarter-bridge, 120 Ω, excitação interna 2,0 V, gage factor 2,15 configurável, lead wire para 3 fios) — **nunca os defaults perigosos da API** (full-bridge 350 Ω / 2,5 V). Teste-guarda trava essa armadilha. microstrain é um canal linear com ganho 1.000.000 (sem código de domínio novo).
 
 ### Alterado
 

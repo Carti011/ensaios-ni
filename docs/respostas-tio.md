@@ -55,28 +55,34 @@ Transcrito local com `mlx-whisper` (`large-v3-turbo`). Trechos óbvios corrigido
 
 ---
 
-## Rodada 3 — perguntas reservadas (a enviar)
+## Estudo de mercado (23/06/2026) — respostas obtidas sem o tio
 
-> **Nota (23/06/2026):** a pesquisa do FlexLogger/DAQmx fechou o **comportamento** do software
-> (escala por tabela de pontos + linear, clamp na leitura, tara estilo "Zero Channel" — ver
-> [referencia-flexlogger.md](referencia-flexlogger.md) e [ADR-008](adr/008-paridade-funcional-flexlogger.md)).
-> O que falta do tio são **números reais** e **confirmações de fluxo** — não mais "como decidir".
+A pesquisa (FlexLogger/DAQmx + docs NI/Lynx + site da OFM) fechou o **comportamento** do software
+e respondeu boa parte da rodada 3. Detalhe e fontes em [referencia-flexlogger.md §5](referencia-flexlogger.md).
+Resumo do que **já sabemos** (não precisa perguntar, só confirmar):
 
-**Sobre os sensores (semente das tabelas de calibração):**
+| Tema | Resposta da pesquisa | Confiança |
+| ---- | -------------------- | --------- |
+| Acelerômetro (marca) | **Dytran (EUA)**, triaxial, sub-mg (site OFM) — "de tram" = Dytran | alta |
+| Fiação 9205 | **diferencial** (par trançado blindado; padrão NI p/ campo) | alta (recomendação) |
+| Taxa ensaios lentos | estático ~**0,02–10 Hz** (1 Hz típico / por estágio); dinâmico já é 1024 Hz | média |
+| Fora da faixa | **clamp** (DAQmx clipa na leitura); outliers = análise depois | alta |
+| Célula de carga no 9205 | não liga direto; precisa **condicionador externo com saída em tensão** | alta |
+| Formato AqDAnalysis | importa **proprietário** (Lynx/Catman .BIN/MGCPlus .MEA/MTS); troca via **TXT**, não CSV | alta |
+| Tara | prática padrão ("Zero Channel"); repouso de **alguns segundos** | média |
 
-1. **Célula de carga:** a sua é de **saída em tensão** (condicionada/amplificada, ex. 0–10 V) ou de **ponte crua** (mV/V)? É o que define se liga no 9205 (que não excita).
-2. **Sensibilidade/faixa de cada sensor:** acelerômetro (**mV/g**, faixa ±2G), LVDT (faixa em **mm** e **V/mm**), pressão (faixa **MPa** e **V/MPa**), célula (**kgf** e V).
-3. **Acelerômetro:** marca/modelo (no áudio soou "de tram") e sensibilidade exata.
-4. **Fiação no 9205:** **diferencial** ou **single-ended**?
-5. **Taxa dos ensaios lentos** (carga × deformação) — é bem menor que 1024 Hz? Quanto?
+**Implicação nova:** paridade direta de **arquivo** com o AqDAnalysis é improvável (formatos
+proprietários). Caminho realista: CSV/TXT legível + nossa própria análise no futuro.
 
-**Sobre o fluxo (confirmar que replicamos o FlexLogger certo):**
+## Rodada 3 — o que ainda SÓ o tio responde (reduzida)
 
-1. **Calibração por pontos:** quando você monta a curva no AqDados, são **quantos pontos** por sensor, em média? Os pontos são **(volts, valor)** mesmo, ou você anota outra coisa?
-2. **Tara:** confirma que você **zera (null) cada canal no início** de todo ensaio? Por quantos segundos/amostras você lê o repouso antes de declarar o zero?
-3. **Fora da faixa:** quando o sinal passa do maior ponto calibrado durante o ensaio, o que você espera ver — o valor **travado no máximo** (como o FlexLogger faz) ou a leitura **continuando além**? E a limpeza de pontos impossíveis você faz **depois**, na análise?
-4. **Formato de arquivo:** o AqDados/AqDAnalysis importa **CSV**? Que **layout/extensão** você precisa para abrir os dados lá (cabeçalho, separador, coluna de tempo)?
-5. **FlexLogger hoje:** tem alguma tela/recurso dele que você usa **toda hora** e faria falta? (pra não esquecermos no nosso.)
+1. **Sensibilidade/faixa REAL de cada sensor dele** (modelos específicos): acelerômetro Dytran (**mV/g**), LVDT (**V/mm** e faixa mm), pressão (**V/MPa** e faixa MPa), célula (**V** e kgf). — *a pesquisa dá típicos, mas os números são dos modelos dele.*
+2. **Modelo exato do acelerômetro Dytran** (a marca já está confirmada).
+3. **Célula de carga:** qual **condicionamento/amplificador** você usa pra ela sair em tensão e ligar no 9205?
+4. **Calibração:** **quantos pontos** você costuma usar por sensor no AqDados?
+5. **Confirmações rápidas (sim/não):** usa o 9205 em **diferencial**? **zera (tara)** cada canal no início — por quantos segundos? a taxa dos ensaios estáticos é **baixa** (~1 Hz)?
+6. **AqDAnalysis:** ele consegue importar **TXT/ASCII** de fora, ou só os formatos proprietários? (define se vale gerar TXT pra você abrir lá.)
+7. **FlexLogger:** qual **tela/recurso** você usa toda hora e faria falta? (dashboard ao vivo, gráfico em tempo real, logging, data viewer…)
 
 ---
 
