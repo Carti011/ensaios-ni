@@ -93,6 +93,7 @@ Não há segredos no código. O mapeamento de canais (nomes de dispositivo e coe
 
 - [CLAUDE.md](CLAUDE.md) — regras do projeto para o agente.
 - [CONTEXT.md](CONTEXT.md) — glossário do domínio.
+- [docs/onde-pesquisar.md](docs/onde-pesquisar.md) — **protocolo de dúvida**: onde buscar resposta (produto → AqDados/AqDAnalysis; técnica → NI-DAQmx; domínio → OFM) antes de perguntar ou inventar.
 - [docs/contexto-hardware.md](docs/contexto-hardware.md) — inventário do hardware e **API do `nidaqmx` pinada**.
 - [docs/adr/](docs/adr/) — decisões de arquitetura.
 
@@ -108,7 +109,7 @@ ensaios-ni/
 │   └── canais.exemplo.toml      # modelo do mapeamento canal → conversão
 ├── docs/                        # contexto de hardware + ADRs
 ├── src/ensaios_ni/
-│   ├── dominio/                 # Canal, conversão (pontos/linear), tara, SerieTemporal, erros
+│   ├── dominio/                 # Canal, conversão (regressão/segmento/linear), tara, SerieTemporal, erros
 │   ├── aquisicao/               # porta + adaptadores (fake / daqmx: tensão e strain)
 │   ├── persistencia/            # CSV (gravar/carregar) + exportadores (csv-excel-br, xlsx)
 │   ├── aplicacao/               # caso de uso executar_ensaio + demonstração
