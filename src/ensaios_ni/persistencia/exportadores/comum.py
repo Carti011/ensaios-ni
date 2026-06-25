@@ -21,10 +21,35 @@ def cabecalho(canal: str, unidades: dict[str, str]) -> str:
     return f"{canal} ({unidade})" if unidade else canal
 
 
-def iterar_amostras(
-    serie: SerieTemporal, canais: list[str]
-) -> Iterator[tuple[float, list[float]]]:
-    """Itera linha a linha: (tempo_s derivado da taxa, valores dos canais selecionados)."""
+def resolver_janela(
+    serie: SerieTemporal, inicio_s: float | None, fim_s: float | None
+) -> range:
+    """Converte a janela de tempo [inicio_s, fim_s] (inclusiva) nos índices de amostra.
+
+    Resolve em índices (mais robusto que comparar floats) e valida cedo: recusa janela
+    invertida ou que não cubra nenhuma amostra (provável engano do usuário).
+    """
+    if inicio_s is not None and fim_s is not None and inicio_s > fim_s:
+        raise ValueError(f"janela inválida: inicio_s ({inicio_s}) > fim_s ({fim_s})")
     n_amostras = len(serie.dados[serie.canais[0]]) if serie.canais else 0
-    for i in range(n_amostras):
+    i_inicio = 0 if inicio_s is None else max(0, round(inicio_s * serie.taxa_hz))
+    i_fim = n_amostras if fim_s is None else min(n_amostras, round(fim_s * serie.taxa_hz) + 1)
+    if i_inicio >= i_fim:
+        raise ValueError(f"janela de tempo não contém amostras: [{inicio_s}, {fim_s}] s")
+    return range(i_inicio, i_fim)
+
+
+def iterar_amostras(
+    serie: SerieTemporal,
+    canais: list[str],
+    inicio_s: float | None = None,
+    fim_s: float | None = None,
+) -> Iterator[tuple[float, list[float]]]:
+    """Itera linha a linha: (tempo_s derivado da taxa, valores dos canais selecionados).
+
+    `inicio_s`/`fim_s` recortam uma janela de tempo (inclusiva nas duas pontas), preservando
+    o tempo absoluto — útil para exportar só um trecho de ensaios longos, que não cabem
+    inteiros no Excel.
+    """
+    for i in resolver_janela(serie, inicio_s, fim_s):
         yield i / serie.taxa_hz, [serie.dados[c][i] for c in canais]

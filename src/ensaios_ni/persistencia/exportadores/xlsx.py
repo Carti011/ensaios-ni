@@ -8,13 +8,15 @@ def exportar_xlsx(
     serie: SerieTemporal,
     caminho: Path,
     sinais: list[str] | None = None,
+    inicio_s: float | None = None,
+    fim_s: float | None = None,
 ) -> None:
     """Exporta a série como `.xlsx` nativo (via openpyxl): números de verdade, não texto.
 
     É o "já vem no formato do Excel" que o dono valoriza (ADR-011). O Excel formata o
     decimal pelo locale do usuário, então não convertemos vírgula aqui. `openpyxl` é
     importado de forma lazy (extra opcional `[excel]`): o pacote importa sem ele.
-    `sinais` seleciona quais canais entram.
+    `sinais` seleciona quais canais entram; `inicio_s`/`fim_s` recortam um trecho.
     """
     from openpyxl import Workbook
 
@@ -23,6 +25,6 @@ def exportar_xlsx(
     aba = planilha.active
     aba.title = "Ensaio"
     aba.append(["tempo_s", *(cabecalho(c, serie.unidades) for c in canais)])
-    for tempo_s, valores in iterar_amostras(serie, canais):
+    for tempo_s, valores in iterar_amostras(serie, canais, inicio_s, fim_s):
         aba.append([tempo_s, *valores])
     planilha.save(Path(caminho))

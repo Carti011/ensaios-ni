@@ -39,6 +39,25 @@ def test_csv_excel_br_seleciona_sinais_na_ordem_da_serie(tmp_path):
     )
 
 
+def test_csv_excel_br_recorta_pela_janela_de_tempo(tmp_path):
+    # tempos 0; 0,02; 0,04; 0,06 — a janela [0,02; 0,04] mantém o tempo absoluto
+    caminho = tmp_path / "ensaio.csv"
+    serie = SerieTemporal(
+        canais=["Mod1/ai0"],
+        unidades={"Mod1/ai0": "kgf"},
+        taxa_hz=50.0,
+        dados={"Mod1/ai0": [10.0, 11.0, 12.0, 13.0]},
+    )
+
+    exportar_csv_excel_br(serie, caminho, inicio_s=0.02, fim_s=0.04)
+
+    assert caminho.read_text(encoding="utf-8-sig") == (
+        "tempo_s;Mod1/ai0 (kgf)\n"
+        "0,02;11,0\n"
+        "0,04;12,0\n"
+    )
+
+
 def test_csv_excel_br_recusa_sinal_inexistente(tmp_path):
     caminho = tmp_path / "ensaio.csv"
     serie = SerieTemporal(
@@ -72,6 +91,49 @@ def test_xlsx_grava_cabecalho_e_numeros_nativos(tmp_path):
         (0.0, 200.0, 10.0),
         (0.02, 201.5, 11.25),
     ]
+
+
+def test_xlsx_recorta_pela_janela_de_tempo(tmp_path):
+    import openpyxl
+
+    caminho = tmp_path / "ensaio.xlsx"
+    serie = SerieTemporal(
+        canais=["Mod1/ai0"],
+        unidades={"Mod1/ai0": "kgf"},
+        taxa_hz=50.0,
+        dados={"Mod1/ai0": [10.0, 11.0, 12.0, 13.0]},
+    )
+
+    exportar_xlsx(serie, caminho, inicio_s=0.04)
+
+    aba = openpyxl.load_workbook(caminho).active
+    assert list(aba.iter_rows(values_only=True)) == [
+        ("tempo_s", "Mod1/ai0 (kgf)"),
+        (0.04, 12.0),
+        (0.06, 13.0),
+    ]
+
+
+def test_janela_invertida_e_recusada_sem_criar_arquivo(tmp_path):
+    caminho = tmp_path / "ensaio.csv"
+    serie = SerieTemporal(
+        canais=["Mod1/ai0"], unidades={}, taxa_hz=50.0, dados={"Mod1/ai0": [1.0, 2.0, 3.0]}
+    )
+
+    with pytest.raises(ValueError, match="inicio_s.*fim_s|janela"):
+        exportar_csv_excel_br(serie, caminho, inicio_s=0.04, fim_s=0.02)
+    assert not caminho.exists()
+
+
+def test_janela_sem_amostras_e_recusada(tmp_path):
+    caminho = tmp_path / "ensaio.csv"
+    serie = SerieTemporal(
+        canais=["Mod1/ai0"], unidades={}, taxa_hz=50.0, dados={"Mod1/ai0": [1.0, 2.0, 3.0]}
+    )
+
+    with pytest.raises(ValueError, match="não contém amostras"):
+        exportar_csv_excel_br(serie, caminho, inicio_s=10.0)
+    assert not caminho.exists()
 
 
 def test_xlsx_seleciona_sinais(tmp_path):
