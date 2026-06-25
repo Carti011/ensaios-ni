@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+
 from ensaios_ni.aquisicao.porta import FonteDeAquisicao
 
 
@@ -21,6 +23,30 @@ class AquisicaoFake(FonteDeAquisicao):
         self, canais: list[str], amostras: int, taxa_hz: float
     ) -> dict[str, list[float]]:
         return self._ler(self._strains, canais, amostras, taxa_hz)
+
+    def transmitir_tensao(
+        self, canais: list[str], taxa_hz: float, amostras_por_bloco: int
+    ) -> Iterator[dict[str, list[float]]]:
+        return self._transmitir(self._tensoes, canais, amostras_por_bloco)
+
+    def transmitir_strain(
+        self, canais: list[str], taxa_hz: float, amostras_por_bloco: int
+    ) -> Iterator[dict[str, list[float]]]:
+        return self._transmitir(self._strains, canais, amostras_por_bloco)
+
+    @staticmethod
+    def _transmitir(
+        fonte: dict[str, list[float]], canais: list[str], amostras_por_bloco: int
+    ) -> Iterator[dict[str, list[float]]]:
+        if amostras_por_bloco <= 0:
+            raise ValueError(f"amostras_por_bloco deve ser > 0, recebido {amostras_por_bloco}")
+        for canal in canais:
+            if canal not in fonte:
+                raise ValueError(f"canal '{canal}' não tem dados sintéticos no fake")
+        total = min(len(fonte[canal]) for canal in canais)
+        for inicio in range(0, total - amostras_por_bloco + 1, amostras_por_bloco):
+            fim = inicio + amostras_por_bloco
+            yield {canal: fonte[canal][inicio:fim] for canal in canais}
 
     @staticmethod
     def _ler(
