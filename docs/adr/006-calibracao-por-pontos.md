@@ -59,6 +59,25 @@ escolha é **fazer como o FlexLogger** (que é o padrão das Custom Scales do DA
 Interpolação **linear por segmento** entre pontos (igual à Table scale do DAQmx). Polinômio/spline
 fica reservado para quando houver pontos reais que justifiquem.
 
+### Refinamento a partir das telas do AqDados (24/06/2026) — pendente
+
+Os prints do AqDados ([referencia-lynx.md §1.2–1.3](../referencia-lynx.md)) mostram que o método de
+calibração do dono é mais rico do que o assumido aqui. O menu "Aferir" tem **dois modos**:
+
+- **por Regressão Linear** — ajusta **uma única reta a N pontos** (mínimos quadrados) e reporta a
+  **correlação** (R, ex.: "100,00 %"). Tolera ruído de medição. **Difere** da nossa interpolação por
+  segmento (que passa exatamente por cada ponto).
+- **por Ganho e Ponto de Referência** — ganho + um ponto de referência (offset/tara declarada).
+
+Pendência a decidir quando formos mexer na calibração (provável Fase 3):
+
+1. Suportar **regressão linear** (além da interpolação por segmento) como modo de escala.
+2. Expor a **correlação** ao usuário como indicador de qualidade do ajuste.
+3. Avaliar o modo **"Ganho e Ponto de Referência"** vs a nossa tara atual.
+
+Não resolver agora — só registrado para não se perder. A interpolação por segmento segue como
+comportamento atual.
+
 ## Consequências
 
 **Melhora:**
