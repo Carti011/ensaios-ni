@@ -4,11 +4,14 @@
 # valores REAIS fornecidos pelo dono do hardware. O nome de cada canal
 # (ex.: "cDAQ9184-1820306Mod1/ai0") vem do NI-MAX.
 #
-# Duas formas de conversão por canal (espelham as Custom Scales do NI-DAQmx):
-#   - linear:    valor = ganho * volts + offset        (sensor com sensibilidade conhecida)
-#   - por pontos: pontos = [[volts, valor], ...]        (calibração empírica do dono; ADR-006)
-# Use uma OU outra. Fora da faixa dos pontos, a leitura é saturada (clamp).
-# Ver docs/adr/006-calibracao-por-pontos.md e docs/referencia-flexlogger.md.
+# Formas de conversão por canal (espelham a Aferição do AqDados / Custom Scales do NI-DAQmx):
+#   - linear:       valor = ganho * volts + offset      (sensor com sensibilidade conhecida)
+#   - por pontos:   pontos = [[volts, valor], ...]       (calibração empírica do dono; ADR-006)
+#       metodo = "regressao" (PADRÃO) -> ajusta UMA reta a N pontos (mínimos quadrados) e
+#                 reporta a correlação. É a "Aferição por Regressão Linear" do AqDados.
+#       metodo = "segmento"           -> interpola entre os pontos (passa por cada um, com
+#                 clamp fora da faixa). Use só para sensores comprovadamente não-lineares.
+# Use linear OU pontos. Ver docs/adr/006-calibracao-por-pontos.md e docs/referencia-lynx.md.
 
 # célula de carga fictícia (linear): 0 V = 0 kgf, 10 V = 1000 kgf
 [canais."Mod1/ai0"]
@@ -24,10 +27,19 @@ unidade = "bar"
 ganho = 25.0
 offset = 0.0
 
-# LVDT fictício calibrado por pontos (curva não-linear montada aplicando deslocamento conhecido)
+# LVDT fictício calibrado por REGRESSÃO (default): aplicou deslocamentos conhecidos e leu a
+# tensão; os pontos têm leve dispersão de medição, e a regressão ajusta a melhor reta (~10 mm/V).
 [canais."Mod2/ai0"]
 tipo = "tensao"
 unidade = "mm"
+pontos = [[0.0, 0.0], [2.5, 25.1], [5.0, 49.8], [7.5, 75.2]]
+
+# Sensor fictício de resposta NÃO-LINEAR calibrado por SEGMENTO (opt-in): a curva muda de
+# inclinação entre os pontos, então interpola por trecho em vez de ajustar uma reta única.
+[canais."Mod2/ai1"]
+tipo = "tensao"
+unidade = "mm"
+metodo = "segmento"
 pontos = [[0.0, 0.0], [2.5, 20.0], [5.0, 50.0], [7.5, 90.0]]
 
 # Acelerômetro Dytran 7523A1 (real, do dono): triaxial DC-response, 550 mV/g, ±2g, 5 V DC.

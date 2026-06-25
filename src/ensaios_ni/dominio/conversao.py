@@ -2,8 +2,10 @@ from ensaios_ni.dominio.canais import Canal
 
 
 def converter(volts: float, canal: Canal, tara: float = 0.0) -> float:
-    """Converte tensão crua em unidade de engenharia (escala por pontos ou linear), menos a tara."""
-    if canal.pontos is not None:
+    """Converte tensão crua em unidade de engenharia (regressão, pontos ou linear), menos a tara."""
+    if canal.reta is not None:
+        escalado = canal.reta.aplicar(volts)
+    elif canal.pontos is not None:
         escalado = _interpolar(volts, canal.pontos)
     else:
         escalado = canal.ganho * volts + canal.offset

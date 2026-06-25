@@ -8,7 +8,7 @@ def test_demonstracao_gera_csv_com_cabecalho_e_uma_linha_por_amostra(tmp_path):
 
     assert resultado == caminho
     linhas = caminho.read_text(encoding="utf-8").splitlines()
-    assert linhas[0] == "tempo_s,Mod1/ai0 (kgf),Mod1/ai1 (bar),Mod2/ai0 (mm),Mod3/ai0 (µε)"
+    assert linhas[0] == "tempo_s,Mod1/ai0 (kgf),Mod1/ai1 (bar),Mod2/ai0 (mm),Mod2/ai1 (mm),Mod3/ai0 (µε)"
     assert len(linhas) == 51  # cabeçalho + 50 amostras
 
 
