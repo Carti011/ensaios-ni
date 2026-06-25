@@ -2,8 +2,10 @@
 
 ## Status
 
-Aceito — testado por mock de `nidaqmx` no Mac. **Validação real contra o test panel do NI-MAX fica
-para o Windows (simulado) e o hardware (Fase 4).**
+Aceito — testado por mock no Mac e **validado no Windows simulado em 25/06/2026**: o `daqmx` leu o
+9235 simulado (finito e contínuo) sem erro, com quarter-bridge / 120 Ω / 2,0 V confirmados. O
+**número físico** (bater com o test panel sobre carga conhecida) fica para o hardware (Fase 4).
+Ver [validacao-windows.md](../validacao-windows.md).
 
 ## Contexto
 

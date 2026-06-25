@@ -41,6 +41,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - A demonstração no Mac (`python -m ensaios_ni`) passa a exibir **microstrain** junto da tensão: `canais.exemplo.toml` ativa um canal de strain (`Mod3/ai0`, `µε`, ganho 1e6) e a demo gera sinal sintético por tipo (tensão 0–10 V; strain ±1e-3 → ±1000 µε).
 - **Aquisição contínua de longa duração (ADR-007).** A porta ganhou os geradores de streaming `transmitir_tensao`/`transmitir_strain` (blocos), implementados no `fake` (blocos sintéticos) e no `daqmx` (`sample_mode=CONTINUOUS` + leitura por bloco, com encerramento limpo da task). Novo gravador `GravadorEnsaioCsv` (context manager) escreve o CSV em append com `tempo_s` contínuo entre blocos; o `gravar_ensaio` finito virou o caso de um único bloco dele. Caso de uso `executar_ensaio_continuo` costura tensão+strain bloco a bloco, com tara, parada por `duracao_s` e por interrupção (Ctrl-C). CLI: `--continuo`, `--duracao-s`, `--bloco`.
 - Runbook `docs/validacao-windows.md` — passo a passo para validar a aquisição (finita e contínua, tensão e strain) contra o test panel do NI-MAX no Windows.
+- **Fase 2 (backend) validada no Windows simulado (25/06/2026):** Python 3.12.10, `nidaqmx`, 70 testes verdes; o `daqmx` leu tensão (9205) e strain (9235) nos modos finito e contínuo, com tempo contínuo, encerramento limpo por duração e por Ctrl-C, e parâmetros do 9235 corretos. O número físico fica para a Fase 4 (hardware do tio).
 
 ### Alterado
 

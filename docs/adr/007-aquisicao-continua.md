@@ -2,8 +2,11 @@
 
 ## Status
 
-**Aceito — implementado 25/06/2026** (testável no Mac via fake; validação real no Windows pendente).
-A direção proposta foi concretizada com as escolhas descritas em "Implementação" abaixo.
+**Aceito — implementado e validado no Windows simulado em 25/06/2026.** Testável no Mac via fake;
+no Windows (NI-MAX simulado) o `daqmx` rodou os modos finito e contínuo (tensão + strain) sem erro,
+com tempo contínuo e encerramento limpo por duração e por Ctrl-C. O **número físico** do strain fica
+para o hardware (Fase 4). Implementação descrita abaixo; registro da validação em
+[validacao-windows.md](../validacao-windows.md).
 
 ## Contexto
 
