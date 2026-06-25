@@ -15,10 +15,11 @@ Software de aquisição de dados para hardware **National Instruments** (chassi 
 
 Leia **sempre** antes de implementar:
 
-1. [docs/contexto-hardware.md](docs/contexto-hardware.md) — inventário do hardware, restrições e a **API real do `nidaqmx` pinada** (não inventar assinaturas).
-2. [CONTEXT.md](CONTEXT.md) — glossário do domínio (tensão, strain, task, porta, adaptador…).
-3. [docs/adr/](docs/adr/) — decisões de arquitetura. **ADR-001 define a espinha dorsal** (porta/adaptador).
-4. Brief no cofre: `~/cofre/01-projetos/ensaios-ni.md` — estado atual, plano em fases, perguntas pendentes pro dono do hardware.
+1. [docs/onde-pesquisar.md](docs/onde-pesquisar.md) — **protocolo de dúvida**: o usuário é o tio (OFM); siga o padrão do AqDados/área (compatibilidade > invenção). Onde buscar resposta antes de perguntar ou inventar.
+2. [docs/contexto-hardware.md](docs/contexto-hardware.md) — inventário do hardware, restrições e a **API real do `nidaqmx` pinada** (não inventar assinaturas).
+3. [CONTEXT.md](CONTEXT.md) — glossário do domínio (tensão, strain, task, porta, adaptador…).
+4. [docs/adr/](docs/adr/) — decisões de arquitetura. **ADR-001 define a espinha dorsal** (porta/adaptador).
+5. Brief no cofre: `~/cofre/01-projetos/ensaios-ni.md` — estado atual, plano em fases, perguntas pendentes pro dono do hardware.
 
 ---
 
