@@ -1,5 +1,8 @@
 import csv
+import re
 from pathlib import Path
+
+from ensaios_ni.dominio.serie import SerieTemporal
 
 
 class GravadorEnsaioCsv:
@@ -61,6 +64,46 @@ def gravar_ensaio(
     _validar_contagens_iguais(amostras_por_canal, canais)  # falha cedo, sem criar arquivo
     with GravadorEnsaioCsv(caminho, canais, taxa_hz, unidades) as gravador:
         gravador.escrever_bloco(amostras_por_canal)
+
+
+def carregar_csv(caminho: Path) -> SerieTemporal:
+    """Lê um CSV "wide" (ADR-003) de volta para uma SerieTemporal (inverso de gravar_ensaio).
+
+    Reconstrói as unidades do cabeçalho `Canal (unidade)` e deriva a `taxa_hz` das
+    duas primeiras marcas de `tempo_s`. Habilita reexportar ensaios já gravados (ADR-012).
+    """
+    with Path(caminho).open("r", encoding="utf-8", newline="") as arquivo:
+        leitor = csv.reader(arquivo)
+        cabecalho = next(leitor)
+        linhas = [linha for linha in leitor if linha]
+
+    canais, unidades = _parsear_cabecalho(cabecalho[1:])
+    if len(linhas) < 2:
+        raise ValueError("CSV precisa de ao menos 2 amostras para derivar a taxa de amostragem")
+    taxa_hz = 1.0 / (float(linhas[1][0]) - float(linhas[0][0]))
+
+    dados: dict[str, list[float]] = {canal: [] for canal in canais}
+    for linha in linhas:
+        for indice, canal in enumerate(canais, start=1):
+            dados[canal].append(float(linha[indice]))
+    return SerieTemporal(canais=canais, unidades=unidades, taxa_hz=taxa_hz, dados=dados)
+
+
+_CABECALHO_COM_UNIDADE = re.compile(r"^(.*) \((.*)\)$")
+
+
+def _parsear_cabecalho(colunas: list[str]) -> tuple[list[str], dict[str, str]]:
+    canais: list[str] = []
+    unidades: dict[str, str] = {}
+    for coluna in colunas:
+        casamento = _CABECALHO_COM_UNIDADE.match(coluna)
+        if casamento:
+            canal, unidade = casamento.group(1), casamento.group(2)
+            unidades[canal] = unidade
+        else:
+            canal = coluna
+        canais.append(canal)
+    return canais, unidades
 
 
 def _validar_contagens_iguais(amostras_por_canal: dict[str, list[float]], canais: list[str]) -> int:
