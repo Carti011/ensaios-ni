@@ -37,6 +37,10 @@ def _parse_args(argv):
                         help="CSV de origem a exportar (obrigatório com --exportar)")
     parser.add_argument("--sinais", default=None,
                         help="canais a exportar, separados por vírgula (padrão: todos)")
+    parser.add_argument("--inicio-s", type=float, default=None,
+                        help="início da janela de tempo a exportar, em segundos (padrão: começo)")
+    parser.add_argument("--fim-s", type=float, default=None,
+                        help="fim da janela de tempo a exportar, em segundos (padrão: fim)")
     return parser.parse_args(argv)
 
 
@@ -68,9 +72,12 @@ def main(argv=None) -> None:
 def _rodar_exportacao(args) -> None:
     if args.de is None:
         raise SystemExit("--de é obrigatório com --exportar")
-    serie = carregar_csv(args.de)
-    sinais = [s.strip() for s in args.sinais.split(",")] if args.sinais else None
-    EXPORTADORES[args.exportar](serie, args.saida, sinais)
+    try:
+        serie = carregar_csv(args.de)
+        sinais = [s.strip() for s in args.sinais.split(",")] if args.sinais else None
+        EXPORTADORES[args.exportar](serie, args.saida, sinais, args.inicio_s, args.fim_s)
+    except (ValueError, FileNotFoundError) as erro:
+        raise SystemExit(f"erro ao exportar: {erro}") from erro
     print(f"Exportado para: {args.saida.resolve()}")
 
 

@@ -100,6 +100,37 @@ def test_cli_exporta_apenas_sinais_selecionados(tmp_path):
     assert conteudo[1] == "0,0;200,0"
 
 
+def test_cli_exporta_apenas_a_janela_de_tempo(tmp_path):
+    origem = tmp_path / "ensaio.csv"
+    gravar_ensaio(
+        origem,
+        {"Mod1/ai0": [10.0, 11.0, 12.0, 13.0]},
+        taxa_hz=50.0,
+        unidades={"Mod1/ai0": "kgf"},
+    )
+    destino = tmp_path / "saida.csv"
+
+    main([
+        "--exportar", "csv-excel-br", "--de", str(origem),
+        "--saida", str(destino), "--inicio-s", "0.02", "--fim-s", "0.04",
+    ])
+
+    conteudo = destino.read_text(encoding="utf-8-sig").splitlines()
+    assert conteudo == ["tempo_s;Mod1/ai0 (kgf)", "0,02;11,0", "0,04;12,0"]
+
+
 def test_cli_exportar_exige_de():
     with pytest.raises(SystemExit, match="--de"):
         main(["--exportar", "xlsx", "--saida", "x.xlsx"])
+
+
+def test_cli_exportar_janela_invalida_falha_limpo_sem_traceback(tmp_path):
+    origem = tmp_path / "ensaio.csv"
+    gravar_ensaio(origem, {"Mod1/ai0": [1.0, 2.0, 3.0]}, taxa_hz=50.0)
+
+    # erro de input do usuário deve virar SystemExit (mensagem limpa), não traceback
+    with pytest.raises(SystemExit, match="não contém amostras"):
+        main([
+            "--exportar", "csv-excel-br", "--de", str(origem),
+            "--saida", str(tmp_path / "x.csv"), "--inicio-s", "99",
+        ])
