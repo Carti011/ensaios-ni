@@ -104,3 +104,29 @@ def test_config_sem_pontos_e_sem_ganho_offset_e_invalida(tmp_path):
     )
     with pytest.raises(ConfiguracaoInvalida, match="Mod1/ai0"):
         carregar_canais(_escrever(tmp_path, conteudo))
+
+
+def test_config_com_tipo_desconhecido_e_invalida(tmp_path):
+    conteudo = (
+        '[canais."Mod1/ai0"]\n'
+        'tipo = "vibracao"\n'  # nem tensao nem strain
+        'unidade = "kgf"\n'
+        'ganho = 100.0\n'
+        'offset = 0.0\n'
+    )
+    with pytest.raises(ConfiguracaoInvalida) as exc:
+        carregar_canais(_escrever(tmp_path, conteudo))
+    msg = str(exc.value)
+    assert "Mod1/ai0" in msg and "vibracao" in msg
+
+
+def test_config_aceita_tipo_strain(tmp_path):
+    conteudo = (
+        '[canais."Mod3/ai0"]\n'
+        'tipo = "strain"\n'
+        'unidade = "µε"\n'
+        'ganho = 1000000.0\n'
+        'offset = 0.0\n'
+    )
+    canal = carregar_canais(_escrever(tmp_path, conteudo))["Mod3/ai0"]
+    assert canal.tipo == "strain"

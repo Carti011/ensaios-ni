@@ -49,6 +49,13 @@ erro** (contexto-hardware §4). É o maior risco técnico do projeto.
   continua sendo contra o **test panel do NI-MAX** (Windows/hardware).
 - **Gage factor é por-task** no MVP (uma `ConfigStrain` por adaptador), não por-canal — refina
   quando o dono mandar os valores reais por extensômetro (rodada 3).
-- **Falta integrar tensão + strain no `executar_ensaio`/CLI** (escolher o tipo de cada canal e
-  gravar tudo num ensaio) — fatia seguinte.
+- **Integração tensão + strain no `executar_ensaio`/CLI: FEITO** (25/06/2026). O caso de uso
+  particiona os canais pelo campo `tipo` (`tensao`/`strain`), lê cada grupo na sua task e grava
+  tudo num CSV, na ordem do config; a tara vale para os dois tipos. A demo do Mac já exibe
+  microstrain. Strain ainda exige Windows para validar o número físico (test panel do NI-MAX).
+- **Sincronização por hardware start-trigger entre as tasks de tensão e strain: pendente.** No MVP
+  as duas tasks são FINITE com a mesma taxa e nº de amostras, lidas em sequência — o eixo de tempo
+  do CSV é coerente, mas há um pequeno offset de início entre elas. Para carga × deformação e FFT de
+  precisão, o ideal é um **start trigger compartilhado** (ou sample clock comum) no `daqmx.py`.
+  Código que só roda/valida no Windows; avaliar prioridade na validação em hardware (Fase 4).
 - Aquisição **contínua** de longa duração segue pendente ([ADR-007](007-aquisicao-continua.md)).
