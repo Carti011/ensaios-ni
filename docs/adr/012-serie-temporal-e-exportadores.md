@@ -48,6 +48,11 @@ o caso de uso principal.
 - **Seletividade de sinais.** O parâmetro `sinais: list[str] | None` filtra **quais canais** entram
   no arquivo (preservando a ordem do config); `None` = todos. Atende o pedido do dono ("nem todos são
   importantes colocar lá"). A coluna `tempo_s` é sempre incluída.
+- **Seletividade de tempo (janela).** Os parâmetros `inicio_s`/`fim_s` recortam um **trecho** do
+  ensaio (inclusivo, resolvido em índices para ser robusto a float), preservando o tempo absoluto.
+  Necessário porque o dono faz ensaios de **1 h a 1 ano** (20 Hz): ninguém exporta isso inteiro, e o
+  Excel nem aguenta (~1 M linhas). Espelha o trabalho por janela do AqDAnalysis ("Consulta"). Vale
+  para todos os exportadores. Janela invertida ou sem amostras é recusada cedo, sem criar arquivo.
 - **CSV legível atual permanece** como gravação primária (inclusive incremental no contínuo). Os
   exportadores são um **passo pós-ensaio**, sob demanda, sobre uma `SerieTemporal`.
 
@@ -68,5 +73,8 @@ o caso de uso principal.
 - O `.xlsx` adiciona `openpyxl` (opcional). Para arquivos muito longos, `openpyxl` carrega tudo em
   memória — aceitável para os ensaios atuais; se um dia houver ensaio gigante, usar `write_only` ou
   manter no CSV.
-- A `SerieTemporal` carrega o ensaio **inteiro** em memória ao reexportar — não serve para um
-  contínuo de horas. Para esse caso, exportação em streaming seria um ADR futuro; hoje não há demanda.
+- A `SerieTemporal` carrega o ensaio **inteiro** em memória ao reexportar. A **janela de tempo**
+  resolve o lado da *saída* (trecho exportado respeita o limite do Excel e gera arquivo pequeno), mas
+  **não** o lado da *entrada*: `carregar_csv` ainda lê o CSV todo. Para reexportar um ensaio de meses
+  sem estourar a memória, faltaria `carregar_csv` recortar a janela na leitura (ou exportação em
+  streaming) — evolução futura, quando houver ensaio grande de verdade gravado.

@@ -79,6 +79,9 @@ PYTHONPATH=src uv run python -m ensaios_ni --exportar xlsx --de ensaio.csv --sai
 
 # exportar só alguns canais
 PYTHONPATH=src uv run python -m ensaios_ni --exportar xlsx --de ensaio.csv --saida ensaio.xlsx --sinais "Mod1/ai0,Mod3/ai0"
+
+# exportar só um trecho do ensaio (janela de tempo, em segundos) — útil para ensaios longos
+PYTHONPATH=src uv run python -m ensaios_ni --exportar xlsx --de ensaio.csv --saida trecho.xlsx --inicio-s 120 --fim-s 180
 ```
 
 > O `.xlsx` precisa do `openpyxl`: instale com o extra **`[excel]`** (`pip install -e .[excel]` no
