@@ -69,27 +69,30 @@ Consequência prática: **o pacote tem que importar e os testes do domínio têm
 
 ---
 
-## Estrutura planejada (ainda não criada — modo docs-primeiro)
+## Estrutura
+
+`apresentacao/` (dashboard, Fase 3) ainda não existe — o resto está criado.
 
 ```text
 ensaios-ni/
 ├── CLAUDE.md · CONTEXT.md · README.md · pyproject.toml
 ├── config/
-│   └── canais.exemplo.toml        # mapeamento canal → conversão (Fase 2/3)
+│   └── canais.exemplo.toml        # mapeamento canal → conversão (regressão/segmento/linear)
 ├── docs/
+│   ├── onde-pesquisar.md          # protocolo de dúvida + filosofia de produto
 │   ├── contexto-hardware.md
-│   └── adr/001-arquitetura-porta-adaptador.md
+│   └── adr/001…012                # decisões de arquitetura
 ├── src/ensaios_ni/
-│   ├── dominio/                   # modelos + conversão volts→unidade (testável no Mac)
+│   ├── dominio/                   # Canal, conversão, regressao (Reta), SerieTemporal (testável no Mac)
 │   ├── aquisicao/
 │   │   ├── porta.py               # interface FonteDeAquisicao
 │   │   ├── fake.py                # adaptador sintético (Mac)
 │   │   └── daqmx.py               # adaptador real (Windows, nidaqmx lazy)
-│   ├── persistencia/              # CSV
-│   └── apresentacao/              # dashboard (Fase 3)
+│   ├── persistencia/              # CSV (gravar/carregar) + exportadores/ (csv-excel-br, xlsx)
+│   ├── aplicacao/                 # casos de uso (ensaio finito/contínuo) + demo
+│   └── __main__.py                # CLI (--fonte, --continuo, --exportar)
 └── tests/
-    ├── dominio/
-    └── aquisicao/
+    ├── dominio/ · aquisicao/ · aplicacao/ · persistencia/ · arquitetura/
 ```
 
 ---
