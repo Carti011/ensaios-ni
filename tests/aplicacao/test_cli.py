@@ -1,4 +1,7 @@
+import pytest
+
 from ensaios_ni.__main__ import _parse_args, main
+from ensaios_ni.persistencia.csv_ensaio import gravar_ensaio
 
 
 def test_main_modo_fake_gera_csv(tmp_path):
@@ -50,3 +53,53 @@ def test_main_continuo_fake_grava_pela_duracao(tmp_path):
     linhas = saida.read_text(encoding="utf-8").splitlines()
     assert linhas[0].startswith("tempo_s,")
     assert len(linhas) == 11  # 1 s a 10 Hz = 10 amostras + cabeçalho
+
+
+def test_cli_exporta_csv_para_excel_br(tmp_path):
+    origem = tmp_path / "ensaio.csv"
+    gravar_ensaio(origem, {"Mod1/ai0": [200.0, 201.5]}, taxa_hz=50.0, unidades={"Mod1/ai0": "kgf"})
+    destino = tmp_path / "saida.csv"
+
+    main(["--exportar", "csv-excel-br", "--de", str(origem), "--saida", str(destino)])
+
+    conteudo = destino.read_text(encoding="utf-8-sig").splitlines()
+    assert conteudo[0] == "tempo_s;Mod1/ai0 (kgf)"
+    assert conteudo[1] == "0,0;200,0"
+
+
+def test_cli_exporta_xlsx(tmp_path):
+    import openpyxl
+
+    origem = tmp_path / "ensaio.csv"
+    gravar_ensaio(origem, {"Mod1/ai0": [200.0, 201.5]}, taxa_hz=50.0, unidades={"Mod1/ai0": "kgf"})
+    destino = tmp_path / "saida.xlsx"
+
+    main(["--exportar", "xlsx", "--de", str(origem), "--saida", str(destino)])
+
+    aba = openpyxl.load_workbook(destino).active
+    assert list(aba.iter_rows(values_only=True))[0] == ("tempo_s", "Mod1/ai0 (kgf)")
+
+
+def test_cli_exporta_apenas_sinais_selecionados(tmp_path):
+    origem = tmp_path / "ensaio.csv"
+    gravar_ensaio(
+        origem,
+        {"Mod1/ai0": [200.0, 201.0], "Mod3/ai0": [10.0, 11.0]},
+        taxa_hz=50.0,
+        unidades={"Mod1/ai0": "kgf", "Mod3/ai0": "ue"},
+    )
+    destino = tmp_path / "saida.csv"
+
+    main([
+        "--exportar", "csv-excel-br", "--de", str(origem),
+        "--saida", str(destino), "--sinais", "Mod1/ai0",
+    ])
+
+    conteudo = destino.read_text(encoding="utf-8-sig").splitlines()
+    assert conteudo[0] == "tempo_s;Mod1/ai0 (kgf)"
+    assert conteudo[1] == "0,0;200,0"
+
+
+def test_cli_exportar_exige_de():
+    with pytest.raises(SystemExit, match="--de"):
+        main(["--exportar", "xlsx", "--saida", "x.xlsx"])

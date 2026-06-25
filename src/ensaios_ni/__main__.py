@@ -7,6 +7,8 @@ from ensaios_ni.aplicacao.ensaio import executar_ensaio, executar_ensaio_continu
 from ensaios_ni.aquisicao.daqmx import AdaptadorDaqmx
 from ensaios_ni.aquisicao.fake import AquisicaoFake
 from ensaios_ni.dominio.canais import carregar_canais
+from ensaios_ni.persistencia.csv_ensaio import carregar_csv
+from ensaios_ni.persistencia.exportadores import EXPORTADORES
 
 
 def _parse_args(argv):
@@ -29,11 +31,21 @@ def _parse_args(argv):
     parser.add_argument("--bloco", type=int, default=100,
                         help="amostras por bloco no modo contínuo")
     parser.add_argument("--saida", type=Path, default=Path("ensaio-demo.csv"))
+    parser.add_argument("--exportar", choices=sorted(EXPORTADORES),
+                        help="exporta um CSV já gravado para outro formato (não roda ensaio)")
+    parser.add_argument("--de", type=Path, default=None,
+                        help="CSV de origem a exportar (obrigatório com --exportar)")
+    parser.add_argument("--sinais", default=None,
+                        help="canais a exportar, separados por vírgula (padrão: todos)")
     return parser.parse_args(argv)
 
 
 def main(argv=None) -> None:
     args = _parse_args(argv)
+
+    if args.exportar:
+        _rodar_exportacao(args)
+        return
 
     if args.continuo:
         _rodar_continuo(args)
@@ -51,6 +63,15 @@ def main(argv=None) -> None:
         )
 
     print(f"Ensaio gravado em: {args.saida.resolve()}")
+
+
+def _rodar_exportacao(args) -> None:
+    if args.de is None:
+        raise SystemExit("--de é obrigatório com --exportar")
+    serie = carregar_csv(args.de)
+    sinais = [s.strip() for s in args.sinais.split(",")] if args.sinais else None
+    EXPORTADORES[args.exportar](serie, args.saida, sinais)
+    print(f"Exportado para: {args.saida.resolve()}")
 
 
 def _rodar_continuo(args) -> None:
