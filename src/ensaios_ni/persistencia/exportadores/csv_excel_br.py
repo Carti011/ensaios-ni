@@ -4,6 +4,7 @@ from ensaios_ni.dominio.serie import SerieTemporal
 from ensaios_ni.persistencia.exportadores.comum import (
     cabecalho,
     iterar_amostras,
+    numero_virgula,
     resolver_janela,
     selecionar,
 )
@@ -28,12 +29,8 @@ def exportar_csv_excel_br(
     with Path(caminho).open("w", encoding="utf-8-sig", newline="") as arquivo:
         arquivo.write(_linha(["tempo_s", *(cabecalho(c, serie.unidades) for c in canais)]))
         for tempo_s, valores in iterar_amostras(serie, canais, inicio_s, fim_s):
-            arquivo.write(_linha([_numero(tempo_s), *(_numero(v) for v in valores)]))
+            arquivo.write(_linha([numero_virgula(tempo_s), *(numero_virgula(v) for v in valores)]))
 
 
 def _linha(campos: list[str]) -> str:
     return ";".join(campos) + "\n"
-
-
-def _numero(valor: float) -> str:
-    return str(valor).replace(".", ",")

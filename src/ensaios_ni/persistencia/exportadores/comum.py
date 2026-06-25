@@ -21,6 +21,11 @@ def cabecalho(canal: str, unidades: dict[str, str]) -> str:
     return f"{canal} ({unidade})" if unidade else canal
 
 
+def numero_virgula(valor: float) -> str:
+    """Formata o número com decimal vírgula (padrão BR/Lynx), sem depender de locale."""
+    return str(valor).replace(".", ",")
+
+
 def resolver_janela(
     serie: SerieTemporal, inicio_s: float | None, fim_s: float | None
 ) -> range:

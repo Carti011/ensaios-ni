@@ -1,7 +1,11 @@
 import pytest
 
 from ensaios_ni.dominio.serie import SerieTemporal
-from ensaios_ni.persistencia.exportadores import exportar_csv_excel_br, exportar_xlsx
+from ensaios_ni.persistencia.exportadores import (
+    exportar_csv_excel_br,
+    exportar_txt_aqanalysis,
+    exportar_xlsx,
+)
 
 
 def test_csv_excel_br_usa_ponto_e_virgula_e_decimal_virgula(tmp_path):
@@ -155,3 +159,39 @@ def test_xlsx_seleciona_sinais(tmp_path):
         ("tempo_s", "Mod1/ai0 (kgf)"),
         (0.0, 200.0),
     ]
+
+
+def test_txt_aqanalysis_usa_tab_e_decimal_virgula(tmp_path):
+    caminho = tmp_path / "ensaio.txt"
+    serie = SerieTemporal(
+        canais=["Mod1/ai0", "Mod3/ai0"],
+        unidades={"Mod1/ai0": "kgf", "Mod3/ai0": "ue"},
+        taxa_hz=50.0,
+        dados={"Mod1/ai0": [200.0, 201.5], "Mod3/ai0": [10.0, 11.25]},
+    )
+
+    exportar_txt_aqanalysis(serie, caminho)
+
+    assert caminho.read_text(encoding="utf-8") == (
+        "tempo_s\tMod1/ai0 (kgf)\tMod3/ai0 (ue)\n"
+        "0,0\t200,0\t10,0\n"
+        "0,02\t201,5\t11,25\n"
+    )
+
+
+def test_txt_aqanalysis_respeita_sinais_e_janela(tmp_path):
+    caminho = tmp_path / "ensaio.txt"
+    serie = SerieTemporal(
+        canais=["Mod1/ai0", "Mod3/ai0"],
+        unidades={"Mod1/ai0": "kgf", "Mod3/ai0": "ue"},
+        taxa_hz=50.0,
+        dados={"Mod1/ai0": [200.0, 201.5, 202.0], "Mod3/ai0": [10.0, 11.25, 12.0]},
+    )
+
+    exportar_txt_aqanalysis(serie, caminho, sinais=["Mod1/ai0"], inicio_s=0.02, fim_s=0.04)
+
+    assert caminho.read_text(encoding="utf-8") == (
+        "tempo_s\tMod1/ai0 (kgf)\n"
+        "0,02\t201,5\n"
+        "0,04\t202,0\n"
+    )
