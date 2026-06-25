@@ -4,13 +4,14 @@ Software de aquisição de dados para hardware **National Instruments** (chassi 
 
 O programa é **config-driven**: o que muda de um ensaio para outro (quais canais, quais sensores, qual conversão) vive em arquivo de configuração, não no código. Medir um prédio, uma ponte ou uma peça é o **mesmo programa** lendo um `config/canais.toml` diferente.
 
-> **Status: aquisição de tensão e strain prontas no backend; domínio de calibração completo.**
-> Porta `FonteDeAquisicao` (multi-canal, com taxa) com `ler_tensao` e `ler_strain`; adaptadores
-> `fake` e `daqmx`. A tensão (9205) foi **validada no Windows com dispositivos simulados
-> (22/06/2026)**; o **strain (9235)** lê com os parâmetros corretos (quarter-bridge 120 Ω / 2,0 V),
-> testado por mock. Conversão volts→unidade por **calibração por pontos + linear**, **tara** e
-> persistência CSV — tudo no Mac sem `nidaqmx`. Próximo: **integrar tensão + strain no fluxo de
-> ensaio** e a **aquisição contínua** (ADR-007). Ver `CLAUDE.md`, `CONTEXT.md` e `docs/`.
+> **Status: Fase 2 (backend) fechada e validada no Windows simulado; Fase 3 em curso (exportadores).**
+> Porta `FonteDeAquisicao` (multi-canal, com taxa) com `ler_tensao`/`ler_strain` e os fluxos de
+> streaming; adaptadores `fake` e `daqmx`. Tensão (9205) e strain (9235, quarter-bridge 120 Ω / 2,0 V)
+> lidos nos modos **finito e contínuo**, validados no Windows com dispositivos simulados
+> (25/06/2026). Conversão volts→unidade por **calibração por pontos + linear**, **tara**, persistência
+> CSV (batch e incremental) e **exportadores** para CSV-Excel-BR e `.xlsx` — tudo no Mac sem `nidaqmx`.
+> Próximo: **TXT** para o AqDAnalysis (layout a fechar) e o **dashboard**. Ver `CLAUDE.md`,
+> `CONTEXT.md` e `docs/`.
 
 ## Pré-requisitos
 
@@ -64,6 +65,26 @@ python -m ensaios_ni --fonte daqmx --config config/canais.toml --taxa 1024 --amo
 **Passo a passo simples para o Windows** (instalação, driver NI, configuração de
 canais — com ou sem Claude Code): [docs/guia-windows.md](docs/guia-windows.md).
 
+### Exportar um ensaio para Excel ou análise
+
+Um ensaio gravado em CSV pode ser convertido para outros formatos **sem rodar nova aquisição**
+(serve inclusive para reexportar ensaios antigos):
+
+```bash
+# CSV amigável ao Excel BR (separador ; e decimal vírgula) — não precisa de dependência extra
+PYTHONPATH=src uv run python -m ensaios_ni --exportar csv-excel-br --de ensaio.csv --saida ensaio-br.csv
+
+# .xlsx nativo — exige o extra [excel] (openpyxl)
+PYTHONPATH=src uv run python -m ensaios_ni --exportar xlsx --de ensaio.csv --saida ensaio.xlsx
+
+# exportar só alguns canais
+PYTHONPATH=src uv run python -m ensaios_ni --exportar xlsx --de ensaio.csv --saida ensaio.xlsx --sinais "Mod1/ai0,Mod3/ai0"
+```
+
+> O `.xlsx` precisa do `openpyxl`: instale com o extra **`[excel]`** (`pip install -e .[excel]` no
+> Windows; no Mac o grupo `dev` já o inclui). O **TXT** para o AqDAnalysis ainda não está disponível
+> (depende do layout do "Importa Arquivo Texto").
+
 ## Variáveis de ambiente
 
 Não há segredos no código. O mapeamento de canais (nomes de dispositivo e coeficientes de conversão) vai para `config/canais.toml` — copie de `config/canais.exemplo.toml`. O `canais.toml` real é ignorado no git.
@@ -87,10 +108,10 @@ ensaios-ni/
 │   └── canais.exemplo.toml      # modelo do mapeamento canal → conversão
 ├── docs/                        # contexto de hardware + ADRs
 ├── src/ensaios_ni/
-│   ├── dominio/                 # Canal, conversão (pontos/linear), tara, erros (testável no Mac)
+│   ├── dominio/                 # Canal, conversão (pontos/linear), tara, SerieTemporal, erros
 │   ├── aquisicao/               # porta + adaptadores (fake / daqmx: tensão e strain)
-│   ├── persistencia/            # CSV
+│   ├── persistencia/            # CSV (gravar/carregar) + exportadores (csv-excel-br, xlsx)
 │   ├── aplicacao/               # caso de uso executar_ensaio + demonstração
-│   └── __main__.py              # CLI de produção (--fonte, --config, --amostras-tara…)
+│   └── __main__.py              # CLI de produção (--fonte, --continuo, --exportar…)
 └── tests/                       # dominio / aquisicao / aplicacao / arquitetura
 ```

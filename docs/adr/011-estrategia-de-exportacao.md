@@ -2,7 +2,10 @@
 
 ## Status
 
-Aceito (24/06/2026).
+Aceito (24/06/2026). A camada de exportadores foi detalhada e implementada pelo
+[ADR-012](012-serie-temporal-e-exportadores.md) (25/06/2026): `SerieTemporal` + `carregar_csv` e os
+exportadores **CSV-Excel-BR** e **`.xlsx`** (com seleção de sinais). O exportador **TXT** segue
+pendente do layout do "Importa Arquivo Texto".
 
 ## Contexto
 
