@@ -82,11 +82,15 @@ PYTHONPATH=src uv run python -m ensaios_ni --exportar xlsx --de ensaio.csv --sai
 
 # exportar só um trecho do ensaio (janela de tempo, em segundos) — útil para ensaios longos
 PYTHONPATH=src uv run python -m ensaios_ni --exportar xlsx --de ensaio.csv --saida trecho.xlsx --inicio-s 120 --fim-s 180
+
+# TXT para o AqDAnalysis (formato PROVISÓRIO — a calibrar com um arquivo real, ver abaixo)
+PYTHONPATH=src uv run python -m ensaios_ni --exportar txt-aqanalysis --de ensaio.csv --saida ensaio.txt
 ```
 
 > O `.xlsx` precisa do `openpyxl`: instale com o extra **`[excel]`** (`pip install -e .[excel]` no
-> Windows; no Mac o grupo `dev` já o inclui). O **TXT** para o AqDAnalysis ainda não está disponível
-> (depende do layout do "Importa Arquivo Texto").
+> Windows; no Mac o grupo `dev` já o inclui). O **`txt-aqanalysis`** usa decimal vírgula e TAB, mas o
+> layout exato do "Importa Arquivo Texto" do AqDAnalysis ainda **não foi validado** — separador,
+> encoding e cabeçalho podem precisar de ajuste contra um TXT autêntico (ADR-011).
 
 ## Variáveis de ambiente
 
