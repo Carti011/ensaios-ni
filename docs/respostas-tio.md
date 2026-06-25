@@ -115,6 +115,37 @@ Novas perguntas ao dono só quando realmente surgir necessidade.
 
 ---
 
+## Rodada 4 — 23/06/2026 (prints dos softwares + qual copiar)
+
+O dono enviou prints (WhatsApp) do **AqDados**, do **AqDAnalysis** e do **FlexLogger**, com as
+seguintes mensagens (transcrição literal):
+
+> - "Essas são as fotos do AqDAnalisis"
+> - "Essas fotos são do AqDados"
+> - "Se for para copiar um programa o ideal seria o **AqDados e AqDAnalisis juntos**, este seria o
+>   melhor dos mundos"
+> - "Pq **eu já domino**"
+> - "Já o **flexlogger, estou aprendendo a mexer agora**."
+> - "Não está conectada mais, esse aí é o flexlogger"
+> - "O **AqDAnalisis só exporta txt** e o arquivo de gravação do **AqDados usa a extensão .LDT** e
+>   **só o AqDAnalisis abre** este tipo de arquivo, que eu saiba."
+
+### Consequências (decisões do Weslley, 24/06/2026)
+
+- **Vira o norte de paridade.** O espelho de produto passa do FlexLogger para o **Lynx (AqDados +
+  AqDAnalysis)**, que o dono domina → [ADR-010](adr/010-paridade-com-o-lynx.md). O FlexLogger fica
+  só como referência técnica do driver (ADR-008 parcialmente substituído).
+- **Estratégia de arquivo definida.** Não geramos `.LDT` (proprietário). Interoperamos exportando
+  **TXT** que o AqDAnalysis importa → [ADR-011](adr/011-estrategia-de-exportacao.md). **Não
+  reescrevemos** a suíte de análise da Lynx — o dono analisa lá.
+- **Descobertas técnicas** das telas (calibração por regressão + correlação, balanço/repouso, shunt
+  cal, unidades µm/m e mm/s², nomes reais de canais) registradas em
+  [referencia-lynx.md](referencia-lynx.md).
+- **Privacidade:** os prints contêm nomes de clientes/obras e o nome do dono → **não versionados**
+  no repositório; só a análise textual fica no projeto.
+
+---
+
 ## Rodada 1 — 21/06/2026 (histórico)
 
 Confirmado: 9235 só strain; 2× 9205 só tensão (sem excitação); chassi direto no PC com IP fixo; vibração a 1024 Hz. Transcrições e detalhes preservados no histórico do git (commit `db48757`+).

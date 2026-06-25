@@ -2,7 +2,15 @@
 
 ## Status
 
-Aceito
+**Parcialmente substituído pelo [ADR-010](010-paridade-com-o-lynx.md)** (24/06/2026). A premissa de
+que o dono "já usa e domina o FlexLogger" estava invertida: ele domina o **Lynx (AqDados +
+AqDAnalysis)** e está só *aprendendo* o FlexLogger. O **espelho de produto** (UX, vocabulário, fluxo)
+passou a ser o Lynx — ver ADR-010. **O que deste ADR continua valendo:** a parte **técnica de baixo
+nível** — "seguir o padrão NI-DAQmx" para o comportamento do driver (Custom Scales, clamp na leitura,
+sample clock, parâmetros de strain), porque é o driver que o `daqmx.py` opera de qualquer forma. Ler
+os dois juntos: 008 para o nível do driver, 010 para o nível de produto.
+
+Aceito (histórico abaixo)
 
 ## Contexto
 

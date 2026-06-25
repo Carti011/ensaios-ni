@@ -21,6 +21,7 @@ class _TaskFake:
         return self
 
     def __exit__(self, *exc):
+        self._registro["saiu"].append(True)
         return False
 
     def add_ai_voltage_chan(self, canal, **kwargs):
@@ -38,7 +39,7 @@ class _TaskFake:
 
 
 def _instalar_nidaqmx_fake(monkeypatch, dados):
-    registro = {"canais": [], "strain": [], "timing": [], "read": []}
+    registro = {"canais": [], "strain": [], "timing": [], "read": [], "saiu": []}
     nidaqmx_mod = types.ModuleType("nidaqmx")
     nidaqmx_mod.Task = lambda: _TaskFake(registro, dados)
     constantes = types.ModuleType("nidaqmx.constants")
@@ -138,3 +139,30 @@ def test_strain_configura_sample_clock(monkeypatch):
     assert registro["timing"], "cfg_samp_clk_timing não foi chamado no strain"
     assert registro["timing"][0]["rate"] == 1024.0
     assert registro["timing"][0]["samps_per_chan"] == 1
+
+
+def test_transmitir_tensao_modo_continuous_emite_blocos_e_encerra_limpo(monkeypatch):
+    registro = _instalar_nidaqmx_fake(monkeypatch, dados=[1.0, 2.0])
+    fluxo = AdaptadorDaqmx().transmitir_tensao(
+        ["cDAQ1Mod1/ai0"], taxa_hz=1024.0, amostras_por_bloco=2
+    )
+    assert next(fluxo) == {"cDAQ1Mod1/ai0": [1.0, 2.0]}
+    assert registro["timing"][0]["sample_mode"] == "CONTINUOUS"
+    assert registro["read"][0] == 2
+    fluxo.close()  # ao fechar o fluxo, a task é encerrada (with __exit__)
+    assert registro["saiu"] == [True]
+
+
+def test_transmitir_strain_usa_parametros_do_9235_em_modo_continuous(monkeypatch):
+    # a armadilha do strain vale também no contínuo: nunca os defaults da API
+    registro = _instalar_nidaqmx_fake(monkeypatch, dados=[1e-4, 2e-4])
+    fluxo = AdaptadorDaqmx().transmitir_strain(
+        ["cDAQ1Mod3/ai0"], taxa_hz=1024.0, amostras_por_bloco=2
+    )
+    assert next(fluxo) == {"cDAQ1Mod3/ai0": [1e-4, 2e-4]}
+    assert registro["timing"][0]["sample_mode"] == "CONTINUOUS"
+    _, kwargs = registro["strain"][0]
+    assert kwargs["strain_config"] == "QUARTER_BRIDGE_I"
+    assert kwargs["nominal_gage_resistance"] == 120.0
+    assert kwargs["voltage_excit_val"] == 2.0
+    fluxo.close()

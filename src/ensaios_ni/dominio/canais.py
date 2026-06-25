@@ -5,6 +5,7 @@ from pathlib import Path
 from ensaios_ni.dominio.erros import CanalNaoConfigurado, ConfiguracaoInvalida
 
 CAMPOS_BASE = ("tipo", "unidade")
+TIPOS_VALIDOS = ("tensao", "strain")
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,10 @@ def _construir_canal(nome: str, cfg: dict) -> Canal:
     faltando = [campo for campo in CAMPOS_BASE if campo not in cfg]
     if faltando:
         raise ConfiguracaoInvalida(f"canal '{nome}': campos obrigatórios faltando: {', '.join(faltando)}")
+    if cfg["tipo"] not in TIPOS_VALIDOS:
+        raise ConfiguracaoInvalida(
+            f"canal '{nome}': tipo '{cfg['tipo']}' inválido (use {' ou '.join(TIPOS_VALIDOS)})"
+        )
     if "pontos" in cfg:
         return Canal(
             nome=nome,

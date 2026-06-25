@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 from ensaios_ni.aquisicao.porta import FonteDeAquisicao
@@ -61,60 +62,83 @@ class AdaptadorDaqmx(FonteDeAquisicao):
         self, canais: list[str], amostras: int, taxa_hz: float
     ) -> dict[str, list[float]]:
         nidaqmx, AcquisitionType, TerminalConfiguration = _carregar_nidaqmx()
-
         with nidaqmx.Task() as task:
-            for canal in canais:
-                task.ai_channels.add_ai_voltage_chan(
-                    canal,
-                    terminal_config=getattr(TerminalConfiguration, self._terminal_config),
-                    min_val=self._min_val,
-                    max_val=self._max_val,
-                )
-            # sample clock explícito: o 9235 (delta-sigma) no chassi Ethernet
-            # falha sem timing; os 9205 também usam, por consistência.
-            task.timing.cfg_samp_clk_timing(
-                rate=taxa_hz,
-                sample_mode=AcquisitionType.FINITE,
-                samps_per_chan=amostras,
-            )
+            self._adicionar_canais_tensao(task, canais, TerminalConfiguration)
+            self._configurar_timing(task, AcquisitionType.FINITE, taxa_hz, amostras)
             dados = task.read(number_of_samples_per_channel=amostras)
-
         return self._normalizar(canais, dados)
+
+    def transmitir_tensao(
+        self, canais: list[str], taxa_hz: float, amostras_por_bloco: int
+    ) -> Iterator[dict[str, list[float]]]:
+        nidaqmx, AcquisitionType, TerminalConfiguration = _carregar_nidaqmx()
+        with nidaqmx.Task() as task:
+            self._adicionar_canais_tensao(task, canais, TerminalConfiguration)
+            self._configurar_timing(task, AcquisitionType.CONTINUOUS, taxa_hz, amostras_por_bloco)
+            while True:
+                dados = task.read(number_of_samples_per_channel=amostras_por_bloco)
+                yield self._normalizar(canais, dados)
 
     def ler_strain(
         self, canais: list[str], amostras: int, taxa_hz: float
     ) -> dict[str, list[float]]:
-        nidaqmx, AcquisitionType, ExcitationSource, StrainGageBridgeType, StrainUnits = (
-            _carregar_nidaqmx_strain()
-        )
-        cfg = self._config_strain
-
+        nidaqmx, AcquisitionType, *constantes_strain = _carregar_nidaqmx_strain()
         with nidaqmx.Task() as task:
-            for canal in canais:
-                # parâmetros do 9235 — NUNCA os defaults da API (full-bridge 350 Ω / 2,5 V)
-                task.ai_channels.add_ai_strain_gage_chan(
-                    canal,
-                    strain_config=getattr(StrainGageBridgeType, cfg.bridge_config),
-                    voltage_excit_source=ExcitationSource.INTERNAL,
-                    voltage_excit_val=cfg.voltage_excit_val,
-                    nominal_gage_resistance=cfg.nominal_gage_resistance,
-                    gage_factor=cfg.gage_factor,
-                    poisson_ratio=cfg.poisson_ratio,
-                    lead_wire_resistance=cfg.lead_wire_resistance,
-                    initial_bridge_voltage=0.0,
-                    units=StrainUnits.STRAIN,
-                    min_val=cfg.min_val,
-                    max_val=cfg.max_val,
-                )
-            # 9235 (delta-sigma) no chassi Ethernet exige sample clock explícito
-            task.timing.cfg_samp_clk_timing(
-                rate=taxa_hz,
-                sample_mode=AcquisitionType.FINITE,
-                samps_per_chan=amostras,
-            )
+            self._adicionar_canais_strain(task, canais, *constantes_strain)
+            self._configurar_timing(task, AcquisitionType.FINITE, taxa_hz, amostras)
             dados = task.read(number_of_samples_per_channel=amostras)
-
         return self._normalizar(canais, dados)
+
+    def transmitir_strain(
+        self, canais: list[str], taxa_hz: float, amostras_por_bloco: int
+    ) -> Iterator[dict[str, list[float]]]:
+        nidaqmx, AcquisitionType, *constantes_strain = _carregar_nidaqmx_strain()
+        with nidaqmx.Task() as task:
+            self._adicionar_canais_strain(task, canais, *constantes_strain)
+            self._configurar_timing(task, AcquisitionType.CONTINUOUS, taxa_hz, amostras_por_bloco)
+            while True:
+                dados = task.read(number_of_samples_per_channel=amostras_por_bloco)
+                yield self._normalizar(canais, dados)
+
+    def _adicionar_canais_tensao(self, task, canais, TerminalConfiguration) -> None:
+        for canal in canais:
+            task.ai_channels.add_ai_voltage_chan(
+                canal,
+                terminal_config=getattr(TerminalConfiguration, self._terminal_config),
+                min_val=self._min_val,
+                max_val=self._max_val,
+            )
+
+    def _adicionar_canais_strain(
+        self, task, canais, ExcitationSource, StrainGageBridgeType, StrainUnits
+    ) -> None:
+        cfg = self._config_strain
+        for canal in canais:
+            # parâmetros do 9235 — NUNCA os defaults da API (full-bridge 350 Ω / 2,5 V)
+            task.ai_channels.add_ai_strain_gage_chan(
+                canal,
+                strain_config=getattr(StrainGageBridgeType, cfg.bridge_config),
+                voltage_excit_source=ExcitationSource.INTERNAL,
+                voltage_excit_val=cfg.voltage_excit_val,
+                nominal_gage_resistance=cfg.nominal_gage_resistance,
+                gage_factor=cfg.gage_factor,
+                poisson_ratio=cfg.poisson_ratio,
+                lead_wire_resistance=cfg.lead_wire_resistance,
+                initial_bridge_voltage=0.0,
+                units=StrainUnits.STRAIN,
+                min_val=cfg.min_val,
+                max_val=cfg.max_val,
+            )
+
+    @staticmethod
+    def _configurar_timing(task, sample_mode, taxa_hz: float, samps_per_chan: int) -> None:
+        # sample clock explícito: o 9235 (delta-sigma) no chassi Ethernet falha sem
+        # timing; os 9205 também usam, por consistência. CONTINUOUS para streaming.
+        task.timing.cfg_samp_clk_timing(
+            rate=taxa_hz,
+            sample_mode=sample_mode,
+            samps_per_chan=samps_per_chan,
+        )
 
     @staticmethod
     def _normalizar(canais: list[str], dados) -> dict[str, list[float]]:
