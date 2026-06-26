@@ -2,8 +2,9 @@
 
 ## Status
 
-**Proposto** (25/06/2026) — aguardando decisão do Weslley. Tem um trade-off **produto × portfólio**
-que é dele.
+**Aceito** (26/06/2026). Stack escolhida: **PyQt6/PySide6 + pyqtgraph** (opção A). O Weslley
+priorizou a **adoção do tio** (desktop como o AqDados, `.exe` fácil de instalar, tempo real de
+verdade) sobre o portfólio web — e ganha o aprendizado de uma stack nova.
 
 ## Contexto
 
@@ -57,8 +58,8 @@ facilidade de adoção, aceitando ~2× o trabalho e uma distribuição local mai
 fica como protótipo rápido se a meta for só "ver algo na tela já", mas não a recomendo para o
 produto por causa do tempo real.
 
-> Decisão final é do Weslley. Ao escolher, este ADR passa a **Aceito** e a Fase 4 começa pelo
-> **design/UX** (planejar o fluxo antes de codar tela), não pela implementação.
+> **Decidido:** opção **A (PyQt6/PySide6 + pyqtgraph)**. A Fase 4 começa pelo **design/UX**
+> (planejar o fluxo antes de codar tela), não pela implementação — em outra sessão.
 
 ## Consequências
 

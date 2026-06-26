@@ -14,7 +14,7 @@ estruturas), com confiança profissional. Toda fase é medida contra isso.
 **Fim da Fase 3 (backend completo), entrando na Fase 4 (interface).** O software já lê, calibra,
 grava e exporta — mas só por linha de comando. Falta a parte que o tio realmente vai tocar.
 
-```
+```text
 [0]──[1]──[2]──[3]── • ──[4]──[5]──[6]
  ✅    ✅    ✅    ✅   você   🔜    ⬜    ⬜
                           aqui
@@ -45,7 +45,7 @@ ler → calibrar → gravar → exportar. Suficiente para o Weslley validar; **n
 É o que transforma "funciona no terminal" em "o tio consegue usar". Software de aquisição é
 **gráfico e em tempo real** (AqDados, FlexLogger, LabVIEW são todos assim). Subdivide em:
 
-- **4.0 — Decisão de stack** (ADR): Plotly Dash vs React+FastAPI vs PyQt/pyqtgraph. Decisão do Weslley.
+- **4.0 — Decisão de stack** ✅ **PyQt6/PySide6 + pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md)).
 - **4.1 — Configurar & calibrar pela UI.** Tabela de canais e o painel de **aferição** (pontos +
   regressão + correlação + tara), espelhando o AqDados — sem editar TOML na mão.
 - **4.2 — Visualização em tempo real.** O coração: ver o sinal **durante** o ensaio — sinal×tempo,
