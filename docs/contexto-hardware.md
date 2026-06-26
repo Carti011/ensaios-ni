@@ -119,7 +119,7 @@ Decisão registrada em [adr/001-arquitetura-porta-adaptador.md](adr/001-arquitet
 - **Aquisição (porta + adaptadores):** a porta `FonteDeAquisicao` é a única interface que o resto conhece. Adaptador `daqmx` (real, Windows, único que importa `nidaqmx`) e `fake` (sintético, Mac). É a única parte amarrada a Windows/DAQmx.
 - **Domínio / conversão:** volts → unidade física (kgf, bar, °C, mm…) por canal, parametrizado por **config** (`config/canais.toml`). **Essa informação vem do dono do hardware, não do equipamento.**
 - **Persistência:** começar em CSV (ou TDMS, formato binário nativo da NI, bom para alta taxa). PostgreSQL depois, se precisar de histórico consultável.
-- **Apresentação (dashboard):** decisão da Fase 3 (vira ADR). A aquisição nunca vai para o navegador — fica no backend Windows.
+- **Apresentação (dashboard):** Fase 4 — stack decidida no [ADR-013](adr/013-stack-do-dashboard.md) (PyQt6/pyqtgraph). A aquisição nunca vai para o navegador — fica no backend Windows.
 
 **Ordem de execução (regra de ouro):** provar a leitura de **um** canal real → CSV **antes** de construir qualquer dashboard. Interface bonita exibindo volts sem significado é o erro mais comum nesse tipo de projeto.
 
@@ -163,11 +163,19 @@ sensores, taxa dos ensaios lentos, formato de arquivo para compatibilidade com A
 
 ## 8. Plano em fases
 
-0. **Ambiente (Windows do dev):** instalar NI-DAQmx + NI-MAX; criar dispositivos simulados (cDAQ-9184 + 2× 9205 + 1× 9235); `pip install nidaqmx`; rodar o snippet de listar dispositivos. ✅ **Concluída (22/06/2026)** — simulados `cDAQ1` + `cDAQ1Mod1`/`Mod2` (9205) + `cDAQ1Mod3` (9235); Python enxerga todos via `nidaqmx`. _Nomes são do simulado; no hardware real serão outros (ex.: `cDAQ9184-1820306Mod1`)._
-1. **Prova de vida (simulado):** ler canais de tensão e de strain dos dispositivos simulados e imprimir. Valida a API sem hardware. ✅ **Concluída (22/06/2026)** — 9205 e 9235 lidos via `nidaqmx`; ver descoberta do clock explícito no §3.
-2. **Camada de aquisição:** task de tensão (os dois 9205), task de strain (9235 com os parâmetros corretos), aquisição contínua, gravação em CSV.
-3. **Conversão + dashboard:** aplicar conversão para unidade de engenharia; construir a visualização.
-4. **Validação real (no hardware):** trocar nomes simulados pelos reais, validar contra NI-MAX, calibrar/zerar a extensometria com apoio do dono do hardware.
+> **Fonte única do plano e do status: [roadmap.md](roadmap.md).** Não duplicar a lista de fases
+> aqui — esta seção guarda só as notas técnicas das fases de ambiente que não cabem no roadmap.
+
+Resumo do estado (detalhe e fases 0–6 no roadmap): **Fases 0–3 concluídas** — ambiente, prova de
+vida, aquisição (tensão + strain, finito + contínuo) e conversão/exportação, ou seja, todo o
+backend. **Fase 4 (dashboard) é a próxima**; faltam ainda a 5 (validação física no hardware) e a
+6 (empacotamento & adoção).
+
+**Notas técnicas das fases 0–1 (validadas no Windows simulado, 22/06/2026):** dispositivos
+simulados `cDAQ1` + `cDAQ1Mod1`/`Mod2` (9205) + `cDAQ1Mod3` (9235); Python enxerga todos via
+`nidaqmx` e leu 9205 e 9235 sem erro. _Os nomes são do simulado; no hardware real serão outros
+(ex.: `cDAQ9184-1820306Mod1`)._ A descoberta do **sample clock explícito** obrigatório no 9235
+(delta-sigma no chassi Ethernet) está no §3.
 
 ---
 

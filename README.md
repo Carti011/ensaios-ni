@@ -1,112 +1,107 @@
 # ensaios-ni
 
-Software de aquisição de dados para hardware **National Instruments** (chassi cDAQ-9184 + 2× NI 9205 + 1× NI 9235), em Python, sobre o driver gratuito **NI-DAQmx**. Substitui LabVIEW/FlexLogger (pagos) por uma aplicação própria que lê os sensores, converte para unidade de engenharia e registra/exibe os ensaios.
+Aquisição de dados para hardware **National Instruments** em Python, no lugar do software de
+instrumentação pago.
 
-O programa é **config-driven**: o que muda de um ensaio para outro (quais canais, quais sensores, qual conversão) vive em arquivo de configuração, não no código. Medir um prédio, uma ponte ou uma peça é o **mesmo programa** lendo um `config/canais.toml` diferente.
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-pytest-0A9EDC?logo=pytest&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Platform](https://img.shields.io/badge/acquisition-Windows%20%7C%20Linux%20x86-lightgrey)
 
-> **Status: Fase 2 (backend) fechada e validada no Windows simulado; Fase 3 em curso (exportadores).**
-> Porta `FonteDeAquisicao` (multi-canal, com taxa) com `ler_tensao`/`ler_strain` e os fluxos de
-> streaming; adaptadores `fake` e `daqmx`. Tensão (9205) e strain (9235, quarter-bridge 120 Ω / 2,0 V)
-> lidos nos modos **finito e contínuo**, validados no Windows com dispositivos simulados
-> (25/06/2026). Conversão volts→unidade por **calibração por pontos + linear**, **tara**, persistência
-> CSV (batch e incremental) e **exportadores** para CSV-Excel-BR e `.xlsx` — tudo no Mac sem `nidaqmx`.
-> Próximo: **TXT** para o AqDAnalysis (layout a fechar) e o **dashboard**. Ver `CLAUDE.md`,
-> `CONTEXT.md` e `docs/`.
+Laboratórios de ensaio de estruturas medem carga, deformação e vibração com módulos da National
+Instruments. O hardware funciona com um driver gratuito (NI-DAQmx); o que se paga é a camada de
+aplicação por cima — LabVIEW ou FlexLogger, por assinatura. Este projeto reescreve essa camada: lê
+os sensores, converte volts em unidade de engenharia por calibração, grava o ensaio e exporta para
+Excel e para a ferramenta de análise que o usuário já usa.
 
-## Pré-requisitos
+Foi construído para um caso real: um engenheiro de instrumentação que faz provas de carga e análise
+de vibração em pontes, lajes e peças estruturais, com células de carga e extensômetros que ele
+mesmo calibra.
 
-- **Desenvolvimento (domínio + fake):** qualquer plataforma com **Python 3.12+**. Recomendado **[uv](https://docs.astral.sh/uv/)** (ARM-native no Mac).
-- **Aquisição real:** **Windows** (ou Linux x86). **Não roda em macOS nem ARM** — o NI-DAQmx não existe nessas plataformas.
-- **Driver NI-DAQmx** (gratuito, [ni.com](https://www.ni.com)) instalado no Windows.
-- **NI-MAX** (vem com o driver) para descobrir/nomear o chassi e validar canais.
+![Suíte de testes: 105 casos passando no Mac, sem o hardware NI](docs/assets/testes.png)
+
+> Os 105 testes rodam no Mac em frações de segundo, **sem o hardware NI conectado** — efeito direto
+> da arquitetura porta/adaptador descrita abaixo.
+
+## Arquitetura
+
+O driver da NI só existe em Windows e Linux x86, não em macOS nem ARM. Para não amarrar o projeto a
+um PC Windows, a aquisição fica atrás de uma porta (interface) com dois adaptadores: um real sobre o
+`nidaqmx` e um sintético que roda em qualquer máquina. Conversão, calibração e persistência dependem
+só da porta, então quase todo o código é desenvolvido e testado no Mac, sem o hardware presente.
+
+```mermaid
+flowchart LR
+    APP["Aplicação<br/>casos de uso do ensaio"]
+    DOM["Domínio<br/>calibração · regressão · tara · série temporal"]
+    PER["Persistência<br/>CSV + exportadores"]
+    PORTA{{"Porta<br/>FonteDeAquisicao"}}
+    FAKE["Adaptador fake<br/>Mac · sintético · TDD"]
+    DAQMX["Adaptador daqmx<br/>Windows · NI-DAQmx"]
+    HW["Hardware NI<br/>cDAQ-9184 · 9205 · 9235"]
+
+    APP --> DOM
+    APP --> PER
+    APP --> PORTA
+    PORTA --> FAKE
+    PORTA --> DAQMX --> HW
+```
+
+A decisão e o porquê estão no [ADR-001](docs/adr/001-arquitetura-porta-adaptador.md); as demais, no
+[índice de ADRs](docs/adr/README.md).
+
+## Destaques de engenharia
+
+- **Arquitetura hexagonal por necessidade, não por moda.** A restrição de plataforma do driver é o
+  que justifica a porta. Sem ela, nada seria testável fora do Windows.
+- **A regra de isolamento é verificada por código.** Um teste percorre a AST de cada arquivo e falha
+  se algo fora do adaptador real importar `nidaqmx`. Convenção que nada verifica é convenção que se
+  quebra.
+- **Dependências opcionais de verdade.** `nidaqmx` e `openpyxl` são extras; o pacote importa e os
+  105 testes rodam sem nenhum dos dois instalado.
+- **Calibração como no laboratório.** A conversão volts → unidade usa regressão linear por mínimos
+  quadrados, com a correlação de Pearson do ajuste — o método que o engenheiro já aplica, não uma
+  constante chumbada no código.
+- **Um erro silencioso que o teste impede.** A leitura de strain do módulo 9235 precisa de
+  quarter-bridge, 120 Ω, 2,0 V. Os valores padrão da biblioteca são full-bridge, 350 Ω, 2,5 V, e
+  devolveriam um número plausível e errado sem lançar exceção. Um teste trava a configuração certa.
+- **Config-driven.** Medir um prédio, uma ponte ou uma peça é o mesmo programa lendo um
+  `config/canais.toml` diferente.
+
+## Stack
+
+- **Python 3.12**, gerenciado com [uv](https://docs.astral.sh/uv/).
+- **pytest** para o TDD (domínio e adaptador fake, sem hardware).
+- **NI-DAQmx** (driver gratuito) pelo pacote `nidaqmx`, como dependência opcional.
+- **tomllib** para configuração; **openpyxl** (opcional) para exportar `.xlsx`.
+- Dashboard em **PyQt6/pyqtgraph** na próxima fase ([ADR-013](docs/adr/013-stack-do-dashboard.md)).
 
 ## Como rodar
 
-### Testes do domínio (Mac/Linux/Windows, sem hardware)
-
-O domínio e o adaptador fake rodam em qualquer plataforma, sem o `nidaqmx`. O `uv` cuida do Python 3.12 e das dependências de teste:
+Os testes do domínio e a demonstração rodam em qualquer plataforma, sem hardware:
 
 ```bash
-uv run pytest
+uv run pytest                              # 105 testes
+PYTHONPATH=src uv run python -m ensaios_ni # ensaio sintético ponta a ponta, gera um CSV
 ```
 
-### Ver o programa rodar (demonstração no Mac, sem hardware)
-
-Roda um ensaio ponta a ponta com o adaptador **fake** e um sinal sintético, gerando um
-CSV de exemplo (`ensaio-demo.csv`). Mostra o fluxo completo — ler → converter → gravar —
-antes de existir o adaptador real:
-
-```bash
-PYTHONPATH=src uv run python -m ensaios_ni
-```
-
-> No Mac o pacote não é instalado (`package = false`), por isso o `PYTHONPATH=src`.
-> No Windows, após `pip install -e .[hardware]`, basta `python -m ensaios_ni`.
-
-### Aquisição real de tensão (só Windows)
-
-Com o driver NI-DAQmx instalado, instale o pacote com o extra de hardware:
-
-```bash
-pip install -e .[hardware]
-```
-
-Rode um ensaio lendo os canais de tensão (hardware ou dispositivos simulados do NI-MAX),
-escolhendo a fonte e os parâmetros por linha de comando:
-
-```bash
-python -m ensaios_ni --fonte daqmx --config config/canais.toml --taxa 1024 --amostras 1024 --saida ensaio.csv
-```
-
-> `--fonte fake` (padrão) roda a demonstração sintética em qualquer plataforma; `--fonte daqmx`
-> exige Windows + NI-DAQmx. Os nomes dos canais no `canais.toml` vêm do NI-MAX.
-> **Critério de "funcionou": a leitura bate com o test panel do NI-MAX** no mesmo canal.
-
-**Passo a passo simples para o Windows** (instalação, driver NI, configuração de
-canais — com ou sem Claude Code): [docs/guia-windows.md](docs/guia-windows.md).
-
-### Exportar um ensaio para Excel ou análise
-
-Um ensaio gravado em CSV pode ser convertido para outros formatos **sem rodar nova aquisição**
-(serve inclusive para reexportar ensaios antigos):
-
-```bash
-# CSV amigável ao Excel BR (separador ; e decimal vírgula) — não precisa de dependência extra
-PYTHONPATH=src uv run python -m ensaios_ni --exportar csv-excel-br --de ensaio.csv --saida ensaio-br.csv
-
-# .xlsx nativo — exige o extra [excel] (openpyxl)
-PYTHONPATH=src uv run python -m ensaios_ni --exportar xlsx --de ensaio.csv --saida ensaio.xlsx
-
-# exportar só alguns canais
-PYTHONPATH=src uv run python -m ensaios_ni --exportar xlsx --de ensaio.csv --saida ensaio.xlsx --sinais "Mod1/ai0,Mod3/ai0"
-
-# exportar só um trecho do ensaio (janela de tempo, em segundos) — útil para ensaios longos
-PYTHONPATH=src uv run python -m ensaios_ni --exportar xlsx --de ensaio.csv --saida trecho.xlsx --inicio-s 120 --fim-s 180
-
-# TXT para o AqDAnalysis (formato PROVISÓRIO — a calibrar com um arquivo real, ver abaixo)
-PYTHONPATH=src uv run python -m ensaios_ni --exportar txt-aqanalysis --de ensaio.csv --saida ensaio.txt
-```
-
-> O `.xlsx` precisa do `openpyxl`: instale com o extra **`[excel]`** (`pip install -e .[excel]` no
-> Windows; no Mac o grupo `dev` já o inclui). O **`txt-aqanalysis`** usa decimal vírgula e TAB, mas o
-> layout exato do "Importa Arquivo Texto" do AqDAnalysis ainda **não foi validado** — separador,
-> encoding e cabeçalho podem precisar de ajuste contra um TXT autêntico (ADR-011).
-
-## Variáveis de ambiente
-
-Não há segredos no código. O mapeamento de canais (nomes de dispositivo e coeficientes de conversão) vai para `config/canais.toml` — copie de `config/canais.exemplo.toml`. O `canais.toml` real é ignorado no git.
+Aquisição real no Windows, exportação para Excel/análise e configuração de canais estão no
+**[guia de uso](docs/uso.md)**.
 
 ## Documentação
 
-- [CLAUDE.md](CLAUDE.md) — regras do projeto para o agente.
-- [CONTEXT.md](CONTEXT.md) — glossário do domínio.
-- [docs/onde-pesquisar.md](docs/onde-pesquisar.md) — **protocolo de dúvida**: onde buscar resposta (produto → AqDados/AqDAnalysis; técnica → NI-DAQmx; domínio → OFM) antes de perguntar ou inventar.
-- [docs/contexto-hardware.md](docs/contexto-hardware.md) — inventário do hardware e **API do `nidaqmx` pinada**.
-- [docs/adr/](docs/adr/) — decisões de arquitetura.
+- [docs/uso.md](docs/uso.md) — instalar, rodar um ensaio, exportar.
+- [docs/adr/README.md](docs/adr/README.md) — índice das decisões de arquitetura (14 ADRs).
+- [docs/roadmap.md](docs/roadmap.md) — plano em fases e estado atual.
+- [CONTEXT.md](CONTEXT.md) — glossário do domínio (tensão, strain, aferição, tara…).
+- [docs/contexto-hardware.md](docs/contexto-hardware.md) — inventário do hardware e a API do
+  `nidaqmx` usada.
 
-## Licença
+## Status
 
-[MIT](LICENSE) — © 2026 Weslley Cardoso.
+Backend completo: leitura (tensão e strain, finita e contínua), calibração, gravação CSV e
+exportadores, validados no Windows com dispositivos simulados. A próxima fase é o dashboard. Plano e
+detalhes no [roadmap](docs/roadmap.md).
 
 ## Estrutura
 
@@ -114,12 +109,16 @@ Não há segredos no código. O mapeamento de canais (nomes de dispositivo e coe
 ensaios-ni/
 ├── config/
 │   └── canais.exemplo.toml      # modelo do mapeamento canal → conversão
-├── docs/                        # contexto de hardware + ADRs
+├── docs/                        # uso, ADRs, contexto de hardware, roadmap
 ├── src/ensaios_ni/
-│   ├── dominio/                 # Canal, conversão (regressão/segmento/linear), tara, SerieTemporal, erros
+│   ├── dominio/                 # Canal, conversão (regressão/segmento/linear), tara, série temporal
 │   ├── aquisicao/               # porta + adaptadores (fake / daqmx: tensão e strain)
-│   ├── persistencia/            # CSV (gravar/carregar) + exportadores (csv-excel-br, xlsx)
-│   ├── aplicacao/               # caso de uso executar_ensaio + demonstração
-│   └── __main__.py              # CLI de produção (--fonte, --continuo, --exportar…)
-└── tests/                       # dominio / aquisicao / aplicacao / arquitetura
+│   ├── persistencia/            # CSV (gravar/carregar) + exportadores (csv-excel-br, xlsx, txt)
+│   ├── aplicacao/               # casos de uso (ensaio finito/contínuo) + demonstração
+│   └── __main__.py              # CLI (--fonte, --continuo, --exportar…)
+└── tests/                       # dominio · aquisicao · aplicacao · persistencia · arquitetura
 ```
+
+## Licença
+
+[MIT](LICENSE) — © 2026 Weslley Cardoso.

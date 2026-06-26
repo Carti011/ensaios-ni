@@ -18,8 +18,9 @@ Leia **sempre** antes de implementar:
 1. [docs/onde-pesquisar.md](docs/onde-pesquisar.md) — **protocolo de dúvida**: o usuário é o tio (OFM); siga o padrão do AqDados/área (compatibilidade > invenção). Onde buscar resposta antes de perguntar ou inventar.
 2. [docs/contexto-hardware.md](docs/contexto-hardware.md) — inventário do hardware, restrições e a **API real do `nidaqmx` pinada** (não inventar assinaturas).
 3. [CONTEXT.md](CONTEXT.md) — glossário do domínio (tensão, strain, task, porta, adaptador…).
-4. [docs/adr/](docs/adr/) — decisões de arquitetura. **ADR-001 define a espinha dorsal** (porta/adaptador).
-5. Brief no cofre: `~/cofre/01-projetos/ensaios-ni.md` — estado atual, plano em fases, perguntas pendentes pro dono do hardware.
+4. [docs/adr/](docs/adr/) — decisões de arquitetura (**índice em [docs/adr/README.md](docs/adr/README.md)** — leia antes de abrir ADR por ADR). **ADR-001 define a espinha dorsal** (porta/adaptador).
+5. [docs/roadmap.md](docs/roadmap.md) — plano em fases e **onde estamos** (fonte única do status). Ao **retomar**, leia também o handoff mais recente (ver [docs/handoff/](docs/handoff/)).
+6. Brief no cofre: `~/cofre/01-projetos/ensaios-ni.md` — contexto do projeto e perguntas pendentes pro dono do hardware.
 
 ---
 
@@ -64,14 +65,14 @@ Consequência prática: **o pacote tem que importar e os testes do domínio têm
 - **Pacote:** `nidaqmx` (PyPI) — wrapper oficial do driver.
 - **Testes:** `pytest`.
 - **Persistência:** CSV primeiro. TDMS/PostgreSQL só se a necessidade aparecer.
-- **Dashboard:** decisão adiada pra Fase 3 (vira ADR). Não fixar agora.
+- **Dashboard:** PyQt6/PySide6 + pyqtgraph (Fase 4) — ver [ADR-013](docs/adr/013-stack-do-dashboard.md).
 - **Dependências:** `pyproject.toml`. No Mac, `uv` (ARM-native) é o preferido; no Windows do tio, `pip install -e .` simples basta.
 
 ---
 
 ## Estrutura
 
-`apresentacao/` (dashboard, Fase 3) ainda não existe — o resto está criado.
+`apresentacao/` (dashboard, Fase 4) ainda não existe — o resto está criado.
 
 ```text
 ensaios-ni/
@@ -81,7 +82,7 @@ ensaios-ni/
 ├── docs/
 │   ├── onde-pesquisar.md          # protocolo de dúvida + filosofia de produto
 │   ├── contexto-hardware.md
-│   └── adr/001…012                # decisões de arquitetura
+│   └── adr/001…014                # decisões de arquitetura
 ├── src/ensaios_ni/
 │   ├── dominio/                   # Canal, conversão, regressao (Reta), SerieTemporal (testável no Mac)
 │   ├── aquisicao/
@@ -94,6 +95,30 @@ ensaios-ni/
 └── tests/
     ├── dominio/ · aquisicao/ · aplicacao/ · persistencia/ · arquitetura/
 ```
+
+---
+
+## Manutenção da documentação (gatilho → ação)
+
+Regra-mãe ([ADR-014](docs/adr/014-fonte-unica-na-documentacao.md)): **informação volátil tem dono
+único; os demais docs apontam, não copiam.** Ao concluir uma mudança, atualize **só o dono**:
+
+| Quando você… | Atualize (o dono) |
+| ------------ | ----------------- |
+| Cria ou muda o status de um **ADR** | a linha no índice [docs/adr/README.md](docs/adr/README.md) + `CHANGELOG.md` + o range `adr/001…NNN` na Estrutura acima |
+| Avança de fase ou muda o **status** do projeto | **só** o [roadmap.md](docs/roadmap.md) — nunca copie status em README/CLAUDE/contexto-hardware |
+| **Encerra a sessão** | gere um handoff com `/handoff` em [docs/handoff/](docs/handoff/) (vira o ponto de entrada da próxima sessão) |
+| Conclui uma **feature/correção** relevante | `CHANGELOG.md` (seção certa) |
+| Define **vocabulário** novo de domínio | [CONTEXT.md](CONTEXT.md) |
+
+**Os dois índices `README.md` têm naturezas diferentes:**
+
+- [docs/adr/README.md](docs/adr/README.md) é **lista viva** — atualize a tabela a cada ADR novo ou com status alterado.
+- [docs/handoff/README.md](docs/handoff/README.md) é **estável** (não cita o handoff "mais recente" por nome, de propósito) — só mexa se a *política* de handoff mudar, nunca a cada sessão.
+
+Antes de colar um trecho em outro arquivo, pergunte: *quem é o dono dessa informação?* Se já tem
+dono, **linke** em vez de copiar. Exceção única: a **armadilha do strain** é repetida de propósito
+(segurança).
 
 ---
 

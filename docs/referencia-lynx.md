@@ -206,4 +206,4 @@ Ver [ADR-011](adr/011-estrategia-de-exportacao.md).
 | Aquisição | tabela de canais (nome, unidade, tipo, faixa, limites) | config + futura UI |
 | Análise | **não reescrever**; exportar TXT pro AqDAnalysis | ADR-011 |
 | Dados | metadata de rastreabilidade (instituição, obra, responsável, data) | CSV/TXT + dashboard |
-| Dashboard | série temporal + cursores (ΔY, ΔT, 1/ΔT=Hz), **XY graph** (carga×deformação) | Fase 3 |
+| Dashboard | série temporal + cursores (ΔY, ΔT, 1/ΔT=Hz), **XY graph** (carga×deformação) | Fase 4 |
