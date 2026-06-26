@@ -8,11 +8,13 @@ dependencies = []
 
 # nidaqmx só roda em Windows/Linux x86 — dependência opcional, não instalada no Mac.
 # No Windows: `pip install -e .[hardware]`
+# openpyxl (extra [excel]) é Python puro e roda no Mac; só é exigido pelo exportador .xlsx.
 [project.optional-dependencies]
 hardware = ["nidaqmx>=1.0"]
+excel = ["openpyxl>=3.1"]
 
 [dependency-groups]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "openpyxl>=3.1"]
 
 [build-system]
 requires = ["hatchling"]

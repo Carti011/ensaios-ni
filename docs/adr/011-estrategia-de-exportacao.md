@@ -2,7 +2,15 @@
 
 ## Status
 
-Aceito (24/06/2026).
+Aceito (24/06/2026). A camada de exportadores foi detalhada e implementada pelo
+[ADR-012](012-serie-temporal-e-exportadores.md) (25/06/2026): `SerieTemporal` + `carregar_csv` e os
+exportadores **CSV-Excel-BR** e **`.xlsx`** (com seleção de sinais e janela de tempo). O exportador
+**TXT-AqAnalysis** foi implementado de forma **provisória** (25/06/2026): decimal vírgula
+(confirmado nas telas do Lynx), separador TAB, cabeçalho de uma linha e encoding utf-8. **O layout
+exato do "Importa Arquivo Texto" não é público** (pesquisa na doc da Lynx não fechou separador,
+encoding nem estrutura do cabeçalho) — então separador/encoding/cabeçalho ficam **a calibrar** com um
+TXT autêntico do dono ou um teste de importação no AqDAnalysis. Como o exportador é plugável, o ajuste
+é trivial.
 
 ## Contexto
 

@@ -3,7 +3,11 @@
 ## Status
 
 Aceito (decisões de design fechadas em 23/06/2026, fundamentadas na pesquisa do FlexLogger/DAQmx —
-ver [referencia-flexlogger.md](../referencia-flexlogger.md) e [ADR-008](008-paridade-funcional-flexlogger.md))
+ver [referencia-flexlogger.md](../referencia-flexlogger.md) e [ADR-008](008-paridade-funcional-flexlogger.md)).
+**Revisado em 25/06/2026** (ver "Resolução" no fim): o método de calibração **padrão passou a ser a
+regressão linear**, espelhando o AqDados — consequência da virada de norte do
+[ADR-010](010-paridade-com-o-lynx.md). A interpolação por segmento (herdada do FlexLogger) virou
+opt-in.
 
 ## Contexto
 
@@ -77,6 +81,32 @@ Pendência a decidir quando formos mexer na calibração (provável Fase 3):
 
 Não resolver agora — só registrado para não se perder. A interpolação por segmento segue como
 comportamento atual.
+
+### Resolução (25/06/2026)
+
+Pendências resolvidas ao mexer na calibração (Fase 3). A investigação da **fonte real do domínio**
+— o site da OFM (`codigo/ofm-engenharia/`, ver `components/AcervoTecnico.tsx`) e a documentação da
+Lynx ("calibração por **regressão linear** de leituras") — confirmou que o tio **fabrica e calibra
+células de carga** e que o método de aferição dele no AqDados é a **regressão linear**. A
+interpolação por segmento veio do FlexLogger, que **deixou de ser o norte** (ADR-010). Ver
+[onde-pesquisar.md](../onde-pesquisar.md).
+
+Decisões:
+
+1. **Regressão linear é o método padrão** quando o canal declara `pontos`. Ajusta **uma reta a N
+   pontos** por mínimos quadrados (`dominio/regressao.py`, value object `Reta(a, b, correlacao)`),
+   pré-computada na carga da config e aplicada em `converter`. A reta **extrapola** fora da faixa
+   (relação física linear), sem clamp.
+2. **Correlação (R de Pearson) é exposta** em `Reta.correlacao` — o indicador "100,00 %" do AqDados.
+   Por ora só fica disponível (sem aviso/bloqueio); um limiar de qualidade dependerá da UX de
+   calibração e do que o tio considera aceitável.
+3. **Interpolação por segmento vira opt-in:** `metodo = "segmento"` na config, para sensores
+   comprovadamente não-lineares (mantém ordenação + unicidade de volts e clamp). `metodo` default =
+   `"regressao"`. A regressão **aceita volts repetido** (medições repetidas no mesmo ponto), onde ela
+   justamente tolera o ruído; o segmento não (seria curva ambígua).
+
+Pendente ainda: o modo **"Ganho e Ponto de Referência"** do AqDados (reparametrização do linear) —
+adiado por ser redutível ao `ganho`/`offset` atual e de menor valor imediato.
 
 ## Consequências
 

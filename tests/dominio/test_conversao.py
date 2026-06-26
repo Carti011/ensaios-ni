@@ -1,5 +1,6 @@
 from ensaios_ni.dominio.canais import Canal
 from ensaios_ni.dominio.conversao import calcular_tara, converter
+from ensaios_ni.dominio.regressao import Reta
 
 
 def _canal(ganho: float, offset: float) -> Canal:
@@ -39,6 +40,15 @@ def test_conversao_por_pontos_clampa_fora_da_faixa():
     canal = _canal_pontos(((0.0, 0.0), (10.0, 1000.0)))
     assert converter(-3.0, canal) == 0.0     # abaixo do menor ponto
     assert converter(12.0, canal) == 1000.0  # acima do maior ponto
+
+
+def test_conversao_por_regressao_aplica_a_reta_ajustada():
+    # método do AqDados: uma única reta (não passa por cada ponto) e extrapola fora da faixa
+    canal = Canal(nome="Mod1/ai0", tipo="tensao", unidade="kgf",
+                  reta=Reta(a=100.0, b=2.0, correlacao=0.999))
+    assert converter(0.0, canal) == 2.0
+    assert converter(5.0, canal) == 502.0
+    assert converter(12.0, canal) == 1202.0  # reta extrapola (sem clamp)
 
 
 def test_calcular_tara_e_a_media_do_repouso_na_unidade():

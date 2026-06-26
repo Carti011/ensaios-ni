@@ -3,9 +3,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ensaios_ni.dominio.erros import CanalNaoConfigurado, ConfiguracaoInvalida
+from ensaios_ni.dominio.regressao import Reta, ajustar_regressao
 
 CAMPOS_BASE = ("tipo", "unidade")
 TIPOS_VALIDOS = ("tensao", "strain")
+METODOS_VALIDOS = ("regressao", "segmento")
+METODO_PADRAO = "regressao"
 
 
 @dataclass(frozen=True)
@@ -18,6 +21,7 @@ class Canal:
     ganho: float | None = None
     offset: float | None = None
     pontos: tuple[tuple[float, float], ...] | None = None
+    reta: Reta | None = None
 
 
 class Canais:
@@ -57,12 +61,9 @@ def _construir_canal(nome: str, cfg: dict) -> Canal:
             f"canal '{nome}': tipo '{cfg['tipo']}' inválido (use {' ou '.join(TIPOS_VALIDOS)})"
         )
     if "pontos" in cfg:
-        return Canal(
-            nome=nome,
-            tipo=cfg["tipo"],
-            unidade=cfg["unidade"],
-            pontos=_pontos(nome, cfg["pontos"]),
-        )
+        return _canal_calibrado(nome, cfg)
+    if "metodo" in cfg:
+        raise ConfiguracaoInvalida(f"canal '{nome}': 'metodo' só se aplica quando há 'pontos'")
     faltando = [campo for campo in ("ganho", "offset") if campo not in cfg]
     if faltando:
         raise ConfiguracaoInvalida(
@@ -78,7 +79,21 @@ def _construir_canal(nome: str, cfg: dict) -> Canal:
     )
 
 
-def _pontos(nome: str, valor) -> tuple[tuple[float, float], ...]:
+def _canal_calibrado(nome: str, cfg: dict) -> Canal:
+    """Canal com tabela de pontos: regressão linear (default, à la AqDados) ou segmento (opt-in)."""
+    metodo = cfg.get("metodo", METODO_PADRAO)
+    if metodo not in METODOS_VALIDOS:
+        raise ConfiguracaoInvalida(
+            f"canal '{nome}': metodo '{metodo}' inválido (use {' ou '.join(METODOS_VALIDOS)})"
+        )
+    pares = _parsear_pares(nome, cfg["pontos"])
+    base = dict(nome=nome, tipo=cfg["tipo"], unidade=cfg["unidade"])
+    if metodo == "segmento":
+        return Canal(**base, pontos=_preparar_segmento(nome, pares))
+    return Canal(**base, reta=ajustar_regressao(pares))
+
+
+def _parsear_pares(nome: str, valor) -> list[tuple[float, float]]:
     if not isinstance(valor, list) or len(valor) < 2:
         raise ConfiguracaoInvalida(f"canal '{nome}': 'pontos' precisa de ao menos 2 pares [volts, valor]")
     pares = []
@@ -86,10 +101,15 @@ def _pontos(nome: str, valor) -> tuple[tuple[float, float], ...]:
         if not isinstance(item, list) or len(item) != 2:
             raise ConfiguracaoInvalida(f"canal '{nome}': cada ponto deve ser um par [volts, valor], recebido {item!r}")
         pares.append((_numero(nome, "pontos", item[0]), _numero(nome, "pontos", item[1])))
-    pares.sort(key=lambda par: par[0])
-    if len({volts for volts, _ in pares}) != len(pares):
+    return pares
+
+
+def _preparar_segmento(nome: str, pares: list[tuple[float, float]]) -> tuple[tuple[float, float], ...]:
+    # interpolação por segmento exige volts ordenado e único (curva sem ambiguidade)
+    ordenados = sorted(pares, key=lambda par: par[0])
+    if len({volts for volts, _ in ordenados}) != len(ordenados):
         raise ConfiguracaoInvalida(f"canal '{nome}': há pontos com o mesmo valor de volts (curva ambígua)")
-    return tuple(pares)
+    return tuple(ordenados)
 
 
 def _numero(nome: str, campo: str, valor) -> float:
