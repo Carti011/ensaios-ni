@@ -59,18 +59,13 @@ Transcrito local com `mlx-whisper` (`large-v3-turbo`). Trechos óbvios corrigido
 ## Estudo de mercado (23/06/2026) — respostas obtidas sem o tio
 
 A pesquisa (FlexLogger/DAQmx + docs NI/Lynx + site da OFM) fechou o **comportamento** do software
-e respondeu boa parte da rodada 3. Detalhe e fontes em [referencia-flexlogger.md §5](referencia-flexlogger.md).
-Resumo do que **já sabemos** (não precisa perguntar, só confirmar):
+e respondeu boa parte da rodada 3. **O detalhe — com nível de confiança e fontes — é a
+[referencia-flexlogger.md §5](referencia-flexlogger.md); não duplicar aqui.**
 
-| Tema | Resposta da pesquisa | Confiança |
-| ---- | -------------------- | --------- |
-| Acelerômetro (marca) | **Dytran (EUA)**, triaxial, sub-mg (site OFM) — "de tram" = Dytran | alta |
-| Fiação 9205 | **diferencial** (par trançado blindado; padrão NI p/ campo) | alta (recomendação) |
-| Taxa ensaios lentos | estático ~**0,02–10 Hz** (1 Hz típico / por estágio); dinâmico já é 1024 Hz | média |
-| Fora da faixa | **clamp** (DAQmx clipa na leitura); outliers = análise depois | alta |
-| Célula de carga no 9205 | não liga direto; precisa **condicionador externo com saída em tensão** | alta |
-| Formato AqDAnalysis | importa **proprietário** (Lynx/Catman .BIN/MGCPlus .MEA/MTS); troca via **TXT**, não CSV | alta |
-| Tara | prática padrão ("Zero Channel"); repouso de **alguns segundos** | média |
+Em uma linha, o que a pesquisa concluiu (e a rodada 3 do tio depois confirmou): acelerômetro
+**Dytran**, fiação do 9205 **diferencial**, taxa dos estáticos baixa (real: **20 Hz**), fora da
+faixa = **clamp**, célula de carga via **condicionador com saída em tensão**, troca com o
+AqDAnalysis via **TXT** (não CSV) e **tara** padrão "Zero Channel".
 
 **Implicação nova:** paridade direta de **arquivo** com o AqDAnalysis é improvável (formatos
 proprietários). Caminho realista: CSV/TXT legível + nossa própria análise no futuro.

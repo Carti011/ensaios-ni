@@ -19,7 +19,8 @@ Leia **sempre** antes de implementar:
 2. [docs/contexto-hardware.md](docs/contexto-hardware.md) — inventário do hardware, restrições e a **API real do `nidaqmx` pinada** (não inventar assinaturas).
 3. [CONTEXT.md](CONTEXT.md) — glossário do domínio (tensão, strain, task, porta, adaptador…).
 4. [docs/adr/](docs/adr/) — decisões de arquitetura. **ADR-001 define a espinha dorsal** (porta/adaptador).
-5. Brief no cofre: `~/cofre/01-projetos/ensaios-ni.md` — estado atual, plano em fases, perguntas pendentes pro dono do hardware.
+5. [docs/roadmap.md](docs/roadmap.md) — plano em fases e **onde estamos** (fonte única do status).
+6. Brief no cofre: `~/cofre/01-projetos/ensaios-ni.md` — contexto do projeto e perguntas pendentes pro dono do hardware.
 
 ---
 
@@ -64,14 +65,14 @@ Consequência prática: **o pacote tem que importar e os testes do domínio têm
 - **Pacote:** `nidaqmx` (PyPI) — wrapper oficial do driver.
 - **Testes:** `pytest`.
 - **Persistência:** CSV primeiro. TDMS/PostgreSQL só se a necessidade aparecer.
-- **Dashboard:** decisão adiada pra Fase 3 (vira ADR). Não fixar agora.
+- **Dashboard:** PyQt6/PySide6 + pyqtgraph (Fase 4) — ver [ADR-013](docs/adr/013-stack-do-dashboard.md).
 - **Dependências:** `pyproject.toml`. No Mac, `uv` (ARM-native) é o preferido; no Windows do tio, `pip install -e .` simples basta.
 
 ---
 
 ## Estrutura
 
-`apresentacao/` (dashboard, Fase 3) ainda não existe — o resto está criado.
+`apresentacao/` (dashboard, Fase 4) ainda não existe — o resto está criado.
 
 ```text
 ensaios-ni/
@@ -81,7 +82,7 @@ ensaios-ni/
 ├── docs/
 │   ├── onde-pesquisar.md          # protocolo de dúvida + filosofia de produto
 │   ├── contexto-hardware.md
-│   └── adr/001…012                # decisões de arquitetura
+│   └── adr/001…014                # decisões de arquitetura
 ├── src/ensaios_ni/
 │   ├── dominio/                   # Canal, conversão, regressao (Reta), SerieTemporal (testável no Mac)
 │   ├── aquisicao/

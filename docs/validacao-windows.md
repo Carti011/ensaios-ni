@@ -9,7 +9,7 @@ contra o NI-MAX.
 > geram um sinal sintético (senoide/ruído) — então **não** dá para "bater o número físico" neles.
 > No simulado o critério é: **monta a task e lê sem erro**, com o **timing** e os **parâmetros do
 > strain corretos**, e o **contínuo flui e encerra limpo**. A validação do **número físico** (bater
-> com o test panel sobre um sinal conhecido) é no **hardware do tio** (Fase 4), com este mesmo runbook.
+> com o test panel sobre um sinal conhecido) é no **hardware do tio** (Fase 5), com este mesmo runbook.
 
 ---
 
@@ -82,4 +82,4 @@ código; este passo confirma no driver real. Ver [contexto-hardware.md §4](cont
 | Armadilha strain | test panel do 9235 | quarter-bridge 120 Ω / 2,0 V |
 
 Com os quatro itens marcados no **simulado**, a Fase 2 está validada no Windows. O número físico
-fica para a Fase 4, no hardware do tio, com este mesmo runbook.
+fica para a Fase 5, no hardware do tio, com este mesmo runbook.

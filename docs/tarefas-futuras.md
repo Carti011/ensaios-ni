@@ -18,7 +18,7 @@ Como fechar (qualquer uma das vias valida):
 - [ ] **Via A — TXT legítimo do tio.** O tio exporta um TXT qualquer no AqDAnalysis e envia. Com um
       arquivo real em mãos, comparo o layout (separador, encoding, cabeçalho, nomes de unidade) e
       ajusto o exportador para casar. **O Weslley já pediu o arquivo a ele (25/06/2026) e aguarda.**
-- [ ] **Via B — testar na casa do tio.** Ir ao computador do tio (Fase 4, junto da calibração
+- [ ] **Via B — testar na casa do tio.** Ir ao computador do tio (Fase 5, junto da calibração
       física) e tentar **importar o nosso TXT** no AqDAnalysis dele. Ver se entra; ajustar separador/
       decimal/cabeçalho no wizard de importação. É o teste definitivo (o critério de "funcionou").
 
@@ -53,10 +53,10 @@ Não detalhadas aqui para não duplicar; o ADR é a fonte de verdade.
       Camada de entrega, a definir com o gosto dele. [ADR-011](adr/011-estrategia-de-exportacao.md).
 - [ ] **Calibração "Ganho e Ponto de Referência"** — segundo modo de aferição do AqDados; redutível
       ao linear, baixa prioridade. [ADR-006](adr/006-calibracao-por-pontos.md).
-- [ ] **Dashboard (Fase 3)** — decidir a stack (Plotly Dash vs React+FastAPI) → vira um ADR.
+- [x] ~~**Dashboard — decidir a stack**~~ → decidido: **PyQt6/pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md)). A construção do dashboard é a **Fase 4** (ver [roadmap.md](roadmap.md)).
 - [ ] **Análise própria (FFT) vs não reescrever análise** — tensão entre o ADR-011 e a visão de
       futuro; precisa de um árbitro (ADR) quando chegar no dashboard.
 - [ ] **Sincronização por start-trigger** entre as tasks de tensão e strain — só valida no Windows.
       [ADR-007](adr/007-aquisicao-continua.md) / [ADR-009](adr/009-leitura-de-strain-9235.md).
-- [ ] **Fase 4 — validação física** no hardware do tio (número real do strain, calibração),
+- [ ] **Fase 5 — validação física** no hardware do tio (número real do strain, calibração),
       seguindo `docs/validacao-windows.md`.

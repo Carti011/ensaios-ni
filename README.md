@@ -4,14 +4,15 @@ Software de aquisição de dados para hardware **National Instruments** (chassi 
 
 O programa é **config-driven**: o que muda de um ensaio para outro (quais canais, quais sensores, qual conversão) vive em arquivo de configuração, não no código. Medir um prédio, uma ponte ou uma peça é o **mesmo programa** lendo um `config/canais.toml` diferente.
 
-> **Status: Fase 2 (backend) fechada e validada no Windows simulado; Fase 3 em curso (exportadores).**
+> **Status: backend completo — Fases 0–3 concluídas. A próxima é a Fase 4, o dashboard.**
 > Porta `FonteDeAquisicao` (multi-canal, com taxa) com `ler_tensao`/`ler_strain` e os fluxos de
 > streaming; adaptadores `fake` e `daqmx`. Tensão (9205) e strain (9235, quarter-bridge 120 Ω / 2,0 V)
 > lidos nos modos **finito e contínuo**, validados no Windows com dispositivos simulados
-> (25/06/2026). Conversão volts→unidade por **calibração por pontos + linear**, **tara**, persistência
-> CSV (batch e incremental) e **exportadores** para CSV-Excel-BR e `.xlsx` — tudo no Mac sem `nidaqmx`.
-> Próximo: **TXT** para o AqDAnalysis (layout a fechar) e o **dashboard**. Ver `CLAUDE.md`,
-> `CONTEXT.md` e `docs/`.
+> (25/06/2026). Conversão volts→unidade por **calibração (regressão linear / segmento / linear)**,
+> **tara**, persistência CSV (batch e incremental) e **exportadores** para CSV-Excel-BR, `.xlsx` e
+> TXT-AqAnalysis (provisório) — tudo no Mac sem `nidaqmx`. Próximo: o **dashboard**
+> (PyQt6/pyqtgraph, [ADR-013](docs/adr/013-stack-do-dashboard.md)). Plano completo e status em
+> [docs/roadmap.md](docs/roadmap.md); ver também `CLAUDE.md`, `CONTEXT.md` e `docs/`.
 
 ## Pré-requisitos
 
@@ -99,6 +100,7 @@ Não há segredos no código. O mapeamento de canais (nomes de dispositivo e coe
 ## Documentação
 
 - [CLAUDE.md](CLAUDE.md) — regras do projeto para o agente.
+- [docs/roadmap.md](docs/roadmap.md) — plano em fases e onde estamos (**fonte única do status**).
 - [CONTEXT.md](CONTEXT.md) — glossário do domínio.
 - [docs/onde-pesquisar.md](docs/onde-pesquisar.md) — **protocolo de dúvida**: onde buscar resposta (produto → AqDados/AqDAnalysis; técnica → NI-DAQmx; domínio → OFM) antes de perguntar ou inventar.
 - [docs/contexto-hardware.md](docs/contexto-hardware.md) — inventário do hardware e **API do `nidaqmx` pinada**.
