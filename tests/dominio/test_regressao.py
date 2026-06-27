@@ -1,5 +1,6 @@
 import pytest
 
+from ensaios_ni.dominio.erros import RegressaoIndeterminada
 from ensaios_ni.dominio.regressao import Reta, ajustar_regressao
 
 
@@ -30,3 +31,9 @@ def test_correlacao_um_quando_todos_os_valores_de_engenharia_sao_iguais():
     assert reta.a == pytest.approx(0.0)
     assert reta.b == pytest.approx(5.0)
     assert reta.correlacao == 1.0
+
+
+def test_volts_sem_variacao_e_regressao_indeterminada():
+    # todos os pontos na mesma tensão: a reta é vertical (indeterminada), não pode dividir por zero
+    with pytest.raises(RegressaoIndeterminada):
+        ajustar_regressao([(2.0, 10.0), (2.0, 20.0)])

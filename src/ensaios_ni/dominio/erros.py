@@ -10,3 +10,7 @@ class CanalNaoConfigurado(ErroDeDominio):
 
 class ConfiguracaoInvalida(ErroDeDominio):
     """Config de canais malformada (campo faltando ou valor inválido)."""
+
+
+class RegressaoIndeterminada(ErroDeDominio):
+    """Pontos sem variação de tensão: a reta de calibração é indeterminada (divisão por zero)."""
