@@ -42,6 +42,32 @@ Implementar **só quando a validação indicar necessidade** — não especular 
 
 ---
 
+## 3. Nome do sinal (rótulo humano) nos canais — UI e config
+
+Hoje a tabela de canais e os seletores X/Y do dashboard mostram o **endereço físico** do
+canal (`Mod1/ai0` = "Módulo 1, entrada analógica 0"), que vem do NI-MAX/DAQmx. **O tio não
+reconhece isso** — pra ele é como "tomada nº 1 da parede". Ele pensa no sensor pelo **que mede**:
+"Carga", "Sg1 bico", "Sg2 reforço". O AqDados dele tem uma coluna **"Nome do Sinal"** (apelido
+humano) **separada** do canal físico — ver [referencia-lynx.md](referencia-lynx.md) §1.1.
+
+Causa raiz: o `Canal` (`dominio/canais.py`) só guarda o endereço físico (`nome`) + unidade; não
+existe campo de rótulo, então a UI não tem o que exibir além do endereço. (Levantado em
+26/06/2026, ao revisar o seletor XY da fatia 2 do dashboard.)
+
+Como fechar (backend primeiro, frontend depois — commits separados):
+
+- [ ] **Backend** — campo opcional `rotulo` (nome do sinal) no `Canal` e no carregamento do
+      TOML (`carregar_canais`), com **fallback** para o `nome` (endereço) quando ausente; validar
+      como string. Documentar em `config/canais.exemplo.toml`.
+- [ ] **Frontend** — tabela e seletores X/Y exibem **`rótulo — unidade`** (ex.: `Carga — kgf`),
+      mantendo o endereço físico só internamente (é o que o DAQmx precisa). Sem `rotulo`, cai no
+      endereço atual.
+
+Por que importa: é critério de **adoção** — o tio só reconhece o que ele nomeou; espelha o
+"Nome do Sinal" do AqDados (camada de entrega, onde a gente melhora). Não bloqueia a fatia 2.
+
+---
+
 ## Outras pendências conhecidas (já registradas nos ADRs)
 
 Não detalhadas aqui para não duplicar; o ADR é a fonte de verdade.
