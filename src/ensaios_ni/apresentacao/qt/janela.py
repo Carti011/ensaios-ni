@@ -6,11 +6,14 @@ Casca fina: liga `QTimer → MonitorAoVivo.passo()` e desenha. Toda a lógica
 """
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pyqtgraph as pg
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QComboBox,
+    QDialog,
+    QDialogButtonBox,
     QHBoxLayout,
     QHeaderView,
     QLabel,
@@ -22,7 +25,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ensaios_ni.apresentacao.afericao import Afericao
 from ensaios_ni.apresentacao.monitor import EstadoMonitor, MonitorAoVivo
+from ensaios_ni.persistencia.config_canais import ler_pontos, salvar_rotulo
+
+if TYPE_CHECKING:
+    from ensaios_ni.dominio.canais import Canais
 
 _COR_TRACO = ("#0a9edc", "#e8590c", "#2f9e44", "#9c36b5", "#1864ab", "#c92a2a")
 _JANELA_XY = 150  # pontos exibidos no XY: o laço recente, não o histórico todo acumulado
@@ -31,18 +39,33 @@ _JANELA_XY = 150  # pontos exibidos no XY: o laço recente, não o histórico to
 class JanelaMonitor(QWidget):
     """Workspace de painéis: canais à esquerda, gráfico sinal×tempo ao centro, controle no rodapé."""
 
-    def __init__(self, monitor: MonitorAoVivo, intervalo_ms: int = 50):
+    def __init__(
+        self,
+        monitor: MonitorAoVivo,
+        canais: "Canais | None" = None,
+        caminho_config: Path | None = None,
+        intervalo_ms: int = 50,
+    ):
         super().__init__()
         self._monitor = monitor
+        self._canais = canais
+        self._caminho_config = Path(caminho_config) if caminho_config is not None else None
         quadro = monitor.quadro()
         self._nomes = list(quadro.dados)
         self._unidades = quadro.unidades
+        # exibição usa o rótulo (Nome do Sinal); sem rótulo, cai no endereço físico
+        self._etiquetas = {
+            nome: (canais[nome].etiqueta if canais is not None else nome) for nome in self._nomes
+        }
         self._visiveis = set(self._nomes)  # seleção de exibição (só afeta o gráfico sinal×tempo)
         self.setWindowTitle("ensaios-ni — monitor ao vivo")
 
         # painel de canais
         self._tabela = self._montar_tabela()
         self._tabela.itemChanged.connect(self._quando_muda_celula)
+        self._btn_aferir = QPushButton("Aferir…")  # abre a aferição do canal selecionado
+        self._btn_aferir.setEnabled(self._caminho_config is not None)
+        self._btn_aferir.clicked.connect(self._aferir_selecionado)
         # gráfico sinal×tempo (empilhado por unidade)
         self._grafico, self._graficos, self._curvas = self._montar_grafico()
         self._ordem_unidades = list(self._graficos)
@@ -136,9 +159,46 @@ class JanelaMonitor(QWidget):
             self._graficos[unidades[-1]].setLabel("bottom", "tempo", units="s")
 
     def _quando_muda_celula(self, item) -> None:
-        if item.column() != 0:  # só a coluna do canal tem checkbox
+        if item.column() != 0:  # só a coluna do sinal tem checkbox/rótulo
             return
-        self._definir_visivel(item.text(), item.checkState() == Qt.CheckState.Checked)
+        nome = item.data(Qt.ItemDataRole.UserRole)
+        if item.text() != self._etiquetas[nome]:  # editou o texto: renomear o sinal
+            self._renomear_sinal(nome, item.text())
+        else:  # alternou o checkbox: só visibilidade
+            self._definir_visivel(nome, item.checkState() == Qt.CheckState.Checked)
+
+    def _renomear_sinal(self, nome: str, rotulo: str) -> None:
+        self._etiquetas[nome] = rotulo
+        if self._caminho_config is not None:
+            salvar_rotulo(self._caminho_config, nome, rotulo)
+        for combo in (self._combo_x, self._combo_y):  # reflete o novo rótulo nos seletores X/Y
+            indice = combo.findData(nome)
+            if indice >= 0:
+                combo.setItemText(indice, rotulo)
+
+    def _aferir_selecionado(self) -> None:
+        linha = max(self._tabela.currentRow(), 0)
+        item = self._tabela.item(linha, 0)
+        if item is not None:
+            self._abrir_afericao(item.data(Qt.ItemDataRole.UserRole))
+
+    def _abrir_afericao(self, nome: str) -> "PainelAfericao | None":
+        # sem arquivo de config carregado não há onde persistir a aferição
+        if self._caminho_config is None:
+            return None
+        afericao = Afericao(
+            caminho=self._caminho_config,
+            canal=nome,
+            pontos=ler_pontos(self._caminho_config, nome),
+        )
+        painel = PainelAfericao(
+            afericao,
+            unidade=self._unidades.get(nome, ""),
+            titulo_sinal=self._etiquetas[nome],
+            parent=self,
+        )
+        painel.show()
+        return painel
 
     def _atualizar_xy(self) -> None:
         par = self._par_xy_atual()
@@ -151,8 +211,8 @@ class JanelaMonitor(QWidget):
         return self._monitor.quadro().par_xy(self._canal_x, self._canal_y)
 
     def _quando_muda_xy(self) -> None:
-        self._canal_x = self._combo_x.currentText()
-        self._canal_y = self._combo_y.currentText()
+        self._canal_x = self._combo_x.currentData()
+        self._canal_y = self._combo_y.currentData()
         self._plot_xy.setLabel("bottom", self._unidades.get(self._canal_x, ""))
         self._plot_xy.setLabel("left", self._unidades.get(self._canal_y, ""))
         self._atualizar_xy()
@@ -172,17 +232,22 @@ class JanelaMonitor(QWidget):
 
     def _montar_tabela(self) -> QTableWidget:
         tabela = QTableWidget(len(self._nomes), 3)
-        tabela.setHorizontalHeaderLabels(["Canal", "Unidade", "Valor"])
-        tabela.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        tabela.setHorizontalHeaderLabels(["Sinal", "Unidade", "Valor"])
+        cabecalho = tabela.horizontalHeader()
+        cabecalho.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)  # Sinal: cabe o rótulo
+        cabecalho.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)  # Unidade
+        cabecalho.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # Valor ao vivo
         tabela.verticalHeader().setVisible(False)
         for linha, nome in enumerate(self._nomes):
-            item = QTableWidgetItem(nome)  # checkbox liga/desliga a exibição do canal (à la AqDados)
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            # exibe o rótulo (Nome do Sinal); o endereço fica no UserRole (identidade do canal)
+            item = QTableWidgetItem(self._etiquetas[nome])
+            item.setData(Qt.ItemDataRole.UserRole, nome)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)  # checkbox de exibição
             item.setCheckState(Qt.CheckState.Checked)
             tabela.setItem(linha, 0, item)
             tabela.setItem(linha, 1, QTableWidgetItem(self._unidades.get(nome, "")))
             tabela.setItem(linha, 2, QTableWidgetItem("—"))
-        tabela.setMaximumWidth(320)
+        tabela.setMaximumWidth(360)
         return tabela
 
     def _montar_grafico(self):
@@ -219,12 +284,13 @@ class JanelaMonitor(QWidget):
         seletor = QHBoxLayout()
         self._combo_x = QComboBox()
         self._combo_y = QComboBox()
-        self._combo_x.addItems(self._nomes)
-        self._combo_y.addItems(self._nomes)
-        self._combo_x.setCurrentText(self._canal_x)
-        self._combo_y.setCurrentText(self._canal_y)
-        self._combo_x.currentTextChanged.connect(self._quando_muda_xy)
-        self._combo_y.currentTextChanged.connect(self._quando_muda_xy)
+        for nome in self._nomes:  # exibe o rótulo, guarda o endereço como dado do item
+            self._combo_x.addItem(self._etiquetas[nome], nome)
+            self._combo_y.addItem(self._etiquetas[nome], nome)
+        self._combo_x.setCurrentIndex(self._nomes.index(self._canal_x))
+        self._combo_y.setCurrentIndex(self._nomes.index(self._canal_y))
+        self._combo_x.currentIndexChanged.connect(self._quando_muda_xy)
+        self._combo_y.currentIndexChanged.connect(self._quando_muda_xy)
         seletor.addWidget(QLabel("X"))
         seletor.addWidget(self._combo_x, stretch=1)
         seletor.addWidget(QLabel("Y"))
@@ -247,8 +313,12 @@ class JanelaMonitor(QWidget):
         graficos.setStretchFactor(0, 3)
         graficos.setStretchFactor(1, 2)
 
+        painel_canais = QVBoxLayout()
+        painel_canais.addWidget(self._tabela)
+        painel_canais.addWidget(self._btn_aferir)
+
         topo = QHBoxLayout()
-        topo.addWidget(self._tabela)
+        topo.addLayout(painel_canais)
         topo.addWidget(graficos, stretch=1)
 
         rodape = QHBoxLayout()
@@ -262,33 +332,168 @@ class JanelaMonitor(QWidget):
         raiz.addLayout(rodape)
 
 
+class PainelAfericao(QDialog):
+    """Aferição por regressão linear de um canal, à la AqDados (Fase 4, fatia 3 — ADR-015/006).
+
+    Casca fina sobre o Presenter `Afericao`: tabela de pontos `(V, valor eng.)` editável, ganho da
+    reta e correlação ao vivo, e Aplicar persiste a calibração no TOML. Decimal vírgula (BR).
+    """
+
+    def __init__(
+        self,
+        afericao: Afericao,
+        unidade: str = "",
+        titulo_sinal: str = "",
+        parent: QWidget | None = None,
+    ):
+        super().__init__(parent)
+        self._afericao = afericao
+        self._unidade = unidade
+        self.setWindowTitle(f"Aferição — {titulo_sinal}")
+        self.setMinimumWidth(380)
+
+        self._tabela = QTableWidget(0, 2)
+        self._tabela.setHorizontalHeaderLabels(["Tensão (V)", f"Valor ({unidade})"])
+        self._tabela.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self._tabela.itemChanged.connect(self._sincronizar)
+
+        # ganho K (V/un) e 1/K (un/V) como o AqDados mostra (ver referencia-lynx §1.3)
+        self._lbl_ganho_k = QLabel()
+        self._lbl_ganho_1k = QLabel()
+        self._lbl_correlacao = QLabel()
+        btn_inserir = QPushButton("Inserir ponto")
+        btn_remover = QPushButton("Remover ponto")
+        btn_inserir.clicked.connect(self._inserir_linha_vazia)
+        btn_remover.clicked.connect(self._remover_selecionada)
+        # botões com texto próprio (os StandardButton do Qt vêm em inglês — português total)
+        self._botoes = QDialogButtonBox()
+        self._btn_aplicar = self._botoes.addButton("Aplicar", QDialogButtonBox.ButtonRole.AcceptRole)
+        btn_cancelar = self._botoes.addButton("Cancelar", QDialogButtonBox.ButtonRole.RejectRole)
+        self._btn_aplicar.clicked.connect(self._aplicar)
+        btn_cancelar.clicked.connect(self.reject)
+
+        self._preencher(afericao.pontos)
+        self._montar_layout(btn_inserir, btn_remover)
+        self._sincronizar()
+
+    def _preencher(self, pontos) -> None:
+        self._tabela.blockSignals(True)
+        self._tabela.setRowCount(0)
+        for volts, valor in pontos:
+            self._anexar_linha(volts, valor)
+        self._tabela.blockSignals(False)
+
+    def _anexar_linha(self, volts: float | None = None, valor: float | None = None) -> None:
+        linha = self._tabela.rowCount()
+        self._tabela.insertRow(linha)
+        self._tabela.setItem(linha, 0, QTableWidgetItem("" if volts is None else _numero_br(volts)))
+        self._tabela.setItem(linha, 1, QTableWidgetItem("" if valor is None else _numero_br(valor)))
+
+    def _inserir_linha_vazia(self) -> None:
+        self._anexar_linha()
+
+    def _remover_selecionada(self) -> None:
+        linha = self._tabela.currentRow()
+        if linha >= 0:
+            self._tabela.removeRow(linha)
+            self._sincronizar()
+
+    def _ler_tabela(self) -> list[tuple[float, float]]:
+        pontos = []
+        for linha in range(self._tabela.rowCount()):
+            volts = _parse_br(self._tabela.item(linha, 0))
+            valor = _parse_br(self._tabela.item(linha, 1))
+            if volts is not None and valor is not None:
+                pontos.append((volts, valor))
+        return pontos
+
+    def _sincronizar(self, *_) -> None:
+        self._afericao.definir_pontos(self._ler_tabela())
+        reta = self._afericao.reta()
+        unidade = self._unidade
+        ganho_k = self._afericao.ganho_inverso()
+        self._lbl_ganho_k.setText(
+            "Ganho K: —" if ganho_k is None else f"Ganho K: {_numero_br(ganho_k)} V/{unidade}"
+        )
+        self._lbl_ganho_1k.setText(
+            "Ganho 1/K: —" if reta is None else f"Ganho 1/K: {_numero_br(reta.a)} {unidade}/V"
+        )
+        self._lbl_correlacao.setText(f"correlação: {self._afericao.correlacao_percentual()}")
+        self._btn_aplicar.setEnabled(reta is not None)
+
+    def _aplicar(self) -> None:
+        self._afericao.aplicar()
+        self.accept()
+
+    def _montar_layout(self, btn_inserir: QPushButton, btn_remover: QPushButton) -> None:
+        acoes = QHBoxLayout()
+        acoes.addWidget(btn_inserir)
+        acoes.addWidget(btn_remover)
+        acoes.addStretch(1)
+        ganhos = QHBoxLayout()
+        ganhos.addWidget(self._lbl_ganho_k)
+        ganhos.addStretch(1)
+        ganhos.addWidget(self._lbl_ganho_1k)
+        indicadores = QVBoxLayout()
+        indicadores.addLayout(ganhos)
+        indicadores.addWidget(self._lbl_correlacao)
+        raiz = QVBoxLayout(self)
+        raiz.addWidget(self._tabela)
+        raiz.addLayout(acoes)
+        raiz.addLayout(indicadores)
+        raiz.addWidget(self._botoes)
+
+
+def _parse_br(item) -> float | None:
+    if item is None:
+        return None
+    try:
+        return float(item.text().strip().replace(",", "."))
+    except ValueError:
+        return None
+
+
 def _numero_br(valor: float) -> str:
     return f"{valor:.4f}".replace(".", ",")
 
 
-def _monitor_demonstracao() -> MonitorAoVivo:
-    """Monta um monitor com o adaptador fake e sinal sintético, para rodar no Mac."""
+def _demonstracao():
+    """Monta a demo do Mac (fake + sinal sintético) e um canais.toml de trabalho editável.
+
+    A UI escreve a aferição numa CÓPIA do exemplo (o versionado não é tocado), para o Aferir
+    funcionar de ponta a ponta no Mac.
+    """
+    import shutil
     import tempfile
 
     from ensaios_ni.aplicacao.demo import _CONFIG_EXEMPLO, _sinais_sinteticos
     from ensaios_ni.aquisicao.fake import AquisicaoFake
     from ensaios_ni.dominio.canais import carregar_canais
 
+    tmp = Path(tempfile.gettempdir())
+    config_trabalho = tmp / "ensaios-ni-canais.toml"
+    shutil.copy(_CONFIG_EXEMPLO, config_trabalho)
+
     taxa_hz = 100.0
-    canais = carregar_canais(_CONFIG_EXEMPLO)
+    canais = carregar_canais(config_trabalho)
     tensoes, strains = _sinais_sinteticos(canais, amostras=5000, taxa_hz=taxa_hz)
     fonte = AquisicaoFake(tensoes=tensoes, strains=strains)
-    saida = Path(tempfile.gettempdir()) / "ensaio-dashboard.csv"
-    return MonitorAoVivo(
-        fonte, canais, taxa_hz, amostras_por_bloco=20, caminho=saida, capacidade_janela=500
+    monitor = MonitorAoVivo(
+        fonte, canais, taxa_hz, amostras_por_bloco=20,
+        caminho=tmp / "ensaio-dashboard.csv", capacidade_janela=500,
     )
+    return monitor, canais, config_trabalho
 
 
 def abrir(monitor: MonitorAoVivo | None = None) -> None:
     from PySide6.QtWidgets import QApplication
 
     app = QApplication.instance() or QApplication([])
-    janela = JanelaMonitor(monitor or _monitor_demonstracao())
+    if monitor is None:
+        monitor, canais, config = _demonstracao()
+        janela = JanelaMonitor(monitor, canais=canais, caminho_config=config)
+    else:
+        janela = JanelaMonitor(monitor)
     janela.resize(1000, 600)
     janela.show()
     app.exec()
