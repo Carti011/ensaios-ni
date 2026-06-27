@@ -29,12 +29,14 @@ def executar_demonstracao(
 def _sinais_sinteticos(
     canais: Canais, amostras: int, taxa_hz: float
 ) -> tuple[dict[str, list[float]], dict[str, list[float]]]:
-    # senoide de 2 Hz por tipo: tensão na faixa 0-10 V; strain ~±1e-3 adimensional
-    # (vira ±1000 µε após o ganho 1e6), simulando um ensaio dinâmico
+    # senoide por tipo: tensão na faixa 0-10 V; strain ~±1e-3 adimensional (vira ±1000 µε
+    # após o ganho 1e6). Cada canal recebe uma frequência levemente distinta para que o
+    # gráfico XY (um canal × outro) deixe de ser uma reta fixa e evolua na tela.
     tensoes: dict[str, list[float]] = {}
     strains: dict[str, list[float]] = {}
-    for nome in canais:
-        fase = [math.sin(2 * math.pi * 2.0 * i / taxa_hz) for i in range(amostras)]
+    for indice, nome in enumerate(canais):
+        freq = 2.0 + 0.05 * indice
+        fase = [math.sin(2 * math.pi * freq * i / taxa_hz) for i in range(amostras)]
         if canais[nome].tipo == "strain":
             strains[nome] = [1e-3 * s for s in fase]
         else:
