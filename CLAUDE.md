@@ -47,6 +47,7 @@ Consequência prática: **o pacote tem que importar e os testes do domínio têm
 3. **`nidaqmx` é dependência opcional** (extra `[hardware]` no `pyproject`). Dev no Mac instala sem ela.
 4. **Conversão volts→unidade de engenharia vive em config** (`config/canais.toml`), **nunca hardcode**. Os valores vêm do dono do hardware.
 5. **Strain (9235) nunca usa os defaults da API.** Sempre `QUARTER_BRIDGE_I`, 120 Ω, 2,0 V. Os defaults do `nidaqmx` são full-bridge 350 Ω / 2,5 V e produzem **número plausível e errado, sem lançar erro**. Ver contexto-hardware §4.
+6. **`import PySide6` só na camada de widget** (`src/ensaios_ni/apresentacao/qt/`). O Presenter (`apresentacao/monitor.py`) e o resto são Python puro, testáveis no Mac sem display — ver [ADR-015](docs/adr/015-ux-e-fluxo-do-dashboard.md). `PySide6`/`pyqtgraph` são extra opcional `[gui]`; teste-guarda de AST trava o resto.
 
 ---
 
@@ -72,7 +73,7 @@ Consequência prática: **o pacote tem que importar e os testes do domínio têm
 
 ## Estrutura
 
-`apresentacao/` (dashboard, Fase 4) ainda não existe — o resto está criado.
+`apresentacao/` (dashboard, Fase 4) tem a fatia 1 (monitor ao vivo) — em construção.
 
 ```text
 ensaios-ni/
@@ -82,7 +83,7 @@ ensaios-ni/
 ├── docs/
 │   ├── onde-pesquisar.md          # protocolo de dúvida + filosofia de produto
 │   ├── contexto-hardware.md
-│   └── adr/001…014                # decisões de arquitetura
+│   └── adr/001…015                # decisões de arquitetura
 ├── src/ensaios_ni/
 │   ├── dominio/                   # Canal, conversão, regressao (Reta), SerieTemporal (testável no Mac)
 │   ├── aquisicao/
@@ -91,6 +92,7 @@ ensaios-ni/
 │   │   └── daqmx.py               # adaptador real (Windows, nidaqmx lazy)
 │   ├── persistencia/              # CSV (gravar/carregar) + exportadores/ (csv-excel-br, xlsx)
 │   ├── aplicacao/                 # casos de uso (ensaio finito/contínuo) + demo
+│   ├── apresentacao/              # dashboard (Fase 4): monitor.py (Presenter puro) + qt/ (widget PySide6)
 │   └── __main__.py                # CLI (--fonte, --continuo, --exportar)
 └── tests/
     ├── dominio/ · aquisicao/ · aplicacao/ · persistencia/ · arquitetura/

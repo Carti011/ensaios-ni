@@ -9,12 +9,14 @@ dependencies = []
 # nidaqmx só roda em Windows/Linux x86 — dependência opcional, não instalada no Mac.
 # No Windows: `pip install -e .[hardware]`
 # openpyxl (extra [excel]) é Python puro e roda no Mac; só é exigido pelo exportador .xlsx.
+# gui (PySide6 + pyqtgraph) é o dashboard (Fase 4, ADR-015); roda em ARM, só na camada de widget.
 [project.optional-dependencies]
 hardware = ["nidaqmx>=1.0"]
 excel = ["openpyxl>=3.1"]
+gui = ["PySide6>=6.6", "pyqtgraph>=0.13"]
 
 [dependency-groups]
-dev = ["pytest>=8", "openpyxl>=3.1"]
+dev = ["pytest>=8", "openpyxl>=3.1", "PySide6>=6.6", "pyqtgraph>=0.13"]
 
 [build-system]
 requires = ["hatchling"]

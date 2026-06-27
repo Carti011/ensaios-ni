@@ -74,7 +74,7 @@ A decisão e o porquê estão no [ADR-001](docs/adr/001-arquitetura-porta-adapta
 - **pytest** para o TDD (domínio e adaptador fake, sem hardware).
 - **NI-DAQmx** (driver gratuito) pelo pacote `nidaqmx`, como dependência opcional.
 - **tomllib** para configuração; **openpyxl** (opcional) para exportar `.xlsx`.
-- Dashboard em **PyQt6/pyqtgraph** na próxima fase ([ADR-013](docs/adr/013-stack-do-dashboard.md)).
+- Dashboard desktop em **PySide6/pyqtgraph** (Fase 4, em construção — [ADR-013](docs/adr/013-stack-do-dashboard.md), [ADR-015](docs/adr/015-ux-e-fluxo-do-dashboard.md)).
 
 ## Como rodar
 
