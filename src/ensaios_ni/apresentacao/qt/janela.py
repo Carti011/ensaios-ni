@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
 from ensaios_ni.apresentacao.monitor import EstadoMonitor, MonitorAoVivo
 
 _COR_TRACO = ("#0a9edc", "#e8590c", "#2f9e44", "#9c36b5", "#1864ab", "#c92a2a")
+_JANELA_XY = 150  # pontos exibidos no XY: o laço recente, não o histórico todo acumulado
 
 
 class JanelaMonitor(QWidget):
@@ -36,12 +37,15 @@ class JanelaMonitor(QWidget):
         quadro = monitor.quadro()
         self._nomes = list(quadro.dados)
         self._unidades = quadro.unidades
+        self._visiveis = set(self._nomes)  # seleção de exibição (só afeta o gráfico sinal×tempo)
         self.setWindowTitle("ensaios-ni — monitor ao vivo")
 
         # painel de canais
         self._tabela = self._montar_tabela()
+        self._tabela.itemChanged.connect(self._quando_muda_celula)
         # gráfico sinal×tempo (empilhado por unidade)
         self._grafico, self._graficos, self._curvas = self._montar_grafico()
+        self._ordem_unidades = list(self._graficos)
         # gráfico XY carga×deformação (ensaio estático)
         self._canal_x = self._nomes[0]
         self._canal_y = self._nomes[-1]
@@ -84,16 +88,62 @@ class JanelaMonitor(QWidget):
             self._atualizar_estado()
             return
         quadro = self._monitor.quadro()
-        for nome in self._nomes:
-            self._curvas[nome].setData(quadro.tempos, quadro.dados[nome])
+        self._desenhar_sinais(quadro)
         self._atualizar_xy()
         self._atualizar_tabela()
         self._atualizar_estado()
 
+    def _desenhar_sinais(self, quadro) -> None:
+        # canal oculto pela seleção fica sem traço; gravação e XY não são afetados
+        for nome in self._nomes:
+            if nome in self._visiveis:
+                self._curvas[nome].setData(quadro.tempos, quadro.dados[nome])
+            else:
+                self._curvas[nome].setData([], [])
+
+    def _esta_visivel(self, nome: str) -> bool:
+        return nome in self._visiveis
+
+    def _definir_visivel(self, nome: str, visivel: bool) -> None:
+        if visivel:
+            self._visiveis.add(nome)
+        else:
+            self._visiveis.discard(nome)
+        self._reorganizar_subplots()
+        self._desenhar_sinais(self._monitor.quadro())
+
+    def _unidade_visivel(self, unidade: str) -> bool:
+        return any(self._unidades[c] == unidade and c in self._visiveis for c in self._nomes)
+
+    def _subplots_visiveis(self) -> list[str]:
+        return [u for u in self._ordem_unidades if self._unidade_visivel(u)]
+
+    def _reorganizar_subplots(self) -> None:
+        # recolhe o sub-plot de uma unidade quando todos os seus canais somem da seleção
+        self._grafico.clear()
+        unidades = self._subplots_visiveis()
+        mestre = None
+        for linha, unidade in enumerate(unidades):
+            plot = self._graficos[unidade]
+            self._grafico.addItem(plot, row=linha, col=0)
+            plot.setLabel("bottom", "")
+            if mestre is None:
+                mestre = plot
+                plot.setXLink(None)
+            else:
+                plot.setXLink(mestre)
+        if unidades:  # rótulo de tempo só no último visível (eixo X compartilhado)
+            self._graficos[unidades[-1]].setLabel("bottom", "tempo", units="s")
+
+    def _quando_muda_celula(self, item) -> None:
+        if item.column() != 0:  # só a coluna do canal tem checkbox
+            return
+        self._definir_visivel(item.text(), item.checkState() == Qt.CheckState.Checked)
+
     def _atualizar_xy(self) -> None:
         par = self._par_xy_atual()
         if par is not None:
-            self._curva_xy.setData(par.xs, par.ys)
+            self._curva_xy.setData(par.xs[-_JANELA_XY:], par.ys[-_JANELA_XY:])
 
     def _par_xy_atual(self):
         if len(self._nomes) < 2:  # XY precisa de dois canais distintos
@@ -126,7 +176,10 @@ class JanelaMonitor(QWidget):
         tabela.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         tabela.verticalHeader().setVisible(False)
         for linha, nome in enumerate(self._nomes):
-            tabela.setItem(linha, 0, QTableWidgetItem(nome))
+            item = QTableWidgetItem(nome)  # checkbox liga/desliga a exibição do canal (à la AqDados)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            item.setCheckState(Qt.CheckState.Checked)
+            tabela.setItem(linha, 0, item)
             tabela.setItem(linha, 1, QTableWidgetItem(self._unidades.get(nome, "")))
             tabela.setItem(linha, 2, QTableWidgetItem("—"))
         tabela.setMaximumWidth(320)

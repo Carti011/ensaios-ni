@@ -80,3 +80,41 @@ def test_janela_plota_xy_carga_deformacao(app, tmp_path):
     assert par is not None
     assert len(par.xs) == len(par.ys) > 0
     janela.parar()
+
+
+def test_janela_oculta_e_revela_canal_pela_selecao(app, tmp_path):
+    janela = JanelaMonitor(_monitor_multiunidade(tmp_path))
+    janela.iniciar()
+    janela._ao_passo()
+    # todos visíveis por padrão: a curva tem dados
+    assert janela._esta_visivel("Mod1/ai1") is True
+    xs, _ = janela._curvas["Mod1/ai1"].getData()
+    assert xs is not None and len(xs) > 0
+
+    # desmarcar esconde a curva (mas não para a gravação nem mexe no XY)
+    janela._definir_visivel("Mod1/ai1", False)
+    assert janela._esta_visivel("Mod1/ai1") is False
+    xs, _ = janela._curvas["Mod1/ai1"].getData()
+    assert xs is None or len(xs) == 0
+
+    # remarcar volta a desenhar no próximo passo
+    janela._definir_visivel("Mod1/ai1", True)
+    janela._ao_passo()
+    xs, _ = janela._curvas["Mod1/ai1"].getData()
+    assert xs is not None and len(xs) > 0
+    janela.parar()
+
+
+def test_janela_recolhe_subplot_quando_unidade_fica_sem_canais(app, tmp_path):
+    janela = JanelaMonitor(_monitor_multiunidade(tmp_path))
+    # multiunidade: Mod1/ai0 e Mod1/ai1 em kgf, Mod3/ai0 em µε
+    assert janela._subplots_visiveis() == ["kgf", "µε"]
+
+    janela._definir_visivel("Mod1/ai0", False)
+    assert janela._subplots_visiveis() == ["kgf", "µε"]  # ainda há Mod1/ai1 em kgf
+
+    janela._definir_visivel("Mod1/ai1", False)
+    assert janela._subplots_visiveis() == ["µε"]  # unidade kgf sem canais: recolhe
+
+    janela._definir_visivel("Mod1/ai0", True)
+    assert janela._subplots_visiveis() == ["kgf", "µε"]  # volta ao reaparecer um canal
