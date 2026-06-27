@@ -11,13 +11,16 @@ estruturas), com confiança profissional. Toda fase é medida contra isso.
 
 ## Onde estamos
 
-**Fim da Fase 3 (backend completo), entrando na Fase 4 (interface).** O software já lê, calibra,
-grava e exporta — mas só por linha de comando. Falta a parte que o tio realmente vai tocar.
+**Dentro da Fase 4 (interface gráfica) — fatias 1 e 2 concluídas.** O backend (Fases 0–3) faz o
+ciclo ler → calibrar → gravar → exportar por linha de comando. Agora o **dashboard** já mostra o
+ensaio ao vivo: sinal×tempo empilhado por unidade, XY carga×deformação e seleção de canais. Faltam
+a aferição pela UI (fatia 3) e metadata + exportar (fatia 4), depois a validação física (Fase 5).
 
 ```text
-[0]──[1]──[2]──[3]── • ──[4]──[5]──[6]
- ✅    ✅    ✅    ✅   você   🔜    ⬜    ⬜
-                          aqui
+[0]──[1]──[2]──[3]──[4]──[5]──[6]
+ ✅    ✅    ✅    ✅    🔨    ⬜    ⬜
+                     você
+                     aqui
 ```
 
 ---
@@ -40,19 +43,23 @@ ler → calibrar → gravar → exportar. Suficiente para o Weslley validar; **n
 
 ## Fases que faltam ⬜
 
-### Fase 4 — Interface gráfica (dashboard) 🔜 **a próxima, e a maior**
+### Fase 4 — Interface gráfica (dashboard) 🔨 **em andamento, e a maior**
 
-É o que transforma "funciona no terminal" em "o tio consegue usar". Software de aquisição é
-**gráfico e em tempo real** (AqDados, FlexLogger, LabVIEW são todos assim). Subdivide em:
+É o que transforma "funciona no terminal" em "o tio consegue usar". Stack decidida:
+**PySide6 + pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md), binding fixado no
+[ADR-015](adr/015-ux-e-fluxo-do-dashboard.md)). UX e plano de **fatias verticais** no ADR-015:
 
-- **4.0 — Decisão de stack** ✅ **PyQt6/PySide6 + pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md)).
-- **4.1 — Configurar & calibrar pela UI.** Tabela de canais e o painel de **aferição** (pontos +
-  regressão + correlação + tara), espelhando o AqDados — sem editar TOML na mão.
-- **4.2 — Visualização em tempo real.** O coração: ver o sinal **durante** o ensaio — sinal×tempo,
-  **XY carga×deformação** (estático) e, no futuro, FFT ao vivo (vibração). Requisito do domínio.
-- **4.3 — Controle do ensaio + metadata.** Iniciar/parar/duração, finito/contínuo, e dados do ensaio
-  (obra, data, sensor, operador) para rastreabilidade do laudo.
-- **4.4 — Exportar pela UI.** Reusa os exportadores que já existem.
+- **Fatia 1 — Monitor ao vivo** ✅ (26/06). Workspace de painéis; o `fake` transmite → sinal×tempo
+  correndo → Parar grava CSV. Presenter `MonitorAoVivo` (Python puro) + Widget PySide6 fino.
+- **Fatia 2 — XY + multicanal** ✅ (27/06). Empilhamento por unidade, **XY carga×deformação** e
+  seleção de canais (checkbox) com recolhimento de sub-plot vazio
+  ([ADR-016](adr/016-visualizacao-do-dashboard.md)).
+- **Fatia 3 — Aferição na UI** 🔜 **a próxima.** Tabela de canais editável + painel de aferição
+  (pontos + regressão + correlação + tara), espelhando o AqDados, **persistindo no TOML** (precisa de
+  `tomlkit` — o `tomllib` é só leitura). Inclui o **nome do sinal** (rótulo humano) pendente —
+  ver [tarefas-futuras.md](tarefas-futuras.md) §3.
+- **Fatia 4 — Metadata + exportar pela UI.** Cabeçalho do ensaio (obra, data, operador) + reuso dos
+  exportadores que já existem; controle de ensaio (duração, finito/contínuo).
 
 ### Fase 5 — Validação física no hardware do tio
 

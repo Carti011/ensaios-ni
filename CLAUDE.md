@@ -83,7 +83,7 @@ ensaios-ni/
 ├── docs/
 │   ├── onde-pesquisar.md          # protocolo de dúvida + filosofia de produto
 │   ├── contexto-hardware.md
-│   └── adr/001…015                # decisões de arquitetura
+│   └── adr/001…016                # decisões de arquitetura
 ├── src/ensaios_ni/
 │   ├── dominio/                   # Canal, conversão, regressao (Reta), SerieTemporal (testável no Mac)
 │   ├── aquisicao/

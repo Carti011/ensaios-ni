@@ -1,7 +1,7 @@
 # Índice de ADRs — ensaios-ni
 
 Decisões de arquitetura registradas. **Leia este índice antes de abrir os ADRs um a um** — ele
-existe para você ir direto ao arquivo certo, sem varrer os 14. Para o estado/plano do projeto, ver
+existe para você ir direto ao arquivo certo, sem varrer os 16. Para o estado/plano do projeto, ver
 [roadmap.md](../roadmap.md); para o glossário, [CONTEXT.md](../../CONTEXT.md); para onde pesquisar
 cada tipo de dúvida, [onde-pesquisar.md](../onde-pesquisar.md).
 
@@ -26,6 +26,7 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 | [013](013-stack-do-dashboard.md) | Stack do dashboard (Fase 4) | Aceito · binding fixado em 015 | **PyQt6/PySide6 + pyqtgraph** (desktop nativo, `.exe`, tempo real). |
 | [014](014-fonte-unica-na-documentacao.md) | Fonte única na documentação | Aceito | Cada info volátil tem **dono único**; os demais docs apontam, não copiam. |
 | [015](015-ux-e-fluxo-do-dashboard.md) | UX e fluxo do dashboard (Fase 4) | Aceito | **PySide6** (LGPL); workspace de painéis, tema claro/denso/moderno, vocabulário Lynx; plano de fatias. |
+| [016](016-visualizacao-do-dashboard.md) | Visualização do dashboard (fatia 2) | Aceito | Empilha por **unidade**, **XY** carga×deformação e **seleção** de canais; lógica como transformação pura do `QuadroAoVivo`. |
 
 ## Fios condutores (para entender o porquê sem ler tudo)
 
@@ -33,6 +34,6 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 - **Conversão/calibração:** 002 → 006 (o linear vira caso particular da calibração por pontos/regressão).
 - **Norte de produto:** 008 → 010 (FlexLogger caiu para referência técnica; o Lynx virou o espelho).
 - **Exportação:** 011 → 012 (estratégia de interoperar via TXT → implementação plugável).
-- **Dashboard (Fase 4):** 013 → 015 (stack PyQt/PySide + pyqtgraph → binding PySide6 + UX/fluxo).
+- **Dashboard (Fase 4):** 013 → 015 → 016 (stack PyQt/PySide + pyqtgraph → binding PySide6 + UX/fluxo → visualização: empilhamento, XY, seleção).
 
 > Mantenha este índice atualizado ao criar um ADR novo (é o "dono" da lista de ADRs — [ADR-014](014-fonte-unica-na-documentacao.md)).
