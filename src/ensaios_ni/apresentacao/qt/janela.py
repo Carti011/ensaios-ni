@@ -39,7 +39,7 @@ class JanelaMonitor(QWidget):
         # painel de canais
         self._tabela = self._montar_tabela()
         # gráfico
-        self._grafico, self._curvas = self._montar_grafico()
+        self._grafico, self._graficos, self._curvas = self._montar_grafico()
         # barra de controle
         self._btn_iniciar = QPushButton("▶ Iniciar")
         self._btn_parar = QPushButton("■ Parar")
@@ -109,16 +109,31 @@ class JanelaMonitor(QWidget):
         return tabela
 
     def _montar_grafico(self):
+        # empilhamento: um sub-plot por unidade (eixo Y próprio), eixo X de tempo compartilhado
         pg.setConfigOptions(antialias=True, background="w", foreground="k")
-        grafico = pg.PlotWidget()
-        grafico.setLabel("bottom", "tempo", units="s")
-        grafico.addLegend()
-        grafico.showGrid(x=True, y=True, alpha=0.3)
+        layout = pg.GraphicsLayoutWidget()
+        grupos = self._monitor.quadro().agrupar_por_unidade()
+        graficos: dict[str, "pg.PlotItem"] = {}
         curvas = {}
-        for indice, nome in enumerate(self._nomes):
-            cor = _COR_TRACO[indice % len(_COR_TRACO)]
-            curvas[nome] = grafico.plot([], [], name=nome, pen=pg.mkPen(cor, width=2))
-        return grafico, curvas
+        indice_cor = 0
+        mestre_x = None
+        for linha, grupo in enumerate(grupos):
+            plot = layout.addPlot(row=linha, col=0)
+            plot.setLabel("left", grupo.unidade)
+            plot.showGrid(x=True, y=True, alpha=0.3)
+            plot.addLegend()
+            if mestre_x is None:
+                mestre_x = plot
+            else:
+                plot.setXLink(mestre_x)
+            for nome in grupo.dados:
+                cor = _COR_TRACO[indice_cor % len(_COR_TRACO)]
+                curvas[nome] = plot.plot([], [], name=nome, pen=pg.mkPen(cor, width=2))
+                indice_cor += 1
+            graficos[grupo.unidade] = plot
+        if grupos:  # rótulo de tempo só no último (eixo X é compartilhado)
+            graficos[grupos[-1].unidade].setLabel("bottom", "tempo", units="s")
+        return layout, graficos, curvas
 
     def _montar_layout(self) -> None:
         topo = QHBoxLayout()

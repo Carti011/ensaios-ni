@@ -30,6 +30,25 @@ def _monitor(tmp_path) -> MonitorAoVivo:
     )
 
 
+def _monitor_multiunidade(tmp_path) -> MonitorAoVivo:
+    fonte = AquisicaoFake(
+        tensoes={"Mod1/ai0": [1.0, 2.0], "Mod1/ai1": [1.0, 2.0]},
+        strains={"Mod3/ai0": [0.001, 0.001]},
+    )
+    canais = Canais(
+        {
+            "Mod1/ai0": Canal(nome="Mod1/ai0", tipo="tensao", unidade="kgf", ganho=10.0, offset=0.0),
+            "Mod1/ai1": Canal(nome="Mod1/ai1", tipo="tensao", unidade="kgf", ganho=10.0, offset=0.0),
+            "Mod3/ai0": Canal(
+                nome="Mod3/ai0", tipo="strain", unidade="µε", ganho=1_000_000.0, offset=0.0
+            ),
+        }
+    )
+    return MonitorAoVivo(
+        fonte, canais, taxa_hz=2.0, amostras_por_bloco=2, caminho=tmp_path / "e.csv"
+    )
+
+
 def test_janela_monta_inicia_e_processa_um_passo(app, tmp_path):
     janela = JanelaMonitor(_monitor(tmp_path))
     janela.iniciar()
@@ -38,3 +57,13 @@ def test_janela_monta_inicia_e_processa_um_passo(app, tmp_path):
     assert janela._monitor.valor_atual("Mod1/ai0") == 20.0
     janela.parar()
     assert janela._monitor.estado is EstadoMonitor.PARADO
+
+
+def test_janela_empilha_um_subplot_por_unidade(app, tmp_path):
+    janela = JanelaMonitor(_monitor_multiunidade(tmp_path))
+    # dois canais kgf dividem um sub-plot; µε no seu próprio → 2 sub-plots, não 3
+    assert list(janela._graficos.keys()) == ["kgf", "µε"]
+    janela.iniciar()
+    janela._ao_passo()
+    assert janela._monitor.valor_atual("Mod3/ai0") == 1000.0
+    janela.parar()

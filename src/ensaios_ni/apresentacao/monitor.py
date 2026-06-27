@@ -16,12 +16,27 @@ class EstadoMonitor(Enum):
 
 
 @dataclass(frozen=True)
+class GrupoUnidade:
+    """Canais que compartilham a mesma unidade — um sub-plot (eixo Y comum)."""
+
+    unidade: str
+    dados: dict[str, list[float]]
+
+
+@dataclass(frozen=True)
 class QuadroAoVivo:
     """Janela atual a desenhar: tempos alinhados + valor convertido por canal."""
 
     tempos: list[float]
     dados: dict[str, list[float]]
     unidades: dict[str, str] = field(default_factory=dict)
+
+    def agrupar_por_unidade(self) -> list[GrupoUnidade]:
+        # empilhamento: cada unidade vira um sub-plot; µε para de achatar kgf/bar/mm
+        grupos: dict[str, dict[str, list[float]]] = {}
+        for canal, serie in self.dados.items():
+            grupos.setdefault(self.unidades[canal], {})[canal] = serie
+        return [GrupoUnidade(unidade, dados) for unidade, dados in grupos.items()]
 
 
 class MonitorAoVivo:
