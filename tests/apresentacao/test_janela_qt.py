@@ -67,3 +67,16 @@ def test_janela_empilha_um_subplot_por_unidade(app, tmp_path):
     janela._ao_passo()
     assert janela._monitor.valor_atual("Mod3/ai0") == 1000.0
     janela.parar()
+
+
+def test_janela_plota_xy_carga_deformacao(app, tmp_path):
+    janela = JanelaMonitor(_monitor_multiunidade(tmp_path))
+    # default: carga (primeiro canal) no X, deformação (último) no Y
+    assert janela._canal_x == "Mod1/ai0"
+    assert janela._canal_y == "Mod3/ai0"
+    janela.iniciar()
+    janela._ao_passo()
+    par = janela._par_xy_atual()
+    assert par is not None
+    assert len(par.xs) == len(par.ys) > 0
+    janela.parar()

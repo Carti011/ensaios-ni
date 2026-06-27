@@ -24,6 +24,16 @@ class GrupoUnidade:
 
 
 @dataclass(frozen=True)
+class ParXY:
+    """Um canal contra o outro (XY): carga × deformação do ensaio estático."""
+
+    canal_x: str
+    canal_y: str
+    xs: list[float]
+    ys: list[float]
+
+
+@dataclass(frozen=True)
 class QuadroAoVivo:
     """Janela atual a desenhar: tempos alinhados + valor convertido por canal."""
 
@@ -37,6 +47,10 @@ class QuadroAoVivo:
         for canal, serie in self.dados.items():
             grupos.setdefault(self.unidades[canal], {})[canal] = serie
         return [GrupoUnidade(unidade, dados) for unidade, dados in grupos.items()]
+
+    def par_xy(self, canal_x: str, canal_y: str) -> ParXY:
+        # séries alinhadas no tempo (mesmo sample clock): ponto i de X e Y é simultâneo
+        return ParXY(canal_x, canal_y, self.dados[canal_x], self.dados[canal_y])
 
 
 class MonitorAoVivo:

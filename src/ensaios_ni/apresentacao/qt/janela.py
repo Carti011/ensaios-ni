@@ -8,12 +8,14 @@ Casca fina: liga `QTimer → MonitorAoVivo.passo()` e desenha. Toda a lógica
 from pathlib import Path
 
 import pyqtgraph as pg
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
+    QComboBox,
     QHBoxLayout,
     QHeaderView,
     QLabel,
     QPushButton,
+    QSplitter,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -38,8 +40,12 @@ class JanelaMonitor(QWidget):
 
         # painel de canais
         self._tabela = self._montar_tabela()
-        # gráfico
+        # gráfico sinal×tempo (empilhado por unidade)
         self._grafico, self._graficos, self._curvas = self._montar_grafico()
+        # gráfico XY carga×deformação (ensaio estático)
+        self._canal_x = self._nomes[0]
+        self._canal_y = self._nomes[-1]
+        self._painel_xy = self._montar_xy()
         # barra de controle
         self._btn_iniciar = QPushButton("▶ Iniciar")
         self._btn_parar = QPushButton("■ Parar")
@@ -80,8 +86,26 @@ class JanelaMonitor(QWidget):
         quadro = self._monitor.quadro()
         for nome in self._nomes:
             self._curvas[nome].setData(quadro.tempos, quadro.dados[nome])
+        self._atualizar_xy()
         self._atualizar_tabela()
         self._atualizar_estado()
+
+    def _atualizar_xy(self) -> None:
+        par = self._par_xy_atual()
+        if par is not None:
+            self._curva_xy.setData(par.xs, par.ys)
+
+    def _par_xy_atual(self):
+        if len(self._nomes) < 2:  # XY precisa de dois canais distintos
+            return None
+        return self._monitor.quadro().par_xy(self._canal_x, self._canal_y)
+
+    def _quando_muda_xy(self) -> None:
+        self._canal_x = self._combo_x.currentText()
+        self._canal_y = self._combo_y.currentText()
+        self._plot_xy.setLabel("bottom", self._unidades.get(self._canal_x, ""))
+        self._plot_xy.setLabel("left", self._unidades.get(self._canal_y, ""))
+        self._atualizar_xy()
 
     def _atualizar_tabela(self) -> None:
         for linha, nome in enumerate(self._nomes):
@@ -135,10 +159,44 @@ class JanelaMonitor(QWidget):
             graficos[grupos[-1].unidade].setLabel("bottom", "tempo", units="s")
         return layout, graficos, curvas
 
+    def _montar_xy(self) -> QWidget:
+        painel = QWidget()
+        coluna = QVBoxLayout(painel)
+
+        seletor = QHBoxLayout()
+        self._combo_x = QComboBox()
+        self._combo_y = QComboBox()
+        self._combo_x.addItems(self._nomes)
+        self._combo_y.addItems(self._nomes)
+        self._combo_x.setCurrentText(self._canal_x)
+        self._combo_y.setCurrentText(self._canal_y)
+        self._combo_x.currentTextChanged.connect(self._quando_muda_xy)
+        self._combo_y.currentTextChanged.connect(self._quando_muda_xy)
+        seletor.addWidget(QLabel("X"))
+        seletor.addWidget(self._combo_x, stretch=1)
+        seletor.addWidget(QLabel("Y"))
+        seletor.addWidget(self._combo_y, stretch=1)
+
+        self._plot_xy = pg.PlotWidget()
+        self._plot_xy.showGrid(x=True, y=True, alpha=0.3)
+        self._plot_xy.setLabel("bottom", self._unidades.get(self._canal_x, ""))
+        self._plot_xy.setLabel("left", self._unidades.get(self._canal_y, ""))
+        self._curva_xy = self._plot_xy.plot([], [], pen=pg.mkPen("#0a9edc", width=2))
+
+        coluna.addLayout(seletor)
+        coluna.addWidget(self._plot_xy, stretch=1)
+        return painel
+
     def _montar_layout(self) -> None:
+        graficos = QSplitter(Qt.Orientation.Horizontal)
+        graficos.addWidget(self._grafico)
+        graficos.addWidget(self._painel_xy)
+        graficos.setStretchFactor(0, 3)
+        graficos.setStretchFactor(1, 2)
+
         topo = QHBoxLayout()
         topo.addWidget(self._tabela)
-        topo.addWidget(self._grafico, stretch=1)
+        topo.addWidget(graficos, stretch=1)
 
         rodape = QHBoxLayout()
         rodape.addWidget(self._btn_iniciar)

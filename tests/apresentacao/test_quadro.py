@@ -1,3 +1,5 @@
+import pytest
+
 from ensaios_ni.apresentacao.monitor import QuadroAoVivo
 
 
@@ -43,3 +45,18 @@ def test_agrupar_por_unidade_sem_dados_devolve_lista_vazia():
     quadro = QuadroAoVivo(tempos=[], dados={}, unidades={})
 
     assert quadro.agrupar_por_unidade() == []
+
+
+def test_par_xy_pareia_carga_e_deformacao_ponto_a_ponto():
+    quadro = QuadroAoVivo(
+        tempos=[0.0, 0.25, 0.5],
+        dados={"Mod1/ai0": [10.0, 20.0, 30.0], "Mod3/ai0": [100.0, 200.0, 300.0]},
+        unidades={"Mod1/ai0": "kgf", "Mod3/ai0": "µε"},
+    )
+
+    par = quadro.par_xy("Mod1/ai0", "Mod3/ai0")
+
+    assert par.canal_x == "Mod1/ai0"
+    assert par.canal_y == "Mod3/ai0"
+    assert par.xs == [10.0, 20.0, 30.0]
+    assert par.ys == [100.0, 200.0, 300.0]
