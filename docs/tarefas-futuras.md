@@ -56,15 +56,15 @@ existe campo de rótulo, então a UI não tem o que exibir além do endereço. (
 
 Como fechar (backend primeiro, frontend depois — commits separados):
 
-- [ ] **Backend** — campo opcional `rotulo` (nome do sinal) no `Canal` e no carregamento do
-      TOML (`carregar_canais`), com **fallback** para o `nome` (endereço) quando ausente; validar
-      como string. Documentar em `config/canais.exemplo.toml`.
-- [ ] **Frontend** — tabela e seletores X/Y exibem **`rótulo — unidade`** (ex.: `Carga — kgf`),
-      mantendo o endereço físico só internamente (é o que o DAQmx precisa). Sem `rotulo`, cai no
-      endereço atual.
+- [x] **Backend** — campo opcional `rotulo` (nome do sinal) no `Canal` e no carregamento do
+      TOML (`carregar_canais`), com **fallback** para o `nome` (endereço) via property `etiqueta`;
+      validado como string. Documentado em `config/canais.exemplo.toml` e no `CONTEXT.md`.
+- [x] **Frontend** — tabela (coluna "Sinal") e seletores X/Y exibem o **rótulo**, mantendo o
+      endereço físico como identidade interna (`UserRole`/`itemData`). Editar o rótulo na tabela
+      persiste no TOML (`salvar_rotulo`). Sem `rotulo`, cai no endereço.
 
-Por que importa: é critério de **adoção** — o tio só reconhece o que ele nomeou; espelha o
-"Nome do Sinal" do AqDados (camada de entrega, onde a gente melhora). Não bloqueia a fatia 2.
+> **Concluído na fatia 3 do dashboard (27/06/2026) — ver [ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md).**
+> Era critério de **adoção**: o tio só reconhece o que ele nomeou (o "Nome do Sinal" do AqDados).
 
 ---
 

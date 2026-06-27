@@ -11,10 +11,12 @@ estruturas), com confiança profissional. Toda fase é medida contra isso.
 
 ## Onde estamos
 
-**Dentro da Fase 4 (interface gráfica) — fatias 1 e 2 concluídas.** O backend (Fases 0–3) faz o
-ciclo ler → calibrar → gravar → exportar por linha de comando. Agora o **dashboard** já mostra o
-ensaio ao vivo: sinal×tempo empilhado por unidade, XY carga×deformação e seleção de canais. Faltam
-a aferição pela UI (fatia 3) e metadata + exportar (fatia 4), depois a validação física (Fase 5).
+**Dentro da Fase 4 (interface gráfica) — fatias 1, 2 e 3 concluídas.** O backend (Fases 0–3) faz o
+ciclo ler → calibrar → gravar → exportar por linha de comando. Agora o **dashboard** mostra o
+ensaio ao vivo (sinal×tempo empilhado por unidade, XY carga×deformação, seleção de canais) e já
+deixa o tio **aferir pela tela** (pontos → regressão → correlação, persistindo no `canais.toml`) com
+o **nome do sinal** humano. Falta metadata + exportar pela UI (fatia 4, que recebeu também a tara
+ao vivo), depois a validação física (Fase 5).
 
 ```text
 [0]──[1]──[2]──[3]──[4]──[5]──[6]
@@ -54,12 +56,14 @@ ler → calibrar → gravar → exportar. Suficiente para o Weslley validar; **n
 - **Fatia 2 — XY + multicanal** ✅ (27/06). Empilhamento por unidade, **XY carga×deformação** e
   seleção de canais (checkbox) com recolhimento de sub-plot vazio
   ([ADR-016](adr/016-visualizacao-do-dashboard.md)).
-- **Fatia 3 — Aferição na UI** 🔜 **a próxima.** Tabela de canais editável + painel de aferição
-  (pontos + regressão + correlação + tara), espelhando o AqDados, **persistindo no TOML** (precisa de
-  `tomlkit` — o `tomllib` é só leitura). Inclui o **nome do sinal** (rótulo humano) pendente —
-  ver [tarefas-futuras.md](tarefas-futuras.md) §3.
+- **Fatia 3 — Aferição na UI** ✅ (27/06). Tabela de canais editável + painel de aferição
+  (pontos + regressão + correlação), espelhando o AqDados, **persistindo no `canais.toml`** com
+  `tomlkit` (preserva comentários; o `tomllib` é só leitura). Inclui o **nome do sinal** (`rotulo`/
+  `etiqueta`). A **tara** foi adiada para a fatia 4 (é por-ensaio) — ver
+  [ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md).
 - **Fatia 4 — Metadata + exportar pela UI.** Cabeçalho do ensaio (obra, data, operador) + reuso dos
-  exportadores que já existem; controle de ensaio (duração, finito/contínuo).
+  exportadores que já existem; controle de ensaio (duração, finito/contínuo) e a **tara ao vivo**
+  (capturar repouso + tarar, estendendo o `MonitorAoVivo`).
 
 ### Fase 5 — Validação física no hardware do tio
 

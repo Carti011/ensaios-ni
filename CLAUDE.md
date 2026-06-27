@@ -47,7 +47,7 @@ Consequência prática: **o pacote tem que importar e os testes do domínio têm
 3. **`nidaqmx` é dependência opcional** (extra `[hardware]` no `pyproject`). Dev no Mac instala sem ela.
 4. **Conversão volts→unidade de engenharia vive em config** (`config/canais.toml`), **nunca hardcode**. Os valores vêm do dono do hardware.
 5. **Strain (9235) nunca usa os defaults da API.** Sempre `QUARTER_BRIDGE_I`, 120 Ω, 2,0 V. Os defaults do `nidaqmx` são full-bridge 350 Ω / 2,5 V e produzem **número plausível e errado, sem lançar erro**. Ver contexto-hardware §4.
-6. **`import PySide6` só na camada de widget** (`src/ensaios_ni/apresentacao/qt/`). O Presenter (`apresentacao/monitor.py`) e o resto são Python puro, testáveis no Mac sem display — ver [ADR-015](docs/adr/015-ux-e-fluxo-do-dashboard.md). `PySide6`/`pyqtgraph` são extra opcional `[gui]`; teste-guarda de AST trava o resto.
+6. **`import PySide6` só na camada de widget** (`src/ensaios_ni/apresentacao/qt/`). Os Presenters (`apresentacao/monitor.py`, `apresentacao/afericao.py`) e o resto são Python puro, testáveis no Mac sem display — ver [ADR-015](docs/adr/015-ux-e-fluxo-do-dashboard.md). `PySide6`/`pyqtgraph` são extra opcional `[gui]`; teste-guarda de AST trava o resto.
 
 ---
 
@@ -65,7 +65,7 @@ Consequência prática: **o pacote tem que importar e os testes do domínio têm
 - **Driver:** NI-DAQmx (gratuito, ni.com) — instalado no Windows, fora do repo.
 - **Pacote:** `nidaqmx` (PyPI) — wrapper oficial do driver.
 - **Testes:** `pytest`.
-- **Persistência:** CSV primeiro. TDMS/PostgreSQL só se a necessidade aparecer.
+- **Persistência:** CSV primeiro. TDMS/PostgreSQL só se a necessidade aparecer. Escrita de config (aferição) com `tomlkit` (preserva comentários; o `tomllib` é só leitura) — única dep core, ver [ADR-017](docs/adr/017-afericao-na-ui-e-escrita-de-config.md).
 - **Dashboard:** PyQt6/PySide6 + pyqtgraph (Fase 4) — ver [ADR-013](docs/adr/013-stack-do-dashboard.md).
 - **Dependências:** `pyproject.toml`. No Mac, `uv` (ARM-native) é o preferido; no Windows do tio, `pip install -e .` simples basta.
 
@@ -73,7 +73,7 @@ Consequência prática: **o pacote tem que importar e os testes do domínio têm
 
 ## Estrutura
 
-`apresentacao/` (dashboard, Fase 4) tem a fatia 1 (monitor ao vivo) — em construção.
+`apresentacao/` (dashboard, Fase 4) tem as fatias 1–3 (monitor ao vivo, XY/multicanal, aferição na UI) — em construção.
 
 ```text
 ensaios-ni/
@@ -83,16 +83,16 @@ ensaios-ni/
 ├── docs/
 │   ├── onde-pesquisar.md          # protocolo de dúvida + filosofia de produto
 │   ├── contexto-hardware.md
-│   └── adr/001…016                # decisões de arquitetura
+│   └── adr/001…017                # decisões de arquitetura
 ├── src/ensaios_ni/
 │   ├── dominio/                   # Canal, conversão, regressao (Reta), SerieTemporal (testável no Mac)
 │   ├── aquisicao/
 │   │   ├── porta.py               # interface FonteDeAquisicao
 │   │   ├── fake.py                # adaptador sintético (Mac)
 │   │   └── daqmx.py               # adaptador real (Windows, nidaqmx lazy)
-│   ├── persistencia/              # CSV (gravar/carregar) + exportadores/ (csv-excel-br, xlsx)
+│   ├── persistencia/              # CSV (gravar/carregar) + config_canais.py (escrita TOML, tomlkit) + exportadores/
 │   ├── aplicacao/                 # casos de uso (ensaio finito/contínuo) + demo
-│   ├── apresentacao/              # dashboard (Fase 4): monitor.py (Presenter puro) + qt/ (widget PySide6)
+│   ├── apresentacao/              # dashboard (Fase 4): monitor.py + afericao.py (Presenters puros) + qt/ (widget PySide6)
 │   └── __main__.py                # CLI (--fonte, --continuo, --exportar)
 └── tests/
     ├── dominio/ · aquisicao/ · aplicacao/ · persistencia/ · arquitetura/

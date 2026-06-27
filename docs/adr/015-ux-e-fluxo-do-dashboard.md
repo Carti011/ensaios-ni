@@ -103,7 +103,10 @@ janela). Aferição: seleciona canal → painel com tabela de pontos `(V, valor 
 2. **XY + multicanal** — carga×deformação, seleção de canais, empilhamento.
 3. **Aferição na UI** — tabela de canais editável + painel de calibração (pontos/regressão/
    correlação/tara), persistindo no TOML.
-4. **Metadata + Exportar na UI** — cabeçalho do ensaio + reuso dos exportadores.
+   > **Atualização (fatia 3, 27/06 — [ADR-017](017-afericao-na-ui-e-escrita-de-config.md)):** a
+   > **tara saiu** deste painel e foi para a fatia 4. A tara é por-ensaio (volátil, não persiste no
+   > `canais.toml`) e precisa estender o `MonitorAoVivo` — pertence ao controle de ensaio.
+4. **Metadata + Exportar na UI** — cabeçalho do ensaio + reuso dos exportadores; **+ tara ao vivo**.
 
 ## Consequências
 
