@@ -23,8 +23,9 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 | [010](010-paridade-com-o-lynx.md) | Paridade com o Lynx | Aceito (revisa 008) | Espelho de **produto/UX/vocabulário** = AqDados/AqDAnalysis (Lynx), que o tio domina. |
 | [011](011-estrategia-de-exportacao.md) | Estratégia de exportação (TXT) | Aceito | Não reescrever a análise; **exportar** TXT (AqDAnalysis) e Excel; nunca gerar `.LDT` proprietário. |
 | [012](012-serie-temporal-e-exportadores.md) | Série temporal + exportadores | Aceito | `SerieTemporal` + `carregar_csv`; exportadores plugáveis com seleção de sinais e janela de tempo. |
-| [013](013-stack-do-dashboard.md) | Stack do dashboard (Fase 4) | Aceito | **PyQt6/PySide6 + pyqtgraph** (desktop nativo, `.exe`, tempo real). |
+| [013](013-stack-do-dashboard.md) | Stack do dashboard (Fase 4) | Aceito · binding fixado em 015 | **PyQt6/PySide6 + pyqtgraph** (desktop nativo, `.exe`, tempo real). |
 | [014](014-fonte-unica-na-documentacao.md) | Fonte única na documentação | Aceito | Cada info volátil tem **dono único**; os demais docs apontam, não copiam. |
+| [015](015-ux-e-fluxo-do-dashboard.md) | UX e fluxo do dashboard (Fase 4) | Aceito | **PySide6** (LGPL); workspace de painéis, tema claro/denso/moderno, vocabulário Lynx; plano de fatias. |
 
 ## Fios condutores (para entender o porquê sem ler tudo)
 
@@ -32,5 +33,6 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 - **Conversão/calibração:** 002 → 006 (o linear vira caso particular da calibração por pontos/regressão).
 - **Norte de produto:** 008 → 010 (FlexLogger caiu para referência técnica; o Lynx virou o espelho).
 - **Exportação:** 011 → 012 (estratégia de interoperar via TXT → implementação plugável).
+- **Dashboard (Fase 4):** 013 → 015 (stack PyQt/PySide + pyqtgraph → binding PySide6 + UX/fluxo).
 
 > Mantenha este índice atualizado ao criar um ADR novo (é o "dono" da lista de ADRs — [ADR-014](014-fonte-unica-na-documentacao.md)).
