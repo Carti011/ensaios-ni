@@ -73,7 +73,7 @@ Consequência prática: **o pacote tem que importar e os testes do domínio têm
 
 ## Estrutura
 
-`apresentacao/` (dashboard, Fase 4) tem as fatias 1–3 (monitor ao vivo, XY/multicanal, aferição na UI) — em construção.
+`apresentacao/` (dashboard, Fase 4) tem as fatias 1–4 (monitor ao vivo, XY/multicanal, aferição na UI, metadata + exportar + tara) — Fase 4 concluída; ver [roadmap.md](docs/roadmap.md).
 
 ```text
 ensaios-ni/
@@ -83,16 +83,16 @@ ensaios-ni/
 ├── docs/
 │   ├── onde-pesquisar.md          # protocolo de dúvida + filosofia de produto
 │   ├── contexto-hardware.md
-│   └── adr/001…017                # decisões de arquitetura
+│   └── adr/001…018                # decisões de arquitetura
 ├── src/ensaios_ni/
-│   ├── dominio/                   # Canal, conversão, regressao (Reta), SerieTemporal (testável no Mac)
+│   ├── dominio/                   # Canal, conversão, regressao (Reta), SerieTemporal, Metadata (testável no Mac)
 │   ├── aquisicao/
 │   │   ├── porta.py               # interface FonteDeAquisicao
 │   │   ├── fake.py                # adaptador sintético (Mac)
 │   │   └── daqmx.py               # adaptador real (Windows, nidaqmx lazy)
-│   ├── persistencia/              # CSV (gravar/carregar) + config_canais.py (escrita TOML, tomlkit) + exportadores/
+│   ├── persistencia/              # CSV + config_canais.py (TOML) + metadata_ensaio.py (.meta.toml) + exportadores/
 │   ├── aplicacao/                 # casos de uso (ensaio finito/contínuo) + demo
-│   ├── apresentacao/              # dashboard (Fase 4): monitor.py + afericao.py (Presenters puros) + qt/ (widget PySide6)
+│   ├── apresentacao/              # dashboard (Fase 4): monitor.py + afericao.py + exportacao.py (Presenters) + qt/ (widget PySide6)
 │   └── __main__.py                # CLI (--fonte, --continuo, --exportar)
 └── tests/
     ├── dominio/ · aquisicao/ · aplicacao/ · persistencia/ · arquitetura/

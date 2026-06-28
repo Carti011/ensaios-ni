@@ -28,6 +28,7 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 | [015](015-ux-e-fluxo-do-dashboard.md) | UX e fluxo do dashboard (Fase 4) | Aceito | **PySide6** (LGPL); workspace de painéis, tema claro/denso/moderno, vocabulário Lynx; plano de fatias. |
 | [016](016-visualizacao-do-dashboard.md) | Visualização do dashboard (fatia 2) | Aceito | Empilha por **unidade**, **XY** carga×deformação e **seleção** de canais; lógica como transformação pura do `QuadroAoVivo`. |
 | [017](017-afericao-na-ui-e-escrita-de-config.md) | Aferição na UI e escrita de config (fatia 3) | Aceito (refina 015) | UI **escreve** o TOML com **`tomlkit`** (dep core); aferição por **regressão + correlação**; **nome do sinal** (`rotulo`/`etiqueta`); **tara adiada p/ fatia 4**. |
+| [018](018-metadata-do-ensaio.md) | Metadata do ensaio (fatia 4) | Aceito | Metadata (obra/operador/data/obs.) em **arquivo paralelo `<ensaio>.meta.toml`** ao lado do CSV; exportadores **carimbam** no laudo (TXT-AqAnalysis fora). |
 
 ## Fios condutores (para entender o porquê sem ler tudo)
 
@@ -35,6 +36,6 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 - **Conversão/calibração:** 002 → 006 (o linear vira caso particular da calibração por pontos/regressão).
 - **Norte de produto:** 008 → 010 (FlexLogger caiu para referência técnica; o Lynx virou o espelho).
 - **Exportação:** 011 → 012 (estratégia de interoperar via TXT → implementação plugável).
-- **Dashboard (Fase 4):** 013 → 015 → 016 → 017 (stack PyQt/PySide + pyqtgraph → binding PySide6 + UX/fluxo → visualização: empilhamento, XY, seleção → aferição na UI + escrita de config + nome do sinal).
+- **Dashboard (Fase 4):** 013 → 015 → 016 → 017 → 018 (stack PyQt/PySide + pyqtgraph → binding PySide6 + UX/fluxo → visualização: empilhamento, XY, seleção → aferição na UI + escrita de config + nome do sinal → metadata do ensaio em arquivo paralelo).
 
 > Mantenha este índice atualizado ao criar um ADR novo (é o "dono" da lista de ADRs — [ADR-014](014-fonte-unica-na-documentacao.md)).
