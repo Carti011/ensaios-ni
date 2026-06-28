@@ -1,4 +1,6 @@
-from ensaios_ni.apresentacao.monitor import EstadoMonitor, MonitorAoVivo
+import pytest
+
+from ensaios_ni.apresentacao.monitor import AquisicaoEmAndamento, EstadoMonitor, MonitorAoVivo
 from ensaios_ni.aquisicao.fake import AquisicaoFake
 from ensaios_ni.dominio.canais import Canais, Canal
 from ensaios_ni.persistencia.csv_ensaio import carregar_csv
@@ -137,6 +139,35 @@ def test_reiniciar_zera_o_tempo_e_limpa_a_janela(tmp_path):
     quadro = monitor.quadro()
     assert quadro.tempos == [0.0, 0.25]
     assert quadro.dados["Mod1/ai0"] == [10.0, 20.0]
+
+
+def test_recarregar_canais_aplica_a_nova_calibracao_no_proximo_ensaio(tmp_path):
+    fonte = AquisicaoFake(tensoes={"Mod1/ai0": [1.0, 2.0, 3.0, 4.0]})
+    monitor = MonitorAoVivo(
+        fonte, _canais_tensao(), taxa_hz=4.0, amostras_por_bloco=2, caminho=tmp_path / "e.csv"
+    )
+    novos = Canais(
+        {"Mod1/ai0": Canal(nome="Mod1/ai0", tipo="tensao", unidade="kgf", ganho=5.0, offset=0.0)}
+    )
+    monitor.recarregar_canais(novos)  # aferiu fora e aplicou: a nova calibração vale do próximo Iniciar
+    monitor.iniciar()
+    monitor.passo()
+    assert monitor.quadro().dados["Mod1/ai0"] == [5.0, 10.0]  # ganho 5, não o 10 antigo
+
+
+def test_recarregar_canais_e_recusado_durante_a_aquisicao(tmp_path):
+    fonte = AquisicaoFake(tensoes={"Mod1/ai0": [1.0, 2.0, 3.0, 4.0]})
+    monitor = MonitorAoVivo(
+        fonte, _canais_tensao(), taxa_hz=4.0, amostras_por_bloco=2, caminho=tmp_path / "e.csv"
+    )
+    monitor.iniciar()
+    novos = Canais(
+        {"Mod1/ai0": Canal(nome="Mod1/ai0", tipo="tensao", unidade="kgf", ganho=5.0, offset=0.0)}
+    )
+    with pytest.raises(AquisicaoEmAndamento):
+        monitor.recarregar_canais(novos)
+    monitor.passo()  # o ensaio em curso segue com a calibração antiga (ganho 10)
+    assert monitor.quadro().dados["Mod1/ai0"] == [10.0, 20.0]
 
 
 def test_estado_transita_parado_adquirindo_parado(tmp_path):

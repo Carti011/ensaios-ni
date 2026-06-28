@@ -174,6 +174,32 @@ def test_alternar_checkbox_nao_apaga_o_rotulo(app, tmp_path):
     assert carregar_canais(arq)["Mod1/ai0"].rotulo == "Carga"
 
 
+def test_aplicar_afericao_na_janela_recarrega_calibracao_no_monitor(app, tmp_path):
+    arq = _config_real(tmp_path)
+    monitor, canais = _monitor_de(arq, tmp_path)
+    janela = JanelaMonitor(monitor, canais=canais, caminho_config=arq)
+    # Mod1/ai0 vinha com reta a=100; reafere para a=50 e aplica
+    painel = janela._abrir_afericao("Mod1/ai0")
+    painel._afericao.definir_pontos([(0.0, 0.0), (5.0, 250.0), (10.0, 500.0)])
+    painel._aplicar()
+    # a nova calibração vale do próximo Iniciar: fonte [1.0, 2.0] * 50 -> 50, 100 (não 100, 200)
+    janela.iniciar()
+    janela._ao_passo()
+    assert janela._monitor.valor_atual("Mod1/ai0") == 100.0
+    janela.parar()
+
+
+def test_aferir_desabilitado_durante_a_aquisicao(app, tmp_path):
+    arq = _config_real(tmp_path)
+    monitor, canais = _monitor_de(arq, tmp_path)
+    janela = JanelaMonitor(monitor, canais=canais, caminho_config=arq)
+    assert janela._btn_aferir.isEnabled() is True  # parado, com config: pode aferir
+    janela.iniciar()
+    assert janela._btn_aferir.isEnabled() is False  # adquirindo: calibração fica fixa
+    janela.parar()
+    assert janela._btn_aferir.isEnabled() is True
+
+
 def test_janela_monta_inicia_e_processa_um_passo(app, tmp_path):
     janela = JanelaMonitor(_monitor(tmp_path))
     janela.iniciar()

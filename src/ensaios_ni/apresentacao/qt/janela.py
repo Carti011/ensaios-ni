@@ -26,7 +26,8 @@ from PySide6.QtWidgets import (
 )
 
 from ensaios_ni.apresentacao.afericao import Afericao
-from ensaios_ni.apresentacao.monitor import EstadoMonitor, MonitorAoVivo
+from ensaios_ni.apresentacao.monitor import AquisicaoEmAndamento, EstadoMonitor, MonitorAoVivo
+from ensaios_ni.dominio.canais import carregar_canais
 from ensaios_ni.persistencia.config_canais import ler_pontos, salvar_rotulo
 
 if TYPE_CHECKING:
@@ -197,8 +198,20 @@ class JanelaMonitor(QWidget):
             titulo_sinal=self._etiquetas[nome],
             parent=self,
         )
+        painel.accepted.connect(self._recarregar_calibracao)  # Aplicar relê a calibração no monitor
         painel.show()
         return painel
+
+    def _recarregar_calibracao(self) -> None:
+        # aferição persistida no TOML: relê e injeta no monitor (vale do próximo Iniciar)
+        if self._caminho_config is None:
+            return
+        canais = carregar_canais(self._caminho_config)
+        try:
+            self._monitor.recarregar_canais(canais)
+        except AquisicaoEmAndamento:
+            return  # iniciou com o painel aberto: já está no TOML, entra no próximo ensaio
+        self._canais = canais
 
     def _atualizar_xy(self) -> None:
         par = self._par_xy_atual()
@@ -229,6 +242,10 @@ class JanelaMonitor(QWidget):
             self._lbl_estado.setText(f"● erro: {self._monitor.erro}")
         else:
             self._lbl_estado.setText(f"● {estado.value}")
+        # aferir é etapa pré-ensaio: calibração fica fixa durante a aquisição
+        self._btn_aferir.setEnabled(
+            self._caminho_config is not None and estado is not EstadoMonitor.ADQUIRINDO
+        )
 
     def _montar_tabela(self) -> QTableWidget:
         tabela = QTableWidget(len(self._nomes), 3)

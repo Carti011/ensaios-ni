@@ -15,6 +15,10 @@ class EstadoMonitor(Enum):
     ERRO = "erro"
 
 
+class AquisicaoEmAndamento(Exception):
+    """Operação só permitida com o monitor parado (ex.: recarregar a calibração durante o ensaio)."""
+
+
 @dataclass(frozen=True)
 class GrupoUnidade:
     """Canais que compartilham a mesma unidade — um sub-plot (eixo Y comum)."""
@@ -134,6 +138,16 @@ class MonitorAoVivo:
         self._fechar_gravador()
         self._fluxos = []
         self._estado = EstadoMonitor.PARADO
+
+    def recarregar_canais(self, canais: Canais) -> None:
+        """Troca a calibração (após aferir e aplicar); vale do próximo Iniciar.
+
+        Calibração é etapa pré-ensaio: durante a aquisição ela fica fixa para o laudo ter
+        rastreabilidade, então recarregar adquirindo é recusado.
+        """
+        if self._estado is EstadoMonitor.ADQUIRINDO:
+            raise AquisicaoEmAndamento("não recarregue a calibração durante a aquisição")
+        self._canais = canais
 
     def _fechar_gravador(self) -> None:
         if self._gravador is not None:
