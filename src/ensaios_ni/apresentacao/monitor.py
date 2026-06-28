@@ -86,6 +86,7 @@ class MonitorAoVivo:
         self._gravador: GravadorEnsaioCsv | None = None
         self._erro: str | None = None
         self._indice = 0
+        self._gravou = False  # houve ensaio gravado nesta sessão? (habilita o exportar)
         self._taras: dict[str, float] = {}
         self._zerar_pendente = False
         self._tempos: deque[float] = deque(maxlen=capacidade_janela)
@@ -100,6 +101,16 @@ class MonitorAoVivo:
     @property
     def erro(self) -> str | None:
         return self._erro
+
+    @property
+    def caminho(self) -> Path:
+        """Arquivo CSV onde o ensaio é gravado (origem da exportação pela UI)."""
+        return self._caminho
+
+    @property
+    def tem_ensaio(self) -> bool:
+        """Houve ensaio gravado nesta sessão — não confundir com um CSV residual em disco."""
+        return self._gravou
 
     def iniciar(self) -> None:
         self._reiniciar_janela()
@@ -138,6 +149,7 @@ class MonitorAoVivo:
             for nome in self._nomes
         }
         self._gravador.escrever_bloco(convertido)
+        self._gravou = True
         for i in range(len(convertido[self._nomes[0]])):
             self._tempos.append(self._indice / self._taxa_hz)
             for nome in self._nomes:

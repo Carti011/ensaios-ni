@@ -14,9 +14,13 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
+    QFileDialog,
     QHBoxLayout,
     QHeaderView,
     QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QPushButton,
     QSplitter,
     QTableWidget,
@@ -26,6 +30,7 @@ from PySide6.QtWidgets import (
 )
 
 from ensaios_ni.apresentacao.afericao import Afericao
+from ensaios_ni.apresentacao.exportacao import Exportacao
 from ensaios_ni.apresentacao.monitor import AquisicaoEmAndamento, EstadoMonitor, MonitorAoVivo
 from ensaios_ni.dominio.canais import carregar_canais
 from ensaios_ni.persistencia.config_canais import ler_pontos, salvar_rotulo
@@ -80,10 +85,13 @@ class JanelaMonitor(QWidget):
         self._btn_parar.setEnabled(False)
         self._btn_zerar = QPushButton("Zerar")  # tara (Zero Channel): captura o repouso ao vivo
         self._btn_zerar.setEnabled(False)
+        self._btn_exportar = QPushButton("Exportar…")  # reusa os exportadores sobre o CSV gravado
+        self._btn_exportar.setEnabled(False)
         self._lbl_estado = QLabel()
         self._btn_iniciar.clicked.connect(self.iniciar)
         self._btn_parar.clicked.connect(self.parar)
         self._btn_zerar.clicked.connect(self._monitor.zerar)
+        self._btn_exportar.clicked.connect(self._abrir_exportacao)
 
         # timer de aquisição (não bloqueia a UI)
         self._timer = QTimer(self)
@@ -216,6 +224,14 @@ class JanelaMonitor(QWidget):
             return  # iniciou com o painel aberto: já está no TOML, entra no próximo ensaio
         self._canais = canais
 
+    def _abrir_exportacao(self) -> "PainelExportacao | None":
+        # exporta o ensaio gravado em disco; sem CSV não há o que exportar
+        if not self._monitor.caminho.exists():
+            return None
+        painel = PainelExportacao(Exportacao(self._monitor.caminho), parent=self)
+        painel.show()
+        return painel
+
     def _atualizar_xy(self) -> None:
         par = self._par_xy_atual()
         if par is not None:
@@ -251,6 +267,10 @@ class JanelaMonitor(QWidget):
         )
         # zerar (tara) captura o repouso ao vivo: só faz sentido adquirindo
         self._btn_zerar.setEnabled(estado is EstadoMonitor.ADQUIRINDO)
+        # exportar parte do ensaio gravado NESTA sessão (não de um CSV residual em disco)
+        self._btn_exportar.setEnabled(
+            estado is not EstadoMonitor.ADQUIRINDO and self._monitor.tem_ensaio
+        )
 
     def _montar_tabela(self) -> QTableWidget:
         tabela = QTableWidget(len(self._nomes), 3)
@@ -361,6 +381,7 @@ class JanelaMonitor(QWidget):
         rodape.addWidget(self._btn_iniciar)
         rodape.addWidget(self._btn_parar)
         rodape.addWidget(self._btn_zerar)
+        rodape.addWidget(self._btn_exportar)
         rodape.addStretch(1)
         rodape.addWidget(self._lbl_estado)
 
@@ -479,6 +500,87 @@ class PainelAfericao(QDialog):
         raiz.addLayout(acoes)
         raiz.addLayout(indicadores)
         raiz.addWidget(self._botoes)
+
+
+class PainelExportacao(QDialog):
+    """Exporta o ensaio gravado para outro formato (Fase 4, fatia 4 — ADR-011/012).
+
+    Casca fina sobre o Presenter `Exportacao`: escolhe formato, sinais e janela de tempo;
+    Exportar abre o seletor de arquivo. Reusa os exportadores prontos (não há lógica nova).
+    """
+
+    def __init__(self, exportacao: Exportacao, parent: QWidget | None = None):
+        super().__init__(parent)
+        self._exportacao = exportacao
+        self.setWindowTitle("Exportar ensaio")
+        self.setMinimumWidth(360)
+
+        self._combo_formato = QComboBox()
+        self._combo_formato.addItems(exportacao.formatos)
+
+        self._lista_sinais = QListWidget()
+        for sinal in exportacao.sinais():  # à la AqDados: escolhe quais sinais exportar
+            item = QListWidgetItem(sinal)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            item.setCheckState(Qt.CheckState.Checked)
+            self._lista_sinais.addItem(item)
+
+        self._inicio = QLineEdit()
+        self._inicio.setPlaceholderText("início (s)")
+        self._fim = QLineEdit()
+        self._fim.setPlaceholderText("fim (s)")
+
+        self._botoes = QDialogButtonBox()  # texto próprio: português total
+        btn_exportar = self._botoes.addButton("Exportar", QDialogButtonBox.ButtonRole.AcceptRole)
+        btn_cancelar = self._botoes.addButton("Cancelar", QDialogButtonBox.ButtonRole.RejectRole)
+        btn_exportar.clicked.connect(self._escolher_destino_e_exportar)
+        btn_cancelar.clicked.connect(self.reject)
+
+        self._montar_layout()
+
+    def _sinais_escolhidos(self) -> list[str] | None:
+        marcados = [
+            self._lista_sinais.item(i).text()
+            for i in range(self._lista_sinais.count())
+            if self._lista_sinais.item(i).checkState() == Qt.CheckState.Checked
+        ]
+        return None if len(marcados) == self._lista_sinais.count() else marcados  # todos = None
+
+    def _escolher_destino_e_exportar(self) -> None:
+        destino, _ = QFileDialog.getSaveFileName(
+            self, "Salvar exportação", _sugestao_nome(self._combo_formato.currentText())
+        )
+        if destino:
+            self.exportar_para(Path(destino))
+            self.accept()
+
+    def exportar_para(self, destino: Path) -> None:
+        self._exportacao.exportar(
+            self._combo_formato.currentText(),
+            destino,
+            sinais=self._sinais_escolhidos(),
+            inicio_s=_parse_br(self._inicio),
+            fim_s=_parse_br(self._fim),
+        )
+
+    def _montar_layout(self) -> None:
+        janela = QHBoxLayout()
+        janela.addWidget(QLabel("Janela:"))
+        janela.addWidget(self._inicio)
+        janela.addWidget(QLabel("a"))
+        janela.addWidget(self._fim)
+        raiz = QVBoxLayout(self)
+        raiz.addWidget(QLabel("Formato"))
+        raiz.addWidget(self._combo_formato)
+        raiz.addWidget(QLabel("Sinais"))
+        raiz.addWidget(self._lista_sinais)
+        raiz.addLayout(janela)
+        raiz.addWidget(self._botoes)
+
+
+def _sugestao_nome(formato: str) -> str:
+    extensao = {"csv-excel-br": ".csv", "xlsx": ".xlsx", "txt-aqanalysis": ".txt"}
+    return f"ensaio{extensao.get(formato, '.csv')}"
 
 
 def _parse_br(item) -> float | None:

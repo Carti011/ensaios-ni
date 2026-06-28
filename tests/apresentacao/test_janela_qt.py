@@ -10,10 +10,16 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")  # roda headless, sem disp
 from PySide6.QtCore import Qt  # noqa: E402
 
 from ensaios_ni.apresentacao.afericao import Afericao  # noqa: E402
+from ensaios_ni.apresentacao.exportacao import Exportacao  # noqa: E402
 from ensaios_ni.apresentacao.monitor import EstadoMonitor, MonitorAoVivo  # noqa: E402
-from ensaios_ni.apresentacao.qt.janela import JanelaMonitor, PainelAfericao  # noqa: E402
+from ensaios_ni.apresentacao.qt.janela import (  # noqa: E402
+    JanelaMonitor,
+    PainelAfericao,
+    PainelExportacao,
+)
 from ensaios_ni.aquisicao.fake import AquisicaoFake  # noqa: E402
 from ensaios_ni.dominio.canais import Canais, Canal, carregar_canais  # noqa: E402
+from ensaios_ni.persistencia.csv_ensaio import gravar_ensaio  # noqa: E402
 
 
 @pytest.fixture(scope="module")
@@ -210,6 +216,55 @@ def test_botao_zerar_habilita_so_adquirindo_e_tara_os_canais(app, tmp_path):
     assert janela._monitor.valor_atual("Mod1/ai0") == 5.0
     janela.parar()
     assert janela._btn_zerar.isEnabled() is False
+
+
+def _csv_gravado(tmp_path):
+    origem = tmp_path / "ensaio.csv"
+    gravar_ensaio(
+        origem,
+        {"Mod1/ai0": [1.0, 2.0], "Mod3/ai0": [10.0, 20.0]},
+        taxa_hz=2.0,
+        unidades={"Mod1/ai0": "kgf", "Mod3/ai0": "µε"},
+    )
+    return origem
+
+
+def test_painel_exportacao_lista_formatos_e_sinais(app, tmp_path):
+    painel = PainelExportacao(Exportacao(_csv_gravado(tmp_path)))
+    assert painel._combo_formato.count() == 3  # csv-excel-br, txt-aqanalysis, xlsx
+    assert painel._lista_sinais.count() == 2  # Mod1/ai0 e Mod3/ai0, marcados por padrão
+
+
+def test_painel_exportacao_exporta_no_formato_escolhido(app, tmp_path):
+    painel = PainelExportacao(Exportacao(_csv_gravado(tmp_path)))
+    painel._combo_formato.setCurrentText("csv-excel-br")
+    destino = tmp_path / "saida.csv"
+    painel.exportar_para(destino)
+    assert destino.exists()
+    assert ";" in destino.read_text(encoding="utf-8-sig")
+
+
+def test_botao_exportar_habilita_apos_ensaio_e_abre_painel(app, tmp_path):
+    janela = JanelaMonitor(_monitor(tmp_path))
+    assert janela._btn_exportar.isEnabled() is False  # nenhum ensaio gravado ainda
+    janela.iniciar()
+    janela._ao_passo()
+    janela.parar()  # CSV gravado: pode exportar
+    assert janela._btn_exportar.isEnabled() is True
+    painel = janela._abrir_exportacao()
+    assert isinstance(painel, PainelExportacao)
+
+
+def test_botao_exportar_ignora_csv_residual_de_sessao_anterior(app, tmp_path):
+    residual = tmp_path / "e.csv"  # arquivo de uma sessão anterior já em disco
+    residual.write_text("tempo_s,Mod1/ai0 (kgf)\n0.0,1.0\n0.01,2.0\n", encoding="utf-8")
+    fonte = AquisicaoFake(tensoes={"Mod1/ai0": [1.0, 2.0]})
+    canais = Canais(
+        {"Mod1/ai0": Canal(nome="Mod1/ai0", tipo="tensao", unidade="kgf", ganho=10.0, offset=0.0)}
+    )
+    monitor = MonitorAoVivo(fonte, canais, taxa_hz=2.0, amostras_por_bloco=2, caminho=residual)
+    janela = JanelaMonitor(monitor)
+    assert janela._btn_exportar.isEnabled() is False  # nada gravado nesta sessão: não exporta
 
 
 def test_janela_monta_inicia_e_processa_um_passo(app, tmp_path):

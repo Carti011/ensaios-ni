@@ -198,6 +198,18 @@ def test_reiniciar_limpa_a_tara(tmp_path):
     assert monitor.quadro().dados["Mod1/ai0"] == [20.0, 20.0]  # ganho 10, sem tara
 
 
+def test_tem_ensaio_so_depois_de_gravar_um_bloco(tmp_path):
+    fonte = AquisicaoFake(tensoes={"Mod1/ai0": [1.0, 2.0]})
+    monitor = MonitorAoVivo(
+        fonte, _canais_tensao(), taxa_hz=2.0, amostras_por_bloco=2, caminho=tmp_path / "e.csv"
+    )
+    assert monitor.tem_ensaio is False
+    monitor.iniciar()
+    assert monitor.tem_ensaio is False  # iniciou, mas ainda não gravou nada
+    monitor.passo()
+    assert monitor.tem_ensaio is True
+
+
 def test_estado_transita_parado_adquirindo_parado(tmp_path):
     fonte = AquisicaoFake(tensoes={"Mod1/ai0": [1.0, 2.0]})
     monitor = MonitorAoVivo(
