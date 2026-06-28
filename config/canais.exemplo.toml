@@ -12,11 +12,16 @@
 #       metodo = "segmento"           -> interpola entre os pontos (passa por cada um, com
 #                 clamp fora da faixa). Use só para sensores comprovadamente não-lineares.
 # Use linear OU pontos. Ver docs/adr/006-calibracao-por-pontos.md e docs/referencia-lynx.md.
+#
+# rotulo = "Carga" (opcional): nome humano do canal — o "Nome do Sinal" do AqDados, que o dono
+#   reconhece (ex.: "Carga", "Sg1 bico"). A UI exibe o rótulo; sem ele, cai no endereço físico
+#   (ex.: "Mod1/ai0"), que vem do NI-MAX e o dono não reconhece. Ver docs/tarefas-futuras.md §3.
 
 # célula de carga fictícia (linear): 0 V = 0 kgf, 10 V = 1000 kgf
 [canais."Mod1/ai0"]
 tipo = "tensao"
 unidade = "kgf"
+rotulo = "Carga"
 ganho = 100.0
 offset = 0.0
 
@@ -24,6 +29,7 @@ offset = 0.0
 [canais."Mod1/ai1"]
 tipo = "tensao"
 unidade = "bar"
+rotulo = "Pressão"
 ganho = 25.0
 offset = 0.0
 
@@ -32,6 +38,7 @@ offset = 0.0
 [canais."Mod2/ai0"]
 tipo = "tensao"
 unidade = "mm"
+rotulo = "Deslocamento"
 pontos = [[0.0, 0.0], [2.5, 25.1], [5.0, 49.8], [7.5, 75.2]]
 
 # Sensor fictício de resposta NÃO-LINEAR calibrado por SEGMENTO (opt-in): a curva muda de
@@ -57,5 +64,6 @@ pontos = [[0.0, 0.0], [2.5, 20.0], [5.0, 50.0], [7.5, 90.0]]
 [canais."Mod3/ai0"]
 tipo = "strain"
 unidade = "µε"
+rotulo = "Sg1 bico"
 ganho = 1000000.0
 offset = 0.0

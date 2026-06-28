@@ -20,6 +20,7 @@ htmlcov/
 
 # Dados gerados por ensaios (não versionar saída de medição)
 *.csv
+*.xlsx
 *.tdms
 *.tdms_index
 dados/

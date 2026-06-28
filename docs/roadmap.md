@@ -11,12 +11,18 @@ estruturas), com confiança profissional. Toda fase é medida contra isso.
 
 ## Onde estamos
 
-**Fim da Fase 3 (backend completo), entrando na Fase 4 (interface).** O software já lê, calibra,
-grava e exporta — mas só por linha de comando. Falta a parte que o tio realmente vai tocar.
+**Fase 4 (interface gráfica) concluída — as 4 fatias prontas.** O backend (Fases 0–3) faz o ciclo
+ler → calibrar → gravar → exportar; agora o **dashboard** mostra o ensaio ao vivo (sinal×tempo
+empilhado por unidade, XY carga×deformação, seleção de canais), deixa o tio **aferir pela tela**
+(pontos → regressão → correlação, persistindo no `canais.toml`) com o **nome do sinal**, **tarar ao
+vivo** (Zero Channel), **exportar** pela UI (Excel/CSV/TXT com seleção de sinais e janela de tempo)
+e registrar a **metadata** do ensaio (obra/operador/data) num arquivo paralelo `.meta.toml`. Próximo:
+a **validação física** no hardware do tio (Fase 5).
 
 ```text
-[0]──[1]──[2]──[3]── • ──[4]──[5]──[6]
- ✅    ✅    ✅    ✅   você   🔜    ⬜    ⬜
+[0]──[1]──[2]──[3]──[4]──[5]──[6]
+ ✅    ✅    ✅    ✅    ✅    ⬜    ⬜
+                          você
                           aqui
 ```
 
@@ -40,19 +46,27 @@ ler → calibrar → gravar → exportar. Suficiente para o Weslley validar; **n
 
 ## Fases que faltam ⬜
 
-### Fase 4 — Interface gráfica (dashboard) 🔜 **a próxima, e a maior**
+### Fase 4 — Interface gráfica (dashboard) ✅ **concluída (28/06) — a maior**
 
-É o que transforma "funciona no terminal" em "o tio consegue usar". Software de aquisição é
-**gráfico e em tempo real** (AqDados, FlexLogger, LabVIEW são todos assim). Subdivide em:
+É o que transforma "funciona no terminal" em "o tio consegue usar". Stack decidida:
+**PySide6 + pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md), binding fixado no
+[ADR-015](adr/015-ux-e-fluxo-do-dashboard.md)). UX e plano de **fatias verticais** no ADR-015:
 
-- **4.0 — Decisão de stack** ✅ **PyQt6/PySide6 + pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md)).
-- **4.1 — Configurar & calibrar pela UI.** Tabela de canais e o painel de **aferição** (pontos +
-  regressão + correlação + tara), espelhando o AqDados — sem editar TOML na mão.
-- **4.2 — Visualização em tempo real.** O coração: ver o sinal **durante** o ensaio — sinal×tempo,
-  **XY carga×deformação** (estático) e, no futuro, FFT ao vivo (vibração). Requisito do domínio.
-- **4.3 — Controle do ensaio + metadata.** Iniciar/parar/duração, finito/contínuo, e dados do ensaio
-  (obra, data, sensor, operador) para rastreabilidade do laudo.
-- **4.4 — Exportar pela UI.** Reusa os exportadores que já existem.
+- **Fatia 1 — Monitor ao vivo** ✅ (26/06). Workspace de painéis; o `fake` transmite → sinal×tempo
+  correndo → Parar grava CSV. Presenter `MonitorAoVivo` (Python puro) + Widget PySide6 fino.
+- **Fatia 2 — XY + multicanal** ✅ (27/06). Empilhamento por unidade, **XY carga×deformação** e
+  seleção de canais (checkbox) com recolhimento de sub-plot vazio
+  ([ADR-016](adr/016-visualizacao-do-dashboard.md)).
+- **Fatia 3 — Aferição na UI** ✅ (27/06). Tabela de canais editável + painel de aferição
+  (pontos + regressão + correlação), espelhando o AqDados, **persistindo no `canais.toml`** com
+  `tomlkit` (preserva comentários; o `tomllib` é só leitura). Inclui o **nome do sinal** (`rotulo`/
+  `etiqueta`). A **tara** foi adiada para a fatia 4 (é por-ensaio) — ver
+  [ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md).
+- **Fatia 4 — Metadata + exportar + tara** ✅ (28/06). Campos de metadata no topo (obra/operador/
+  data/obs.) salvos num `<ensaio>.meta.toml` paralelo ([ADR-018](adr/018-metadata-do-ensaio.md)) e
+  carimbados no laudo exportado; **exportar pela UI** reusando os exportadores (Excel/CSV/TXT, com
+  seleção de sinais e janela de tempo); e a **tara ao vivo** (Zero Channel) estendendo o
+  `MonitorAoVivo`.
 
 ### Fase 5 — Validação física no hardware do tio
 
@@ -75,10 +89,10 @@ ler → calibrar → gravar → exportar. Suficiente para o Weslley validar; **n
 
 ## Resumo executivo
 
-- **Concluído:** Fases 0–3 (todo o backend: aquisição, calibração, exportação).
-- **Faltam ~3 fases:** **4 (dashboard, a maior)**, 5 (validação física) e 6 (empacotamento & adoção).
-- **Onde o esforço está:** a Fase 4 sozinha é provavelmente metade do trabalho restante — é onde o
-  produto "ganha cara" para o tio.
-- **É hora do dashboard?** Sim. O backend está maduro o suficiente para ter uma tela em cima dele, e
-  a Fase 4 é o maior bloco entre nós e a adoção. O caminho certo é começar pelo **design/UX** (não
-  sair codando tela): decidir a stack, depois desenhar o fluxo antes de implementar.
+- **Concluído:** Fases 0–4 (todo o backend + o dashboard completo: monitor ao vivo, XY/multicanal,
+  aferição, tara, exportar e metadata pela UI).
+- **Faltam 2 fases:** 5 (validação física no hardware do tio) e 6 (empacotamento & adoção).
+- **Onde o esforço está:** o dashboard (a maior fatia) está pronto e roda no Mac com o `fake`. O que
+  separa o tio de usar é levar isso ao **hardware real** (Fase 5) e empacotar num `.exe` (Fase 6).
+- **Próximo passo:** a **validação física** (Fase 5) — trocar os nomes simulados pelos reais, bater a
+  leitura com o test panel do NI-MAX e calibrar a extensometria de verdade, na casa do tio.

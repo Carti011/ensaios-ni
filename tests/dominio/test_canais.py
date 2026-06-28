@@ -129,6 +129,18 @@ def test_config_com_menos_de_dois_pontos_e_invalida(tmp_path):
         carregar_canais(_escrever(tmp_path, conteudo))
 
 
+def test_config_regressao_com_volts_todos_iguais_e_invalida(tmp_path):
+    # regressão tolera volts repetido se houver variação; mas TODOS iguais é reta indeterminada
+    conteudo = (
+        '[canais."Mod1/ai0"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "kgf"\n'
+        'pontos = [[2.0, 10.0], [2.0, 20.0]]\n'
+    )
+    with pytest.raises(ConfiguracaoInvalida, match="Mod1/ai0"):
+        carregar_canais(_escrever(tmp_path, conteudo))
+
+
 def test_config_segmento_com_volts_repetido_e_invalida(tmp_path):
     conteudo = (
         '[canais."Mod1/ai0"]\n'
@@ -163,6 +175,56 @@ def test_config_com_tipo_desconhecido_e_invalida(tmp_path):
         carregar_canais(_escrever(tmp_path, conteudo))
     msg = str(exc.value)
     assert "Mod1/ai0" in msg and "vibracao" in msg
+
+
+def test_config_carrega_rotulo_nome_do_sinal(tmp_path):
+    # "Nome do Sinal" do AqDados: apelido humano do canal, separado do endereço físico
+    conteudo = (
+        '[canais."Mod1/ai0"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "kgf"\n'
+        'rotulo = "Carga"\n'
+        'ganho = 100.0\n'
+        'offset = 0.0\n'
+    )
+    canal = carregar_canais(_escrever(tmp_path, conteudo))["Mod1/ai0"]
+    assert canal.rotulo == "Carga"
+
+
+def test_etiqueta_usa_rotulo_ou_cai_no_endereco(tmp_path):
+    # a UI mostra a etiqueta; sem rótulo, cai no endereço físico (o tio não reconhece o endereço)
+    conteudo = (
+        '[canais."Mod1/ai0"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "kgf"\n'
+        'rotulo = "Carga"\n'
+        'ganho = 100.0\n'
+        'offset = 0.0\n'
+        '\n'
+        '[canais."Mod1/ai1"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "bar"\n'
+        'ganho = 25.0\n'
+        'offset = 0.0\n'
+    )
+    canais = carregar_canais(_escrever(tmp_path, conteudo))
+    assert canais["Mod1/ai0"].etiqueta == "Carga"
+    assert canais["Mod1/ai1"].etiqueta == "Mod1/ai1"
+
+
+def test_config_com_rotulo_nao_string_e_invalida(tmp_path):
+    conteudo = (
+        '[canais."Mod1/ai0"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "kgf"\n'
+        'rotulo = 42\n'  # rótulo deve ser texto
+        'ganho = 100.0\n'
+        'offset = 0.0\n'
+    )
+    with pytest.raises(ConfiguracaoInvalida) as exc:
+        carregar_canais(_escrever(tmp_path, conteudo))
+    msg = str(exc.value)
+    assert "Mod1/ai0" in msg and "rotulo" in msg
 
 
 def test_config_aceita_tipo_strain(tmp_path):

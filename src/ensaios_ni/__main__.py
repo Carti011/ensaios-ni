@@ -9,6 +9,7 @@ from ensaios_ni.aquisicao.fake import AquisicaoFake
 from ensaios_ni.dominio.canais import carregar_canais
 from ensaios_ni.persistencia.csv_ensaio import carregar_csv
 from ensaios_ni.persistencia.exportadores import EXPORTADORES
+from ensaios_ni.persistencia.metadata_ensaio import ler_metadata
 
 
 def _parse_args(argv):
@@ -75,7 +76,8 @@ def _rodar_exportacao(args) -> None:
     try:
         serie = carregar_csv(args.de)
         sinais = [s.strip() for s in args.sinais.split(",")] if args.sinais else None
-        EXPORTADORES[args.exportar](serie, args.saida, sinais, args.inicio_s, args.fim_s)
+        metadata = ler_metadata(args.de)  # carimba o .meta.toml ao lado, se houver
+        EXPORTADORES[args.exportar](serie, args.saida, sinais, args.inicio_s, args.fim_s, metadata)
     except (ValueError, FileNotFoundError) as erro:
         raise SystemExit(f"erro ao exportar: {erro}") from erro
     print(f"Exportado para: {args.saida.resolve()}")

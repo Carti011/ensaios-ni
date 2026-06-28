@@ -2,7 +2,26 @@
 
 from collections.abc import Iterator
 
+from ensaios_ni.dominio.metadata import Metadata
 from ensaios_ni.dominio.serie import SerieTemporal
+
+_ROTULOS_METADATA = (
+    ("obra", "Obra"),
+    ("operador", "Operador"),
+    ("data", "Data"),
+    ("observacao", "Observação"),
+)
+
+
+def itens_metadata(metadata: Metadata | None) -> list[tuple[str, str]]:
+    """Pares (rótulo, valor) dos campos preenchidos da metadata, para o cabeçalho do laudo.
+
+    Vazio quando `metadata` é None ou todos os campos estão em branco — aí o exportador não
+    escreve cabeçalho algum (ADR-018).
+    """
+    if metadata is None:
+        return []
+    return [(rotulo, getattr(metadata, campo)) for campo, rotulo in _ROTULOS_METADATA if getattr(metadata, campo)]
 
 
 def selecionar(canais: list[str], sinais: list[str] | None) -> list[str]:

@@ -6,6 +6,10 @@
 priorizou a **adoção do tio** (desktop como o AqDados, `.exe` fácil de instalar, tempo real de
 verdade) sobre o portfólio web — e ganha o aprendizado de uma stack nova.
 
+> **Atualização (26/06/2026):** o binding foi fixado em **PySide6** (LGPL, oficial da Qt) por causa
+> da distribuição em `.exe` fechado — ver [ADR-015](015-ux-e-fluxo-do-dashboard.md), que também
+> define a UX e o fluxo de telas.
+
 ## Contexto
 
 A Fase 4 ([roadmap.md](../roadmap.md)) é a interface gráfica — o que torna o software usável pelo

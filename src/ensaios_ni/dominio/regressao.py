@@ -2,6 +2,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from math import sqrt
 
+from ensaios_ni.dominio.erros import RegressaoIndeterminada
+
 
 @dataclass(frozen=True)
 class Reta:
@@ -33,6 +35,10 @@ def ajustar_regressao(pontos: Sequence[tuple[float, float]]) -> Reta:
     var_y = n * soma_yy - soma_y * soma_y
     cov_xy = n * soma_xy - soma_x * soma_y
 
+    if var_x == 0:  # tensão sem variação: reta vertical, coeficiente indeterminado
+        raise RegressaoIndeterminada(
+            "pontos sem variação de tensão (volts): a reta de calibração é indeterminada"
+        )
     a = cov_xy / var_x
     b = (soma_y - a * soma_x) / n
     correlacao = 1.0 if var_y == 0 else cov_xy / sqrt(var_x * var_y)

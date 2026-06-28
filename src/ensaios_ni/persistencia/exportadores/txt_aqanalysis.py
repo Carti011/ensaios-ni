@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from ensaios_ni.dominio.metadata import Metadata
 from ensaios_ni.dominio.serie import SerieTemporal
 from ensaios_ni.persistencia.exportadores.comum import (
     cabecalho,
@@ -22,12 +23,15 @@ def exportar_txt_aqanalysis(
     sinais: list[str] | None = None,
     inicio_s: float | None = None,
     fim_s: float | None = None,
+    metadata: Metadata | None = None,
 ) -> None:
     """Exporta a série como TXT para o "Importa Arquivo Texto" do AqDAnalysis (ADR-011).
 
     Decimal vírgula (padrão Lynx) e colunas separadas por TAB, com uma linha de cabeçalho
     (`tempo_s` + `Canal (unidade)`). `sinais` e `inicio_s`/`fim_s` selecionam canais e trecho.
     **Provisório:** o layout exato do AqDAnalysis ainda não foi validado — ver nota acima.
+    `metadata` é aceita por uniformidade de contrato, mas **ignorada**: o layout de importação
+    é sensível e não leva cabeçalho de rastreabilidade (ADR-018).
     """
     canais = selecionar(serie.canais, sinais)
     resolver_janela(serie, inicio_s, fim_s)  # valida cedo, antes de criar o arquivo
