@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ensaios_ni.aquisicao.porta import FonteDeAquisicao
 from ensaios_ni.dominio.canais import Canais
-from ensaios_ni.dominio.conversao import converter
+from ensaios_ni.dominio.conversao import calcular_tara, converter
 from ensaios_ni.persistencia.csv_ensaio import GravadorEnsaioCsv
 
 
@@ -86,6 +86,8 @@ class MonitorAoVivo:
         self._gravador: GravadorEnsaioCsv | None = None
         self._erro: str | None = None
         self._indice = 0
+        self._taras: dict[str, float] = {}
+        self._zerar_pendente = False
         self._tempos: deque[float] = deque(maxlen=capacidade_janela)
         self._dados: dict[str, deque[float]] = {
             nome: deque(maxlen=capacidade_janela) for nome in self._nomes
@@ -123,8 +125,17 @@ class MonitorAoVivo:
         bloco: dict[str, list[float]] = {}
         for parte in partes:
             bloco.update(parte)
+        if self._zerar_pendente:  # Zero Channel: este bloco de repouso vira o zero dos canais
+            self._taras = {
+                nome: calcular_tara(bloco[nome], self._canais[nome]) for nome in self._nomes
+            }
+            self._zerar_pendente = False
         convertido = {
-            nome: [converter(v, self._canais[nome]) for v in bloco[nome]] for nome in self._nomes
+            nome: [
+                converter(v, self._canais[nome], tara=self._taras.get(nome, 0.0))
+                for v in bloco[nome]
+            ]
+            for nome in self._nomes
         }
         self._gravador.escrever_bloco(convertido)
         for i in range(len(convertido[self._nomes[0]])):
@@ -138,6 +149,10 @@ class MonitorAoVivo:
         self._fechar_gravador()
         self._fluxos = []
         self._estado = EstadoMonitor.PARADO
+
+    def zerar(self) -> None:
+        """Tara (Zero Channel): o próximo bloco de repouso vira o zero dos canais."""
+        self._zerar_pendente = True
 
     def recarregar_canais(self, canais: Canais) -> None:
         """Troca a calibração (após aferir e aplicar); vale do próximo Iniciar.
@@ -158,6 +173,8 @@ class MonitorAoVivo:
         # cada iniciar é um ensaio novo: tempo do zero e janela limpa (o CSV é sobrescrito)
         self._erro = None
         self._indice = 0
+        self._taras = {}  # tara é por-ensaio: cada Iniciar recomeça sem zero
+        self._zerar_pendente = False
         self._tempos.clear()
         for janela in self._dados.values():
             janela.clear()

@@ -170,6 +170,34 @@ def test_recarregar_canais_e_recusado_durante_a_aquisicao(tmp_path):
     assert monitor.quadro().dados["Mod1/ai0"] == [10.0, 20.0]
 
 
+def test_zerar_tara_os_canais_capturando_o_repouso(tmp_path):
+    # Zero Channel: com a peça em repouso, o bloco lido vira o zero (referencia-flexlogger §2)
+    fonte = AquisicaoFake(tensoes={"Mod1/ai0": [2.0, 2.0, 5.0, 6.0]})
+    monitor = MonitorAoVivo(
+        fonte, _canais_tensao(), taxa_hz=4.0, amostras_por_bloco=2, caminho=tmp_path / "e.csv"
+    )
+    monitor.iniciar()
+    monitor.zerar()
+    monitor.passo()  # repouso [2.0, 2.0] -> 20 cada (ganho 10); tara = 20 -> zera
+    assert monitor.quadro().dados["Mod1/ai0"] == [0.0, 0.0]
+    monitor.passo()  # [5.0, 6.0] -> 50, 60 menos a tara 20
+    assert monitor.quadro().dados["Mod1/ai0"] == [0.0, 0.0, 30.0, 40.0]
+
+
+def test_reiniciar_limpa_a_tara(tmp_path):
+    fonte = AquisicaoFake(tensoes={"Mod1/ai0": [2.0, 2.0, 2.0, 2.0]})
+    monitor = MonitorAoVivo(
+        fonte, _canais_tensao(), taxa_hz=4.0, amostras_por_bloco=2, caminho=tmp_path / "e.csv"
+    )
+    monitor.iniciar()
+    monitor.zerar()
+    monitor.passo()  # tara capturada (repouso 2.0)
+    monitor.parar()
+    monitor.iniciar()  # novo ensaio: sem zero herdado
+    monitor.passo()
+    assert monitor.quadro().dados["Mod1/ai0"] == [20.0, 20.0]  # ganho 10, sem tara
+
+
 def test_estado_transita_parado_adquirindo_parado(tmp_path):
     fonte = AquisicaoFake(tensoes={"Mod1/ai0": [1.0, 2.0]})
     monitor = MonitorAoVivo(

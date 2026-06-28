@@ -200,6 +200,18 @@ def test_aferir_desabilitado_durante_a_aquisicao(app, tmp_path):
     assert janela._btn_aferir.isEnabled() is True
 
 
+def test_botao_zerar_habilita_so_adquirindo_e_tara_os_canais(app, tmp_path):
+    janela = JanelaMonitor(_monitor(tmp_path))
+    assert janela._btn_zerar.isEnabled() is False  # parado: não há repouso a capturar
+    janela.iniciar()
+    assert janela._btn_zerar.isEnabled() is True
+    janela._btn_zerar.click()  # zera: o próximo bloco de repouso vira o zero
+    janela._ao_passo()  # [1.0, 2.0] -> 10, 20 (ganho 10); tara 15 -> -5, 5
+    assert janela._monitor.valor_atual("Mod1/ai0") == 5.0
+    janela.parar()
+    assert janela._btn_zerar.isEnabled() is False
+
+
 def test_janela_monta_inicia_e_processa_um_passo(app, tmp_path):
     janela = JanelaMonitor(_monitor(tmp_path))
     janela.iniciar()

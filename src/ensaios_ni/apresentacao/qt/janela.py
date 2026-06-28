@@ -78,9 +78,12 @@ class JanelaMonitor(QWidget):
         self._btn_iniciar = QPushButton("▶ Iniciar")
         self._btn_parar = QPushButton("■ Parar")
         self._btn_parar.setEnabled(False)
+        self._btn_zerar = QPushButton("Zerar")  # tara (Zero Channel): captura o repouso ao vivo
+        self._btn_zerar.setEnabled(False)
         self._lbl_estado = QLabel()
         self._btn_iniciar.clicked.connect(self.iniciar)
         self._btn_parar.clicked.connect(self.parar)
+        self._btn_zerar.clicked.connect(self._monitor.zerar)
 
         # timer de aquisição (não bloqueia a UI)
         self._timer = QTimer(self)
@@ -246,6 +249,8 @@ class JanelaMonitor(QWidget):
         self._btn_aferir.setEnabled(
             self._caminho_config is not None and estado is not EstadoMonitor.ADQUIRINDO
         )
+        # zerar (tara) captura o repouso ao vivo: só faz sentido adquirindo
+        self._btn_zerar.setEnabled(estado is EstadoMonitor.ADQUIRINDO)
 
     def _montar_tabela(self) -> QTableWidget:
         tabela = QTableWidget(len(self._nomes), 3)
@@ -355,6 +360,7 @@ class JanelaMonitor(QWidget):
         rodape = QHBoxLayout()
         rodape.addWidget(self._btn_iniciar)
         rodape.addWidget(self._btn_parar)
+        rodape.addWidget(self._btn_zerar)
         rodape.addStretch(1)
         rodape.addWidget(self._lbl_estado)
 
