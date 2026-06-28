@@ -20,6 +20,7 @@ from ensaios_ni.apresentacao.qt.janela import (  # noqa: E402
 from ensaios_ni.aquisicao.fake import AquisicaoFake  # noqa: E402
 from ensaios_ni.dominio.canais import Canais, Canal, carregar_canais  # noqa: E402
 from ensaios_ni.persistencia.csv_ensaio import gravar_ensaio  # noqa: E402
+from ensaios_ni.persistencia.metadata_ensaio import ler_metadata  # noqa: E402
 
 
 @pytest.fixture(scope="module")
@@ -265,6 +266,17 @@ def test_botao_exportar_ignora_csv_residual_de_sessao_anterior(app, tmp_path):
     monitor = MonitorAoVivo(fonte, canais, taxa_hz=2.0, amostras_por_bloco=2, caminho=residual)
     janela = JanelaMonitor(monitor)
     assert janela._btn_exportar.isEnabled() is False  # nada gravado nesta sessão: não exporta
+
+
+def test_parar_salva_a_metadata_ao_lado_do_csv(app, tmp_path):
+    janela = JanelaMonitor(_monitor(tmp_path))
+    janela._campo_obra.setText("Ponte X")
+    janela._campo_operador.setText("Weslley")
+    janela.iniciar()
+    janela._ao_passo()  # grava um bloco
+    janela.parar()
+    meta = ler_metadata(janela._monitor.caminho)
+    assert meta.obra == "Ponte X" and meta.operador == "Weslley"
 
 
 def test_janela_monta_inicia_e_processa_um_passo(app, tmp_path):

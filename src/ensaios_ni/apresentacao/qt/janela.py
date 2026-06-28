@@ -5,6 +5,7 @@ Casca fina: liga `QTimer → MonitorAoVivo.passo()` e desenha. Toda a lógica
 único pacote onde `import PySide6` é permitido (ver tests/arquitetura/test_regra_pyside.py).
 """
 
+from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -33,7 +34,9 @@ from ensaios_ni.apresentacao.afericao import Afericao
 from ensaios_ni.apresentacao.exportacao import Exportacao
 from ensaios_ni.apresentacao.monitor import AquisicaoEmAndamento, EstadoMonitor, MonitorAoVivo
 from ensaios_ni.dominio.canais import carregar_canais
+from ensaios_ni.dominio.metadata import Metadata
 from ensaios_ni.persistencia.config_canais import ler_pontos, salvar_rotulo
+from ensaios_ni.persistencia.metadata_ensaio import gravar_metadata
 
 if TYPE_CHECKING:
     from ensaios_ni.dominio.canais import Canais
@@ -87,6 +90,11 @@ class JanelaMonitor(QWidget):
         self._btn_zerar.setEnabled(False)
         self._btn_exportar = QPushButton("Exportar…")  # reusa os exportadores sobre o CSV gravado
         self._btn_exportar.setEnabled(False)
+        # metadata do ensaio (rastreabilidade do laudo) — salva no .meta.toml ao gravar
+        self._campo_obra = QLineEdit()
+        self._campo_operador = QLineEdit()
+        self._campo_data = QLineEdit(date.today().isoformat())  # pré-preenche com hoje
+        self._campo_observacao = QLineEdit()
         self._lbl_estado = QLabel()
         self._btn_iniciar.clicked.connect(self.iniciar)
         self._btn_parar.clicked.connect(self.parar)
@@ -111,6 +119,7 @@ class JanelaMonitor(QWidget):
     def parar(self) -> None:
         self._timer.stop()
         self._monitor.parar()
+        self._salvar_metadata_se_gravou()
         self._btn_iniciar.setEnabled(True)
         self._btn_parar.setEnabled(False)
         self._atualizar_estado()
@@ -118,6 +127,7 @@ class JanelaMonitor(QWidget):
     def _ao_passo(self) -> None:
         if not self._monitor.passo():  # esgotou ou erro: o Presenter já encerrou limpo
             self._timer.stop()
+            self._salvar_metadata_se_gravou()
             self._btn_iniciar.setEnabled(True)
             self._btn_parar.setEnabled(False)
             self._atualizar_estado()
@@ -386,8 +396,35 @@ class JanelaMonitor(QWidget):
         rodape.addWidget(self._lbl_estado)
 
         raiz = QVBoxLayout(self)
+        raiz.addLayout(self._montar_cabecalho())
         raiz.addLayout(topo, stretch=1)
         raiz.addLayout(rodape)
+
+    def _montar_cabecalho(self) -> QHBoxLayout:
+        # metadata do ensaio no topo (obra/operador/data/obs.) — rastreabilidade do laudo (ADR-018)
+        faixa = QHBoxLayout()
+        faixa.addWidget(QLabel("Obra:"))
+        faixa.addWidget(self._campo_obra, stretch=2)
+        faixa.addWidget(QLabel("Operador:"))
+        faixa.addWidget(self._campo_operador, stretch=1)
+        faixa.addWidget(QLabel("Data:"))
+        faixa.addWidget(self._campo_data)
+        faixa.addWidget(QLabel("Obs.:"))
+        faixa.addWidget(self._campo_observacao, stretch=2)
+        return faixa
+
+    def _coletar_metadata(self) -> Metadata:
+        return Metadata(
+            obra=self._campo_obra.text(),
+            operador=self._campo_operador.text(),
+            data=self._campo_data.text(),
+            observacao=self._campo_observacao.text(),
+        )
+
+    def _salvar_metadata_se_gravou(self) -> None:
+        # ao encerrar um ensaio gravado, persiste a metadata no .meta.toml ao lado do CSV
+        if self._monitor.tem_ensaio:
+            gravar_metadata(self._monitor.caminho, self._coletar_metadata())
 
 
 class PainelAfericao(QDialog):

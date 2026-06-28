@@ -8,6 +8,7 @@ from pathlib import Path
 
 from ensaios_ni.persistencia.csv_ensaio import carregar_csv
 from ensaios_ni.persistencia.exportadores import EXPORTADORES
+from ensaios_ni.persistencia.metadata_ensaio import ler_metadata
 
 
 class Exportacao:
@@ -31,4 +32,5 @@ class Exportacao:
         fim_s: float | None = None,
     ) -> None:
         serie = carregar_csv(self._caminho)
-        EXPORTADORES[formato](serie, Path(destino), sinais, inicio_s, fim_s)
+        metadata = ler_metadata(self._caminho)  # cabeçalho de rastreabilidade do .meta.toml ao lado
+        EXPORTADORES[formato](serie, Path(destino), sinais, inicio_s, fim_s, metadata)

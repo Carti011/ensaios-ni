@@ -1,5 +1,7 @@
 from ensaios_ni.apresentacao.exportacao import Exportacao
+from ensaios_ni.dominio.metadata import Metadata
 from ensaios_ni.persistencia.csv_ensaio import gravar_ensaio
+from ensaios_ni.persistencia.metadata_ensaio import gravar_metadata
 
 
 def _csv_de_ensaio(caminho):
@@ -19,6 +21,15 @@ def test_exporta_o_csv_gravado_no_formato_escolhido(tmp_path):
     exp.exportar("csv-excel-br", destino)
     assert destino.exists()
     assert ";" in destino.read_text(encoding="utf-8-sig")  # csv-excel-br: separador ;
+
+
+def test_exportar_carimba_a_metadata_salva_ao_lado(tmp_path):
+    origem = tmp_path / "ensaio.csv"
+    _csv_de_ensaio(origem)
+    gravar_metadata(origem, Metadata(obra="Ponte X", operador="Weslley"))
+    destino = tmp_path / "saida.csv"
+    Exportacao(origem).exportar("csv-excel-br", destino)
+    assert "Obra;Ponte X" in destino.read_text(encoding="utf-8-sig")  # veio do .meta.toml
 
 
 def test_sinais_lista_os_canais_do_ensaio(tmp_path):
