@@ -323,12 +323,26 @@ class JanelaMonitor(QWidget):
         coluna.addWidget(self._plot_xy, stretch=1)
         return painel
 
+    def _estilizar_divisor(self, splitter: QSplitter) -> None:
+        # alça visível entre os gráficos: barra-pílula sutil que acende no acento ao passar o mouse
+        splitter.setHandleWidth(10)
+        splitter.setStyleSheet(
+            "QSplitter::handle:horizontal {"
+            "  background: rgba(128, 128, 128, 0.30);"
+            "  margin: 12px 3px;"
+            "  border-radius: 2px;"
+            "}"
+            f"QSplitter::handle:horizontal:hover {{ background: {_COR_TRACO[0]}; }}"
+        )
+
     def _montar_layout(self) -> None:
         graficos = QSplitter(Qt.Orientation.Horizontal)
         graficos.addWidget(self._grafico)
         graficos.addWidget(self._painel_xy)
         graficos.setStretchFactor(0, 3)
         graficos.setStretchFactor(1, 2)
+        self._estilizar_divisor(graficos)
+        self._splitter = graficos
 
         painel_canais = QVBoxLayout()
         painel_canais.addWidget(self._tabela)
