@@ -1,11 +1,50 @@
 import pytest
 
+from ensaios_ni.dominio.metadata import Metadata
 from ensaios_ni.dominio.serie import SerieTemporal
 from ensaios_ni.persistencia.exportadores import (
     exportar_csv_excel_br,
     exportar_txt_aqanalysis,
     exportar_xlsx,
 )
+
+
+def test_csv_excel_br_carimba_metadata_no_cabecalho(tmp_path):
+    serie = SerieTemporal(
+        canais=["Mod1/ai0"], unidades={"Mod1/ai0": "kgf"}, taxa_hz=50.0,
+        dados={"Mod1/ai0": [200.0, 201.5]},
+    )
+    caminho = tmp_path / "ensaio.csv"
+    exportar_csv_excel_br(serie, caminho, metadata=Metadata(obra="Ponte X", operador="Weslley"))
+    conteudo = caminho.read_text(encoding="utf-8-sig")
+    assert "Obra;Ponte X" in conteudo and "Operador;Weslley" in conteudo  # cabeçalho de laudo
+    assert "tempo_s;Mod1/ai0 (kgf)" in conteudo  # os dados continuam logo abaixo
+
+
+def test_xlsx_carimba_metadata_no_topo(tmp_path):
+    serie = SerieTemporal(
+        canais=["Mod1/ai0"], unidades={"Mod1/ai0": "kgf"}, taxa_hz=50.0,
+        dados={"Mod1/ai0": [200.0, 201.5]},
+    )
+    caminho = tmp_path / "ensaio.xlsx"
+    exportar_xlsx(serie, caminho, metadata=Metadata(obra="Ponte X"))
+    from openpyxl import load_workbook
+
+    linhas = list(load_workbook(caminho).active.iter_rows(values_only=True))
+    assert linhas[0] == ("Obra", "Ponte X")  # metadata no topo
+    assert ("tempo_s", "Mod1/ai0 (kgf)") in linhas  # cabeçalho de dados presente
+
+
+def test_txt_aqanalysis_nao_leva_metadata(tmp_path):
+    # o TXT de importação do AqDAnalysis fica limpo (layout sensível) — ADR-018
+    serie = SerieTemporal(
+        canais=["Mod1/ai0"], unidades={"Mod1/ai0": "kgf"}, taxa_hz=50.0,
+        dados={"Mod1/ai0": [200.0, 201.5]},
+    )
+    caminho = tmp_path / "ensaio.txt"
+    exportar_txt_aqanalysis(serie, caminho, metadata=Metadata(obra="Ponte X"))
+    conteudo = caminho.read_text(encoding="utf-8")
+    assert "Ponte X" not in conteudo and conteudo.startswith("tempo_s")
 
 
 def test_csv_excel_br_usa_ponto_e_virgula_e_decimal_virgula(tmp_path):
