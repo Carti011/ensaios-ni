@@ -1,7 +1,7 @@
 # Índice de ADRs — ensaios-ni
 
 Decisões de arquitetura registradas. **Leia este índice antes de abrir os ADRs um a um** — ele
-existe para você ir direto ao arquivo certo, sem varrer os 16. Para o estado/plano do projeto, ver
+existe para você ir direto ao arquivo certo, sem varrer os 19. Para o estado/plano do projeto, ver
 [roadmap.md](../roadmap.md); para o glossário, [CONTEXT.md](../../CONTEXT.md); para onde pesquisar
 cada tipo de dúvida, [onde-pesquisar.md](../onde-pesquisar.md).
 
@@ -29,6 +29,7 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 | [016](016-visualizacao-do-dashboard.md) | Visualização do dashboard (fatia 2) | Aceito | Empilha por **unidade**, **XY** carga×deformação e **seleção** de canais; lógica como transformação pura do `QuadroAoVivo`. |
 | [017](017-afericao-na-ui-e-escrita-de-config.md) | Aferição na UI e escrita de config (fatia 3) | Aceito (refina 015) | UI **escreve** o TOML com **`tomlkit`** (dep core); aferição por **regressão + correlação**; **nome do sinal** (`rotulo`/`etiqueta`); **tara adiada p/ fatia 4**. |
 | [018](018-metadata-do-ensaio.md) | Metadata do ensaio (fatia 4) | Aceito | Metadata (obra/operador/data/obs.) em **arquivo paralelo `<ensaio>.meta.toml`** ao lado do CSV; exportadores **carimbam** no laudo (TXT-AqAnalysis fora). |
+| [019](019-foco-em-validacao-fisica-e-adocao.md) | Foco em validação física e adoção | Aceito | A prioridade vira **hardware + `.exe` + TXT no AqAnalysis** (não features no Mac); documentação de teste unificada no guia de campo `guia-teste-hardware.md`. |
 
 ## Fios condutores (para entender o porquê sem ler tudo)
 
@@ -37,5 +38,6 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 - **Norte de produto:** 008 → 010 (FlexLogger caiu para referência técnica; o Lynx virou o espelho).
 - **Exportação:** 011 → 012 (estratégia de interoperar via TXT → implementação plugável).
 - **Dashboard (Fase 4):** 013 → 015 → 016 → 017 → 018 (stack PyQt/PySide + pyqtgraph → binding PySide6 + UX/fluxo → visualização: empilhamento, XY, seleção → aferição na UI + escrita de config + nome do sinal → metadata do ensaio em arquivo paralelo).
+- **Direção & documentação:** 014 → 019 (fonte única na doc → foco em validação física/adoção, com a documentação de teste unificada num guia de campo).
 
 > Mantenha este índice atualizado ao criar um ADR novo (é o "dono" da lista de ADRs — [ADR-014](014-fonte-unica-na-documentacao.md)).
