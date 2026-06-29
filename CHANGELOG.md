@@ -66,6 +66,9 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - **Dashboard — exportar pela UI, Fase 4 fatia 4.** Presenter `Exportacao` (`apresentacao/exportacao.py`, Python puro) carrega o CSV gravado e chama o exportador escolhido — espelha a CLI; expõe `formatos` e `sinais`. Widget `PainelExportacao` (`QDialog`): formato, **seleção de sinais** (checkbox) e **janela de tempo**, salvando via `QFileDialog`. Botão **Exportar…** habilitado só com ensaio gravado **nesta sessão** (`MonitorAoVivo.tem_ensaio`), nunca por um CSV residual em disco.
 - **Metadata do ensaio (Fase 4 fatia 4, ADR-018).** Value object `Metadata` (`dominio/metadata.py`: obra/operador/data/observação) persistido num **arquivo paralelo `<ensaio>.meta.toml`** ao lado do CSV (`persistencia/metadata_ensaio.py`), mantendo o CSV "wide" (ADR-003) e o `carregar_csv` intactos. Campos no topo do dashboard, salvos ao gravar o ensaio. Os exportadores `csv-excel-br` e `xlsx` **carimbam** a metadata no cabeçalho do laudo; o `txt-aqanalysis` fica de fora (layout de importação sensível). A CLI repassa a metadata ao reexportar.
 - ADR-018 (Aceito) — metadata do ensaio em arquivo paralelo `.meta.toml`, carimbada no laudo pelos exportadores. Implementa a parte de metadata da fatia 4 (refina o ADR-015).
+- `docs/guia-teste-hardware.md` — guia único de campo da Fase 5 (do ambiente zerado ao ensaio validado no hardware real do tio), com o caso simulado como variante. Funde os antigos `guia-windows.md` e `validacao-windows.md`.
+- `docs/avaliacao-critica.md` (documento de trabalho, temporário) — avaliação crítica de 28/06/2026: o que separa o projeto da adoção real (validar em hardware, `.exe`, TXT no AqAnalysis, sincronização tensão×strain, captura de leitura na aferição, FFT ao vivo, robustez de longa duração), priorizado por gravidade. Registro permanente em `tarefas-futuras.md`.
+- ADR-019 (Aceito) — **foco em validação física e adoção** (hardware + `.exe` + TXT no AqAnalysis) acima de novas features no Mac; documentação de teste unificada no guia de campo `guia-teste-hardware.md` (aplica o ADR-014).
 
 ### Corrigido
 
@@ -73,6 +76,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ### Alterado
 
+- **Documentação de teste no Windows reorganizada num guia único.** `guia-windows.md` (instalação) e `validacao-windows.md` (validação no NI-MAX simulado) foram **fundidos** em `docs/guia-teste-hardware.md`, reorientado para a **validação no hardware real** (Fase 5); ponteiros atualizados (CLAUDE.md, uso.md, ADR-007/009/014). O `uso.md` permanece como manual de operação. `tarefas-futuras.md` ganhou a seção **Urgências para a adoção**, consolidando a avaliação crítica.
 - **Divisor entre os gráficos mais visível.** A alça do `QSplitter` (entre sinal×tempo e XY) ganhou largura e destaque (acende no acento de cor ao passar o mouse), tornando descobrível o redimensionamento dos painéis.
 
 - **README reescrito como vitrine de portfólio** (mantendo-o útil e profissional): abre pelo problema real e pela arquitetura (diagrama Mermaid porta/adaptador), com uma seção de **destaques de engenharia** (isolamento verificado por AST, dependências opcionais, calibração por regressão, a armadilha do strain) e um quickstart enxuto. O manual de uso detalhado (instalar, rodar, exportar) saiu para o novo `docs/uso.md`. Inclui uma screenshot da suíte de testes (`docs/assets/testes.png`). Português, revisado contra padrões de escrita gerada por IA.
