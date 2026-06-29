@@ -4,7 +4,7 @@ Plano do início ao fim. O **critério de sucesso** não é "o código funciona"
 FlexLogger (pago) e usar o nosso software no trabalho real dele** (provas de carga e vibração em
 estruturas), com confiança profissional. Toda fase é medida contra isso.
 
-> Atualizado em 25/06/2026. As fases ganham detalhe conforme chegamos nelas — coisas novas vão
+> Atualizado em 28/06/2026. As fases ganham detalhe conforme chegamos nelas — coisas novas vão
 > aparecer durante a implementação (é esperado).
 
 ---
@@ -38,35 +38,20 @@ a **validação física** no hardware do tio (Fase 5).
   correlação + tara; exportadores CSV-Excel-BR, `.xlsx` e TXT-AqAnalysis (provisório) com seleção de
   sinais e janela de tempo; CLI. *(O plano antigo juntava "dashboard" nesta fase; ele é grande demais
   e virou fase própria.)*
+- **Fase 4 — Interface gráfica (dashboard), a maior.** Concluída em 28/06. Workspace **PySide6 +
+  pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md)/[ADR-015](adr/015-ux-e-fluxo-do-dashboard.md))
+  em 4 fatias verticais: (1) monitor ao vivo; (2) XY carga×deformação + empilhamento por unidade +
+  seleção de canais; (3) aferição na UI (pontos → regressão → correlação, persistindo no `canais.toml`)
+  com nome do sinal; (4) metadata do ensaio + exportar pela UI + tara ao vivo. **178 testes verdes** no
+  Mac, com o adaptador `fake`.
 
-**Resultado até aqui:** um software de **linha de comando** que faz o ciclo completo
-ler → calibrar → gravar → exportar. Suficiente para o Weslley validar; **não** para o tio usar.
+**Resultado até aqui:** o ciclo completo — ler → calibrar → gravar → exportar — roda tanto pela **CLI**
+quanto por um **dashboard** que mostra o ensaio ao vivo. Tudo testado no Mac com o `fake`. O que falta
+não é software no Mac: é levar ao **hardware real** e empacotar para o tio usar.
 
 ---
 
 ## Fases que faltam ⬜
-
-### Fase 4 — Interface gráfica (dashboard) ✅ **concluída (28/06) — a maior**
-
-É o que transforma "funciona no terminal" em "o tio consegue usar". Stack decidida:
-**PySide6 + pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md), binding fixado no
-[ADR-015](adr/015-ux-e-fluxo-do-dashboard.md)). UX e plano de **fatias verticais** no ADR-015:
-
-- **Fatia 1 — Monitor ao vivo** ✅ (26/06). Workspace de painéis; o `fake` transmite → sinal×tempo
-  correndo → Parar grava CSV. Presenter `MonitorAoVivo` (Python puro) + Widget PySide6 fino.
-- **Fatia 2 — XY + multicanal** ✅ (27/06). Empilhamento por unidade, **XY carga×deformação** e
-  seleção de canais (checkbox) com recolhimento de sub-plot vazio
-  ([ADR-016](adr/016-visualizacao-do-dashboard.md)).
-- **Fatia 3 — Aferição na UI** ✅ (27/06). Tabela de canais editável + painel de aferição
-  (pontos + regressão + correlação), espelhando o AqDados, **persistindo no `canais.toml`** com
-  `tomlkit` (preserva comentários; o `tomllib` é só leitura). Inclui o **nome do sinal** (`rotulo`/
-  `etiqueta`). A **tara** foi adiada para a fatia 4 (é por-ensaio) — ver
-  [ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md).
-- **Fatia 4 — Metadata + exportar + tara** ✅ (28/06). Campos de metadata no topo (obra/operador/
-  data/obs.) salvos num `<ensaio>.meta.toml` paralelo ([ADR-018](adr/018-metadata-do-ensaio.md)) e
-  carimbados no laudo exportado; **exportar pela UI** reusando os exportadores (Excel/CSV/TXT, com
-  seleção de sinais e janela de tempo); e a **tara ao vivo** (Zero Channel) estendendo o
-  `MonitorAoVivo`.
 
 ### Fase 5 — Validação física no hardware do tio
 
@@ -74,6 +59,8 @@ ler → calibrar → gravar → exportar. Suficiente para o Weslley validar; **n
 - Calibrar a extensometria de verdade (o **número físico** do strain — pendente desde a Fase 2).
 - Validar o **TXT** importando no AqDAnalysis dele (ver `docs/tarefas-futuras.md`).
 - Rodar o **fluxo completo** num ensaio de teste, na casa dele.
+
+> Passo a passo completo, do ambiente ao ensaio validado: [guia-teste-hardware.md](guia-teste-hardware.md).
 
 ### Fase 6 — Empacotamento & adoção (o "dar certo")
 
