@@ -166,10 +166,10 @@ sensores, taxa dos ensaios lentos, formato de arquivo para compatibilidade com A
 > **Fonte única do plano e do status: [roadmap.md](roadmap.md).** Não duplicar a lista de fases
 > aqui — esta seção guarda só as notas técnicas das fases de ambiente que não cabem no roadmap.
 
-Resumo do estado (detalhe e fases 0–6 no roadmap): **Fases 0–3 concluídas** — ambiente, prova de
-vida, aquisição (tensão + strain, finito + contínuo) e conversão/exportação, ou seja, todo o
-backend. **Fase 4 (dashboard) é a próxima**; faltam ainda a 5 (validação física no hardware) e a
-6 (empacotamento & adoção).
+Resumo do estado (detalhe e fases 0–6 no roadmap): **Fases 0–4 concluídas** — ambiente, prova de
+vida, aquisição (tensão + strain, finito + contínuo), conversão/exportação (todo o backend) e o
+**dashboard** (PySide6/pyqtgraph). Faltam a **5** (validação física no hardware) e a **6**
+(empacotamento & adoção).
 
 **Notas técnicas das fases 0–1 (validadas no Windows simulado, 22/06/2026):** dispositivos
 simulados `cDAQ1` + `cDAQ1Mod1`/`Mod2` (9205) + `cDAQ1Mod3` (9235); Python enxerga todos via
