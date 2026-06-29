@@ -6,7 +6,7 @@
 no Windows (NI-MAX simulado) o `daqmx` rodou os modos finito e contínuo (tensão + strain) sem erro,
 com tempo contínuo e encerramento limpo por duração e por Ctrl-C. O **número físico** do strain fica
 para o hardware (Fase 4). Implementação descrita abaixo; registro da validação em
-[validacao-windows.md](../validacao-windows.md).
+[guia-teste-hardware.md](../guia-teste-hardware.md).
 
 ## Contexto
 
@@ -66,7 +66,7 @@ implementação):
 - A porta passa a ter dois modos (finito e streaming) — manter a interface enxuta exige cuidado.
 - **Só validável de verdade no Windows** (e, no limite, no hardware com ensaio longo real). O mock
   prova que montamos a task em `CONTINUOUS` e encerramos limpo, não que o streaming real não perde
-  amostras. Runbook em [validacao-windows.md](../validacao-windows.md).
+  amostras. Runbook em [guia-teste-hardware.md](../guia-teste-hardware.md).
 - **Sincronização das duas tasks contínuas (tensão e strain)** segue pendente — é a mesma pendência
   de **start-trigger** do [ADR-009](009-leitura-de-strain-9235.md). No `zip` dos geradores há um
   pequeno offset entre os tipos; alinhamento fino exige trigger compartilhado, validável só no Windows.

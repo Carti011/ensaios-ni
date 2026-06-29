@@ -6,6 +6,44 @@ correspondente.
 
 ---
 
+## Urgências para a adoção (Fase 5–6)
+
+> Consolidado da [avaliacao-critica.md](avaliacao-critica.md) (28/06/2026). Estas pendências **decidem
+> se o tio larga o FlexLogger** — têm prioridade sobre o resto do backlog. Por gravidade:
+
+**🔴 Bloqueia a adoção (sem isto, o tio não usa):**
+
+- [ ] **Validar no hardware real** — uma leitura tem que **bater com o test panel do NI-MAX**. Nada
+      foi validado em hardware ainda. Guia: [guia-teste-hardware.md](guia-teste-hardware.md). (Fase 5)
+- [ ] **Empacotar em `.exe`** (PyInstaller) — o tio não roda `pip install`; hoje o programa **não
+      abre** na máquina dele. (Fase 6)
+- [ ] **Validar o TXT no AqAnalysis** — ver §1 abaixo; é o elo da análise. Sem isto ele não fecha o
+      trabalho.
+
+**🟠 Ameaça a perfeição metrológica do laudo:**
+
+- [ ] **Sincronização tensão × strain (start-trigger)** — o XY carga × deformação precisa dos canais
+      **simultâneos**; hoje há offset entre tasks. Só valida no Windows.
+      ([ADR-007](adr/007-aquisicao-continua.md)/[ADR-009](adr/009-leitura-de-strain-9235.md))
+- [ ] **Capturar a leitura ao vivo na aferição** — hoje a tensão de cada ponto é **digitada à mão**;
+      falta o "Leitura do A/D" do AqDados (capturar o valor atual ao aplicar a carga conhecida).
+      ([ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
+- [ ] **Alerta de correlação baixa na aferição** — Aplicar fica liberado mesmo com correlação ruim
+      (ex.: 6%); avisar/pintar abaixo de um limiar (risco metrológico no laudo).
+      ([ADR-006](adr/006-calibracao-por-pontos.md)/[ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
+
+**🟡 Paridade total / robustez:**
+
+- [ ] **FFT / frequência ao vivo** — o ensaio dinâmico (vibração 1024 Hz → frequências naturais) hoje
+      depende de exportar pro AqDAnalysis; o FlexLogger tem **FFT ao vivo**. Decidir o escopo de
+      "substituir totalmente" (precisa de um ADR-árbitro). [ADR-011](adr/011-estrategia-de-exportacao.md).
+- [ ] **Robustez de longa duração** — rotação de arquivo + recuperação de queda de rede do chassi
+      Ethernet; um ensaio de meses num único CSV é inviável (volume + memória). Inclui o **exportar
+      ensaios gigantes pela entrada** (`carregar_csv` lê o CSV inteiro em memória).
+      [ADR-012](adr/012-serie-temporal-e-exportadores.md).
+
+---
+
 ## 1. Validar o exportador TXT-AqAnalysis (formato provisório)
 
 O exportador `txt-aqanalysis` está implementado de forma **provisória** (decimal vírgula confirmado;
@@ -68,21 +106,13 @@ Como fechar (backend primeiro, frontend depois — commits separados):
 
 ---
 
-## Outras pendências conhecidas (já registradas nos ADRs)
+## Outras pendências conhecidas (menores — já nos ADRs)
 
-Não detalhadas aqui para não duplicar; o ADR é a fonte de verdade.
+Não detalhadas aqui para não duplicar; o ADR é a fonte de verdade. As de maior impacto estão
+consolidadas em **Urgências** no topo.
 
-- [ ] **Exportar ensaios gigantes pelo lado da entrada** — `carregar_csv` ainda lê o CSV inteiro em
-      memória; para reexportar um ensaio de meses, faltaria recortar a janela na leitura (ou
-      streaming). [ADR-012](adr/012-serie-temporal-e-exportadores.md).
 - [ ] **Excel "do jeito do tio"** — metadata no cabeçalho (obra, data, sensor, taxa), aba de resumo.
       Camada de entrega, a definir com o gosto dele. [ADR-011](adr/011-estrategia-de-exportacao.md).
 - [ ] **Calibração "Ganho e Ponto de Referência"** — segundo modo de aferição do AqDados; redutível
       ao linear, baixa prioridade. [ADR-006](adr/006-calibracao-por-pontos.md).
-- [x] ~~**Dashboard — decidir a stack**~~ → decidido: **PyQt6/pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md)). A construção do dashboard é a **Fase 4** (ver [roadmap.md](roadmap.md)).
-- [ ] **Análise própria (FFT) vs não reescrever análise** — tensão entre o ADR-011 e a visão de
-      futuro; precisa de um árbitro (ADR) quando chegar no dashboard.
-- [ ] **Sincronização por start-trigger** entre as tasks de tensão e strain — só valida no Windows.
-      [ADR-007](adr/007-aquisicao-continua.md) / [ADR-009](adr/009-leitura-de-strain-9235.md).
-- [ ] **Fase 5 — validação física** no hardware do tio (número real do strain, calibração),
-      seguindo `docs/validacao-windows.md`.
+- [x] ~~**Dashboard — decidir a stack**~~ → decidido: **PyQt6/pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md)); construído na **Fase 4** (ver [roadmap.md](roadmap.md)).

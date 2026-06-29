@@ -56,7 +56,7 @@ Regras operacionais:
 
 Exceção deliberada: **redundância de segurança é permitida.** A armadilha do strain (quarter-bridge
 120 Ω / 2,0 V vs os defaults perigosos da API) aparece de propósito em vários lugares (CLAUDE.md,
-contexto-hardware §4, [ADR-009](009-leitura-de-strain-9235.md), CONTEXT.md, validacao-windows,
+contexto-hardware §4, [ADR-009](009-leitura-de-strain-9235.md), CONTEXT.md, guia-teste-hardware,
 comentários no código). É o maior risco do projeto — a repetição é proteção, não drift.
 
 ## Consequências

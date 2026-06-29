@@ -6,8 +6,8 @@ Software de aquisição de dados para hardware **National Instruments** (chassi 
 > Em conflito, vale o mais específico (este). Português em tudo continua valendo.
 >
 > **Todo o desenvolvimento acontece neste Mac.** Windows (do dev e do tio) é só
-> configuração/execução inicial — coberta pelo guia humano [docs/guia-windows.md](docs/guia-windows.md),
-> não por agente.
+> configuração/execução e a **validação física** — coberta pelo guia humano
+> [docs/guia-teste-hardware.md](docs/guia-teste-hardware.md), não por agente.
 
 ---
 
@@ -83,7 +83,8 @@ ensaios-ni/
 ├── docs/
 │   ├── onde-pesquisar.md          # protocolo de dúvida + filosofia de produto
 │   ├── contexto-hardware.md
-│   └── adr/001…018                # decisões de arquitetura
+│   ├── guia-teste-hardware.md     # validação no hardware real do tio (Fase 5)
+│   └── adr/001…019                # decisões de arquitetura
 ├── src/ensaios_ni/
 │   ├── dominio/                   # Canal, conversão, regressao (Reta), SerieTemporal, Metadata (testável no Mac)
 │   ├── aquisicao/

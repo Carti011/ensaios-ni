@@ -46,9 +46,8 @@ python -m ensaios_ni --fonte daqmx --config config/canais.toml --taxa 1024 --amo
 Windows + NI-DAQmx. Os nomes dos canais no `canais.toml` vêm do NI-MAX. O critério de "funcionou" é
 a leitura bater com o test panel do NI-MAX no mesmo canal.
 
-Para aquisição contínua de longa duração, use `--continuo` com `--duracao-s` e `--bloco`. Passo a
-passo de instalação no Windows: [guia-windows.md](guia-windows.md). Runbook de validação:
-[validacao-windows.md](validacao-windows.md).
+Para aquisição contínua de longa duração, use `--continuo` com `--duracao-s` e `--bloco`.
+Instalação e validação no hardware real, do ambiente ao ensaio: [guia-teste-hardware.md](guia-teste-hardware.md).
 
 ## Exportar um ensaio
 
