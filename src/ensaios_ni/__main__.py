@@ -63,7 +63,7 @@ def main(argv=None) -> None:
             raise SystemExit("--config é obrigatório com --fonte daqmx")
         canais = carregar_canais(args.config)
         executar_ensaio(
-            AdaptadorDaqmx(), canais, args.amostras, args.taxa, args.saida,
+            AdaptadorDaqmx(canais=canais), canais, args.amostras, args.taxa, args.saida,
             amostras_tara=args.amostras_tara,
         )
 
@@ -93,7 +93,7 @@ def _rodar_continuo(args) -> None:
     else:
         if args.config is None:
             raise SystemExit("--config é obrigatório com --fonte daqmx")
-        fonte = AdaptadorDaqmx()
+        fonte = AdaptadorDaqmx(canais=canais)
 
     with _parada_por_ctrl_c() as parar:
         executar_ensaio_continuo(

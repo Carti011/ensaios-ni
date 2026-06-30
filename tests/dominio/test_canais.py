@@ -237,3 +237,83 @@ def test_config_aceita_tipo_strain(tmp_path):
     )
     canal = carregar_canais(_escrever(tmp_path, conteudo))["Mod3/ai0"]
     assert canal.tipo == "strain"
+
+
+def test_strain_carrega_gage_factor_do_toml(tmp_path):
+    # gage factor varia por lote do extensômetro (2,14–2,16) -> vem da config, não do código
+    conteudo = (
+        '[canais."Mod3/ai0"]\n'
+        'tipo = "strain"\n'
+        'unidade = "µε"\n'
+        'gage_factor = 2.14\n'
+        'ganho = 1000000.0\n'
+        'offset = 0.0\n'
+    )
+    canal = carregar_canais(_escrever(tmp_path, conteudo))["Mod3/ai0"]
+    assert canal.strain is not None
+    assert canal.strain.gage_factor == 2.14
+
+
+def test_strain_sem_parametros_usa_defaults_seguros_do_9235(tmp_path):
+    # ARMADILHA: omitir os campos cai nos defaults do 9235, NUNCA nos da API (full-bridge 350 Ω / 2,5 V)
+    conteudo = (
+        '[canais."Mod3/ai0"]\n'
+        'tipo = "strain"\n'
+        'unidade = "µε"\n'
+        'ganho = 1000000.0\n'
+        'offset = 0.0\n'
+    )
+    canal = carregar_canais(_escrever(tmp_path, conteudo))["Mod3/ai0"]
+    assert canal.strain is not None
+    assert canal.strain.nominal_gage_resistance == 120.0
+    assert canal.strain.voltage_excit_val == 2.0
+    assert canal.strain.bridge_config == "QUARTER_BRIDGE_I"
+
+
+def test_strain_carrega_demais_parametros_do_toml(tmp_path):
+    # poisson (material), resistência do gage e do cabo (3 fios) também vêm da config
+    conteudo = (
+        '[canais."Mod3/ai0"]\n'
+        'tipo = "strain"\n'
+        'unidade = "µε"\n'
+        'gage_factor = 2.16\n'
+        'poisson = 0.28\n'
+        'resistencia = 350.0\n'
+        'resistencia_cabo = 1.5\n'
+        'ganho = 1000000.0\n'
+        'offset = 0.0\n'
+    )
+    strain = carregar_canais(_escrever(tmp_path, conteudo))["Mod3/ai0"].strain
+    assert strain.gage_factor == 2.16
+    assert strain.poisson_ratio == 0.28
+    assert strain.nominal_gage_resistance == 350.0
+    assert strain.lead_wire_resistance == 1.5
+
+
+def test_strain_com_parametro_nao_numerico_aponta_canal_e_campo(tmp_path):
+    conteudo = (
+        '[canais."Mod3/ai0"]\n'
+        'tipo = "strain"\n'
+        'unidade = "µε"\n'
+        'gage_factor = "alto"\n'  # deve ser número
+        'ganho = 1000000.0\n'
+        'offset = 0.0\n'
+    )
+    with pytest.raises(ConfiguracaoInvalida) as exc:
+        carregar_canais(_escrever(tmp_path, conteudo))
+    msg = str(exc.value)
+    assert "Mod3/ai0" in msg and "gage_factor" in msg
+
+
+def test_tensao_ignora_parametros_de_strain(tmp_path):
+    # gage_factor num canal de tensão não tem efeito (strain fica None)
+    conteudo = (
+        '[canais."Mod1/ai0"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "kgf"\n'
+        'gage_factor = 2.14\n'
+        'ganho = 100.0\n'
+        'offset = 0.0\n'
+    )
+    canal = carregar_canais(_escrever(tmp_path, conteudo))["Mod1/ai0"]
+    assert canal.strain is None
