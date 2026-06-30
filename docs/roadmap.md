@@ -11,17 +11,20 @@ estruturas), com confiança profissional. Toda fase é medida contra isso.
 
 ## Onde estamos
 
-**Fase 4 (interface gráfica) concluída — as 4 fatias prontas.** O backend (Fases 0–3) faz o ciclo
-ler → calibrar → gravar → exportar; agora o **dashboard** mostra o ensaio ao vivo (sinal×tempo
-empilhado por unidade, XY carga×deformação, seleção de canais), deixa o tio **aferir pela tela**
-(pontos → regressão → correlação, persistindo no `canais.toml`) com o **nome do sinal**, **tarar ao
-vivo** (Zero Channel), **exportar** pela UI (Excel/CSV/TXT com seleção de sinais e janela de tempo)
-e registrar a **metadata** do ensaio (obra/operador/data) num arquivo paralelo `.meta.toml`. Próximo:
-a **validação física** no hardware do tio (Fase 5).
+**Fase 5 (validação física) em andamento — validada FUNCIONALMENTE no hardware real do tio
+(29/06/2026).** O software leu o **NI 9235 real** e respondeu corretamente à deformação aplicada
+(força numa chapa com o gage → gráfico coerente com a direção da força): confirma que reconhece a
+DAQ, recebe o sinal do sensor e reage. Era o objetivo da ida. As Fases 0–4 (backend completo +
+dashboard) já estavam prontas (185 testes no Mac). Em 30/06 o **gage factor** passou a vir do
+`canais.toml`, por canal ([ADR-020](adr/020-parametros-de-strain-por-canal.md)).
+
+Faltam os **ajustes finos** da Fase 5 (não bloqueiam o "funciona"): a comparação numérica com o test
+panel do NI-MAX (na mesma unidade, por **variação** carregado−repouso), validar o **TXT** no
+AqDAnalysis do tio e o **launcher** do dashboard com hardware real. Depois, a Fase 6 (`.exe`).
 
 ```text
 [0]──[1]──[2]──[3]──[4]──[5]──[6]
- ✅    ✅    ✅    ✅    ✅    ⬜    ⬜
+ ✅    ✅    ✅    ✅    ✅    🟡    ⬜
                           você
                           aqui
 ```

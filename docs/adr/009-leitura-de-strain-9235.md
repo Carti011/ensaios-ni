@@ -49,8 +49,9 @@ erro** (contexto-hardware §4). É o maior risco técnico do projeto.
 
 - O mock prova que montamos a task certo, **não** que o número físico bate. Validação objetiva
   continua sendo contra o **test panel do NI-MAX** (Windows/hardware).
-- **Gage factor é por-task** no MVP (uma `ConfigStrain` por adaptador), não por-canal — refina
-  quando o dono mandar os valores reais por extensômetro (rodada 3).
+- **Gage factor por-canal: FEITO** (30/06/2026, [ADR-020](020-parametros-de-strain-por-canal.md)).
+  Os parâmetros do extensômetro saíram do `ConfigStrain` (removido) para o `ParametrosStrain` no
+  domínio, lidos do `canais.toml` **por canal**. Excitação e ponte ficam fixas (segurança).
 - **Integração tensão + strain no `executar_ensaio`/CLI: FEITO** (25/06/2026). O caso de uso
   particiona os canais pelo campo `tipo` (`tensao`/`strain`), lê cada grupo na sua task e grava
   tudo num CSV, na ordem do config; a tara vale para os dois tipos. A demo do Mac já exibe
