@@ -31,6 +31,7 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 | [018](018-metadata-do-ensaio.md) | Metadata do ensaio (fatia 4) | Aceito | Metadata (obra/operador/data/obs.) em **arquivo paralelo `<ensaio>.meta.toml`** ao lado do CSV; exportadores **carimbam** no laudo (TXT-AqAnalysis fora). |
 | [019](019-foco-em-validacao-fisica-e-adocao.md) | Foco em validação física e adoção | Aceito | A prioridade vira **hardware + `.exe` + TXT no AqAnalysis** (não features no Mac); documentação de teste unificada no guia de campo `guia-teste-hardware.md`. |
 | [020](020-parametros-de-strain-por-canal.md) | Parâmetros de strain por canal | Aceito (refina 009) | Gage factor (e poisson/resistências) **por canal** no `canais.toml` (`ParametrosStrain` no domínio); excitação/ponte fixas por segurança; remove `ConfigStrain`. |
+| [021](021-fft-ao-vivo-paridade-dinamica.md) | FFT ao vivo (paridade dinâmica) | Aceito (arbitra 011) | Substituir o FlexLogger **também no dinâmico**: FFT ao vivo no dashboard (Fase 7). Análise pesada segue no AqDAnalysis via TXT. |
 
 ## Fios condutores (para entender o porquê sem ler tudo)
 
@@ -38,6 +39,7 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 - **Conversão/calibração:** 002 → 006 (o linear vira caso particular da calibração por pontos/regressão).
 - **Norte de produto:** 008 → 010 (FlexLogger caiu para referência técnica; o Lynx virou o espelho).
 - **Exportação:** 011 → 012 (estratégia de interoperar via TXT → implementação plugável).
+- **Paridade dinâmica:** 011 → 021 (não reescrever a análise → mas a **visualização** de frequência ao vivo, o FFT, é nossa).
 - **Dashboard (Fase 4):** 013 → 015 → 016 → 017 → 018 (stack PyQt/PySide + pyqtgraph → binding PySide6 + UX/fluxo → visualização: empilhamento, XY, seleção → aferição na UI + escrita de config + nome do sinal → metadata do ensaio em arquivo paralelo).
 - **Direção & documentação:** 014 → 019 (fonte única na doc → foco em validação física/adoção, com a documentação de teste unificada num guia de campo).
 

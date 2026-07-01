@@ -48,9 +48,10 @@ correspondente.
 
 **🟡 Paridade total / robustez:**
 
-- [ ] **FFT / frequência ao vivo** — o ensaio dinâmico (vibração 1024 Hz → frequências naturais) hoje
-      depende de exportar pro AqDAnalysis; o FlexLogger tem **FFT ao vivo**. Decidir o escopo de
-      "substituir totalmente" (precisa de um ADR-árbitro). [ADR-011](adr/011-estrategia-de-exportacao.md).
+- [~] **FFT / frequência ao vivo** — **escopo decidido (01/07/2026):** vamos substituir o FlexLogger
+      também no dinâmico, com FFT ao vivo no dashboard ([ADR-021](adr/021-fft-ao-vivo-paridade-dinamica.md),
+      resolve o ADR-árbitro que faltava). Vira a **Fase 7** ([roadmap.md](roadmap.md)), **depois** do
+      `.exe`. A análise pesada segue no AqDAnalysis via TXT ([ADR-011](adr/011-estrategia-de-exportacao.md)).
 - [ ] **Robustez de longa duração** — rotação de arquivo + recuperação de queda de rede do chassi
       Ethernet; um ensaio de meses num único CSV é inviável (volume + memória). Inclui o **exportar
       ensaios gigantes pela entrada** (`carregar_csv` lê o CSV inteiro em memória).

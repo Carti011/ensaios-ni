@@ -84,7 +84,7 @@ ensaios-ni/
 │   ├── onde-pesquisar.md          # protocolo de dúvida + filosofia de produto
 │   ├── contexto-hardware.md
 │   ├── guia-teste-hardware.md     # validação no hardware real do tio (Fase 5)
-│   └── adr/001…020                # decisões de arquitetura
+│   └── adr/001…021                # decisões de arquitetura
 ├── src/ensaios_ni/
 │   ├── dominio/                   # Canal, conversão, regressao (Reta), SerieTemporal, Metadata (testável no Mac)
 │   ├── aquisicao/

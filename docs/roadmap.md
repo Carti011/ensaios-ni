@@ -27,8 +27,8 @@ Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do 
 carregado−repouso) e validar o **TXT** no AqDAnalysis do tio. Depois, a Fase 6 (`.exe`).
 
 ```text
-[0]──[1]──[2]──[3]──[4]──[5]──[6]
- ✅    ✅    ✅    ✅    ✅    🟡    ⬜
+[0]──[1]──[2]──[3]──[4]──[5]──[6]──[7]
+ ✅    ✅    ✅    ✅    ✅    🟡    ⬜    ⬜
                           você
                           aqui
 ```
@@ -69,15 +69,24 @@ não é software no Mac: é levar ao **hardware real** e empacotar para o tio us
 
 > Passo a passo completo, do ambiente ao ensaio validado: [guia-teste-hardware.md](guia-teste-hardware.md).
 
-### Fase 6 — Empacotamento & adoção (o "dar certo")
+### Fase 6 — Empacotamento & adoção (o "dar certo") — **frente ativa (01/07)**
 
 - **Distribuição amigável:** o tio não roda `pip install`. Precisa de um executável/instalador
-  Windows (ex.: PyInstaller → `.exe`) ou um caminho de instalação muito simples.
+  Windows (ex.: PyInstaller → `.exe`) ou um caminho de instalação muito simples. **É o bloqueador
+  nº 1 da adoção: hoje o programa não abre na máquina dele.** Entrypoint do `.exe` = a tela inicial
+  sem CLI (`qt.hardware`).
 - **Robustez de longa duração:** ensaios de meses exigem recuperação de queda de rede e rotação de
   arquivo (hoje só anotado nos ADRs 007/012).
 - **Polimento:** mensagens de erro amigáveis, guia de uso para o tio.
 - **Adoção real:** o tio usar num ensaio de verdade → feedback → iterar. Sucesso = ele largou o
   FlexLogger.
+
+### Fase 7 — Paridade dinâmica: FFT ao vivo ([ADR-021](adr/021-fft-ao-vivo-paridade-dinamica.md))
+
+- **Decisão de escopo (01/07):** substituir o FlexLogger **também no dinâmico** — espectro de
+  frequência ao vivo no dashboard (o "Frequency Graph"). A análise pesada (fadiga, Rainflow,
+  relatórios) segue no AqDAnalysis via TXT ([ADR-011](adr/011-estrategia-de-exportacao.md)).
+- Vem **depois** da Fase 6: é paridade, não pré-requisito de o tio abrir o programa.
 
 ---
 
@@ -85,8 +94,12 @@ não é software no Mac: é levar ao **hardware real** e empacotar para o tio us
 
 - **Concluído:** Fases 0–4 (todo o backend + o dashboard completo: monitor ao vivo, XY/multicanal,
   aferição, tara, exportar e metadata pela UI).
-- **Faltam 2 fases:** 5 (validação física no hardware do tio) e 6 (empacotamento & adoção).
+- **Faltam 3 fases:** 5 (validação física), 6 (empacotamento & adoção) e 7 (paridade dinâmica —
+  FFT ao vivo, [ADR-021](adr/021-fft-ao-vivo-paridade-dinamica.md)).
 - **Onde o esforço está:** o dashboard (a maior fatia) está pronto e roda no Mac com o `fake`. O que
   separa o tio de usar é levar isso ao **hardware real** (Fase 5) e empacotar num `.exe` (Fase 6).
-- **Próximo passo:** a **validação física** (Fase 5) — trocar os nomes simulados pelos reais, bater a
-  leitura com o test panel do NI-MAX e calibrar a extensometria de verdade, na casa do tio.
+- **Reavaliação de rota (01/07):** as últimas sessões foram features no Mac; a direção volta ao que o
+  [ADR-019](adr/019-foco-em-validacao-fisica-e-adocao.md) mandou — **adoção acima de features**. A
+  frente ativa é o **`.exe`** (bloqueador nº 1: o tio ainda não consegue abrir o programa); a
+  validação numérica + TXT dependem de uma ida ao tio; o FFT ao vivo (Fase 7) fecha a paridade no
+  dinâmico depois disso.
