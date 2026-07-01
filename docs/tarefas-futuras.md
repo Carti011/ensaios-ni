@@ -28,14 +28,12 @@ correspondente.
 - [ ] **Sincronização tensão × strain (start-trigger)** — o XY carga × deformação precisa dos canais
       **simultâneos**; hoje há offset entre tasks. Só valida no Windows.
       ([ADR-007](adr/007-aquisicao-continua.md)/[ADR-009](adr/009-leitura-de-strain-9235.md))
-- [ ] **Capturar a leitura ao vivo na aferição** — **pedido direto do tio (30/06/2026):** *"preciso
-      poder dar a curva de validação quando eu quiser calibrar uma célula de carga ou um acelerômetro;
-      falar pra ele [o software] que o valor de tensão que você está lendo é tal valor de engenharia;
-      correlacionar: esta tensão é tanto de carga"*. A aferição por regressão **já existe na UI**
-      (ADR-017), mas hoje a tensão de cada ponto é **digitada à mão** — falta o "Leitura do A/D" do
-      AqDados: **capturar a tensão lida ao vivo** ao aplicar a carga conhecida, fechar a reta
-      tensão→engenharia e mostrar a correlação. É o fluxo de calibração de célula de carga /
-      acelerômetro do dia a dia do tio. ([ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
+- [x] **Capturar a leitura ao vivo na aferição** — **feito (01/07/2026):** botão **"Capturar tensão"**
+      no painel de aferição lê a tensão crua do canal ao vivo (`MonitorAoVivo.ler_tensao_atual`) e a
+      insere na tabela; o operador só digita a carga conhecida — o "Leitura do A/D" do AqDados. Só em
+      canais de tensão (célula de carga, LVDT, acelerômetro). Atende o **pedido direto do tio
+      (30/06/2026):** *"falar pra ele [o software] que o valor de tensão que você está lendo é tal
+      valor de engenharia"*. ([ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
 - [ ] **Alerta de correlação baixa na aferição** — Aplicar fica liberado mesmo com correlação ruim
       (ex.: 6%); avisar/pintar abaixo de um limiar (risco metrológico no laudo).
       ([ADR-006](adr/006-calibracao-por-pontos.md)/[ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
