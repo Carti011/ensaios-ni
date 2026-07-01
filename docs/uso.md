@@ -49,6 +49,22 @@ a leitura bater com o test panel do NI-MAX no mesmo canal.
 Para aquisição contínua de longa duração, use `--continuo` com `--duracao-s` e `--bloco`.
 Instalação e validação no hardware real, do ambiente ao ensaio: [guia-teste-hardware.md](guia-teste-hardware.md).
 
+## Dashboard (interface gráfica)
+
+Ver o ensaio ao vivo, aferir canais, tarar e exportar pela tela. Dois modos:
+
+```bash
+# demo no Mac (adaptador fake, sem hardware) — sinal sintético
+PYTHONPATH=src uv run python -m ensaios_ni.apresentacao.qt.janela
+
+# hardware real (Windows) — lê o canais.toml real via AdaptadorDaqmx
+python -m ensaios_ni.apresentacao.qt.hardware --config config/canais.toml --taxa 1024 --bloco 256
+```
+
+O launcher de hardware aceita `--saida` (CSV do ensaio) e `--capacidade-janela` (pontos exibidos no
+gráfico; janela deslizante para ensaios longos). Config ausente ou inválido vira mensagem clara, sem
+traceback. Passo a passo de campo (calibrar, tara, exportar): [guia-teste-hardware.md](guia-teste-hardware.md).
+
 ## Exportar um ensaio
 
 Um CSV gravado vira outro formato sem rodar nova aquisição (serve para reexportar ensaios antigos):

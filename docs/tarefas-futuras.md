@@ -40,10 +40,12 @@ correspondente.
       (ex.: 6%); avisar/pintar abaixo de um limiar (risco metrológico no laudo).
       ([ADR-006](adr/006-calibracao-por-pontos.md)/[ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
 
-- [ ] **Launcher do dashboard com hardware real** — hoje o entrypoint da janela
-      (`apresentacao/qt/janela.py`) abre a **demo fake**; criar a forma oficial de abrir o dashboard
-      completo (metadata/exportar/tara) ligado ao `AdaptadorDaqmx(canais=...)`. Sem isso o tio só vê
-      o dashboard com dados simulados. (Fase 5)
+- [x] **Launcher do dashboard com hardware real** — **feito (30/06/2026):** novo entrypoint
+      `apresentacao/qt/hardware.py` (`python -m ensaios_ni.apresentacao.qt.hardware --config
+      canais.toml --taxa --bloco --saida --capacidade-janela`) abre o dashboard completo
+      (metadata/exportar/tara/aferir) ligado ao `AdaptadorDaqmx(canais=...)`, repassando canais +
+      config; config ausente/inválido/TOML quebrado vira mensagem amigável. O `...qt.janela` segue
+      como demo `fake`. (Fase 5)
 
 **🟡 Paridade total / robustez:**
 
