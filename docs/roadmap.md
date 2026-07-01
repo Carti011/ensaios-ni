@@ -15,12 +15,16 @@ estruturas), com confiança profissional. Toda fase é medida contra isso.
 (29/06/2026).** O software leu o **NI 9235 real** e respondeu corretamente à deformação aplicada
 (força numa chapa com o gage → gráfico coerente com a direção da força): confirma que reconhece a
 DAQ, recebe o sinal do sensor e reage. Era o objetivo da ida. As Fases 0–4 (backend completo +
-dashboard) já estavam prontas (185 testes no Mac). Em 30/06 o **gage factor** passou a vir do
-`canais.toml`, por canal ([ADR-020](adr/020-parametros-de-strain-por-canal.md)).
+dashboard) já estavam prontas. Em 30/06 o **gage factor** passou a vir do `canais.toml`, por canal
+([ADR-020](adr/020-parametros-de-strain-por-canal.md)). Em **01/07** fecharam três frentes no Mac: o
+**launcher do dashboard com hardware real** (`qt.hardware`, sobre o `AdaptadorDaqmx`), a **tela
+inicial** de abertura sem CLI (o "Abrir configuração…", pré-requisito do `.exe`) e a **captura da
+leitura de tensão ao vivo na aferição** (o "Leitura do A/D", pedido direto do tio). **203 testes no
+Mac.**
 
-Faltam os **ajustes finos** da Fase 5 (não bloqueiam o "funciona"): a comparação numérica com o test
-panel do NI-MAX (na mesma unidade, por **variação** carregado−repouso), validar o **TXT** no
-AqDAnalysis do tio e o **launcher** do dashboard com hardware real. Depois, a Fase 6 (`.exe`).
+Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do tio (não bloqueiam o
+"funciona"): a comparação numérica com o test panel do NI-MAX (na mesma unidade, por **variação**
+carregado−repouso) e validar o **TXT** no AqDAnalysis do tio. Depois, a Fase 6 (`.exe`).
 
 ```text
 [0]──[1]──[2]──[3]──[4]──[5]──[6]
