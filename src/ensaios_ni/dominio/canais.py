@@ -16,6 +16,27 @@ METODO_PADRAO = "regressao"
 
 
 @dataclass(frozen=True)
+class ParametrosStrain:
+    """Parâmetros físicos do extensômetro no 9235, por canal.
+
+    Os DEFAULTS são os do 9235 — JAMAIS os da API NI (full-bridge 350 Ω / 2,5 V),
+    que produzem número plausível e errado sem lançar erro (ver CLAUDE.md regra 5).
+    Excitação e ponte são fixos do hardware (não vêm da config): expô-los reabriria a
+    armadilha do strain. Configuráveis via TOML: gage_factor, poisson, resistência do
+    gage e do cabo (3 fios).
+    """
+
+    gage_factor: float = 2.15  # meio da faixa 2,14–2,16; varia por lote do extensômetro
+    nominal_gage_resistance: float = 120.0
+    voltage_excit_val: float = 2.0  # fixo do 9235 (interno)
+    bridge_config: str = "QUARTER_BRIDGE_I"  # fixo do 9235
+    poisson_ratio: float = 0.3
+    lead_wire_resistance: float = 0.0  # 3 fios compensa; ajustar para cabo longo
+    min_val: float = -0.001
+    max_val: float = 0.001
+
+
+@dataclass(frozen=True)
 class Canal:
     """Canal físico e sua conversão: por pontos de calibração ou linear (ganho/offset)."""
 
@@ -27,6 +48,7 @@ class Canal:
     pontos: tuple[tuple[float, float], ...] | None = None
     reta: Reta | None = None
     rotulo: str | None = None
+    strain: ParametrosStrain | None = None
 
     @property
     def etiqueta(self) -> str:
@@ -71,8 +93,9 @@ def _construir_canal(nome: str, cfg: dict) -> Canal:
             f"canal '{nome}': tipo '{cfg['tipo']}' inválido (use {' ou '.join(TIPOS_VALIDOS)})"
         )
     rotulo = _rotulo(nome, cfg)
+    strain = _parametros_strain(nome, cfg) if cfg["tipo"] == "strain" else None
     if "pontos" in cfg:
-        return _canal_calibrado(nome, cfg, rotulo)
+        return _canal_calibrado(nome, cfg, rotulo, strain)
     if "metodo" in cfg:
         raise ConfiguracaoInvalida(f"canal '{nome}': 'metodo' só se aplica quando há 'pontos'")
     faltando = [campo for campo in ("ganho", "offset") if campo not in cfg]
@@ -88,10 +111,11 @@ def _construir_canal(nome: str, cfg: dict) -> Canal:
         rotulo=rotulo,
         ganho=_numero(nome, "ganho", cfg["ganho"]),
         offset=_numero(nome, "offset", cfg["offset"]),
+        strain=strain,
     )
 
 
-def _canal_calibrado(nome: str, cfg: dict, rotulo: str | None) -> Canal:
+def _canal_calibrado(nome: str, cfg: dict, rotulo: str | None, strain: "ParametrosStrain | None") -> Canal:
     """Canal com tabela de pontos: regressão linear (default, à la AqDados) ou segmento (opt-in)."""
     metodo = cfg.get("metodo", METODO_PADRAO)
     if metodo not in METODOS_VALIDOS:
@@ -99,13 +123,31 @@ def _canal_calibrado(nome: str, cfg: dict, rotulo: str | None) -> Canal:
             f"canal '{nome}': metodo '{metodo}' inválido (use {' ou '.join(METODOS_VALIDOS)})"
         )
     pares = _parsear_pares(nome, cfg["pontos"])
-    base = dict(nome=nome, tipo=cfg["tipo"], unidade=cfg["unidade"], rotulo=rotulo)
+    base = dict(nome=nome, tipo=cfg["tipo"], unidade=cfg["unidade"], rotulo=rotulo, strain=strain)
     if metodo == "segmento":
         return Canal(**base, pontos=_preparar_segmento(nome, pares))
     try:
         return Canal(**base, reta=ajustar_regressao(pares))
     except RegressaoIndeterminada as erro:
         raise ConfiguracaoInvalida(f"canal '{nome}': {erro}") from None
+
+
+# parâmetros físicos do strain (9235) — só os que variam vêm do TOML; o resto fica no default seguro
+_CAMPOS_STRAIN = {
+    "gage_factor": "gage_factor",
+    "poisson": "poisson_ratio",
+    "resistencia": "nominal_gage_resistance",
+    "resistencia_cabo": "lead_wire_resistance",
+}
+
+
+def _parametros_strain(nome: str, cfg: dict) -> ParametrosStrain:
+    overrides = {
+        campo: _numero(nome, chave, cfg[chave])
+        for chave, campo in _CAMPOS_STRAIN.items()
+        if chave in cfg
+    }
+    return ParametrosStrain(**overrides)
 
 
 def _parsear_pares(nome: str, valor) -> list[tuple[float, float]]:

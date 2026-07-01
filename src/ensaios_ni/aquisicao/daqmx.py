@@ -1,7 +1,11 @@
 from collections.abc import Iterator
-from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from ensaios_ni.aquisicao.porta import FonteDeAquisicao
+from ensaios_ni.dominio.canais import ParametrosStrain
+
+if TYPE_CHECKING:
+    from ensaios_ni.dominio.canais import Canais
 
 
 def _carregar_nidaqmx():
@@ -25,38 +29,24 @@ def _carregar_nidaqmx_strain():
     return nidaqmx, AcquisitionType, ExcitationSource, StrainGageBridgeType, StrainUnits
 
 
-@dataclass(frozen=True)
-class ConfigStrain:
-    """Parâmetros do 9235 (quarter-bridge 120 Ω, excitação interna 2,0 V).
-
-    Os DEFAULTS aqui são os do 9235 — JAMAIS os da API NI (full-bridge 350 Ω / 2,5 V),
-    que produzem número plausível e errado sem lançar erro. Ver contexto-hardware §4.
-    """
-
-    gage_factor: float = 2.15  # meio da faixa 2,14–2,16; varia por lote do extensômetro
-    nominal_gage_resistance: float = 120.0
-    voltage_excit_val: float = 2.0
-    bridge_config: str = "QUARTER_BRIDGE_I"
-    poisson_ratio: float = 0.3
-    lead_wire_resistance: float = 0.0  # 3 fios compensa; ajustar para cabo longo
-    min_val: float = -0.001
-    max_val: float = 0.001
-
-
 class AdaptadorDaqmx(FonteDeAquisicao):
-    """Adaptador real sobre o NI-DAQmx. Lê tensão (9205) e strain (9235). Roda só no Windows."""
+    """Adaptador real sobre o NI-DAQmx. Lê tensão (9205) e strain (9235). Roda só no Windows.
+
+    Os parâmetros do extensômetro (gage factor etc.) vêm da config de cada canal
+    (`Canal.strain`); sem config, cai no default seguro do 9235 (ver ParametrosStrain).
+    """
 
     def __init__(
         self,
         terminal_config: str = "DIFF",
         min_val: float = -10.0,
         max_val: float = 10.0,
-        config_strain: ConfigStrain | None = None,
+        canais: "Canais | None" = None,
     ):
         self._terminal_config = terminal_config
         self._min_val = min_val
         self._max_val = max_val
-        self._config_strain = config_strain or ConfigStrain()
+        self._canais = canais
 
     def ler_tensao(
         self, canais: list[str], amostras: int, taxa_hz: float
@@ -109,11 +99,19 @@ class AdaptadorDaqmx(FonteDeAquisicao):
                 max_val=self._max_val,
             )
 
+    def _params_strain(self, canal: str) -> ParametrosStrain:
+        # parâmetros do extensômetro por canal (config); sem config, default seguro do 9235
+        if self._canais is not None and canal in self._canais:
+            params = self._canais[canal].strain
+            if params is not None:
+                return params
+        return ParametrosStrain()
+
     def _adicionar_canais_strain(
         self, task, canais, ExcitationSource, StrainGageBridgeType, StrainUnits
     ) -> None:
-        cfg = self._config_strain
         for canal in canais:
+            cfg = self._params_strain(canal)
             # parâmetros do 9235 — NUNCA os defaults da API (full-bridge 350 Ω / 2,5 V)
             task.ai_channels.add_ai_strain_gage_chan(
                 canal,

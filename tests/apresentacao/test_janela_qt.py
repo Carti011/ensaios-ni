@@ -141,6 +141,23 @@ def test_painel_afericao_mostra_ganho_k_e_inverso(app):
     assert "0,0100 V/kgf" in painel._lbl_ganho_k.text()
 
 
+def test_painel_afericao_capturar_adiciona_linha_com_a_tensao_lida(app):
+    # clicar "Capturar tensão" põe a tensão lida ao vivo numa nova linha, valor em branco (o tio digita)
+    painel = PainelAfericao(Afericao(capturar=lambda: 2.5), unidade="kgf", titulo_sinal="Carga")
+    antes = painel._tabela.rowCount()
+    painel._capturar_tensao()
+    assert painel._tabela.rowCount() == antes + 1
+    linha = painel._tabela.rowCount() - 1
+    assert painel._tabela.item(linha, 0).text() == "2,5000"  # tensão capturada (BR)
+    assert painel._tabela.item(linha, 1).text() == ""  # valor de engenharia em branco
+
+
+def test_painel_afericao_sem_captura_desabilita_o_botao(app):
+    # canal sem captura (ex.: strain, ou janela sem fonte): o botão fica desabilitado
+    painel = PainelAfericao(Afericao(), unidade="µε", titulo_sinal="Sg1 bico")
+    assert painel._btn_capturar.isEnabled() is False
+
+
 def test_painel_afericao_aplicar_persiste_no_toml(app, tmp_path):
     arq = _config_real(tmp_path)
     af = Afericao(caminho=arq, canal="Mod1/ai0", pontos=[(0.0, 0.0), (5.0, 500.0), (10.0, 1000.0)])
@@ -159,6 +176,26 @@ def test_janela_abre_afericao_pre_preenchida_do_toml(app, tmp_path):
     painel = janela._abrir_afericao("Mod1/ai0")
     assert isinstance(painel, PainelAfericao)
     assert painel._tabela.rowCount() == 2  # pré-preenchido com os pontos do TOML
+
+
+def test_afericao_captura_a_tensao_ao_vivo_de_canal_de_tensao(app, tmp_path):
+    arq = _config_real(tmp_path)
+    canais = carregar_canais(arq)
+    # fake com amostras suficientes para a média de uma leitura de aferição (o "Leitura do A/D")
+    fonte = AquisicaoFake(tensoes={"Mod1/ai0": [1.5] * 100}, strains={"Mod3/ai0": [0.001] * 100})
+    monitor = MonitorAoVivo(fonte, canais, taxa_hz=100.0, amostras_por_bloco=10, caminho=tmp_path / "e.csv")
+    janela = JanelaMonitor(monitor, canais=canais, caminho_config=arq)
+    painel = janela._abrir_afericao("Mod1/ai0")
+    assert painel._afericao.capturar_tensao() == pytest.approx(1.5)  # lê da fonte, sem digitar
+
+
+def test_afericao_de_strain_nao_captura_tensao(app, tmp_path):
+    # strain (9235) não se afere por pontos de tensão: sem captura ao vivo
+    arq = _config_real(tmp_path)
+    monitor, canais = _monitor_de(arq, tmp_path)
+    janela = JanelaMonitor(monitor, canais=canais, caminho_config=arq)
+    painel = janela._abrir_afericao("Mod3/ai0")
+    assert painel._afericao.capturar_tensao() is None
 
 
 def test_editar_rotulo_na_tabela_persiste_no_toml(app, tmp_path):

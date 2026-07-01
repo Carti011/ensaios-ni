@@ -129,11 +129,16 @@ real. Ver [contexto-hardware.md §4](contexto-hardware.md) e [ADR-009](adr/009-l
 
 ## Passo 6 — Calibrar um sensor real (aferição pela UI)
 
-Abrir o dashboard e aferir um canal à la AqDados (pontos → reta → correlação):
+Abrir o dashboard **ligado ao hardware** (lê o `canais.toml` real, não a demo sintética) e aferir um
+canal à la AqDados (pontos → reta → correlação):
 
 ```text
-python -m ensaios_ni.apresentacao.qt.janela
+python -m ensaios_ni.apresentacao.qt.hardware --config config/canais.toml --taxa 1024 --bloco 256
 ```
+
+> Este é o launcher de campo: abre o dashboard completo (Aferir, Zerar, metadata, Exportar) sobre o
+> `AdaptadorDaqmx`. Config ausente/inválido vira mensagem clara, sem traceback. (O
+> `...qt.janela` continua existindo, mas é a **demo com o adaptador `fake`** — sem hardware.)
 
 1. Selecionar o canal → **Aferir…**.
 2. Para cada ponto: aplicar uma **carga conhecida**, ler a **tensão** correspondente e inserir o par

@@ -13,8 +13,11 @@ correspondente.
 
 **🔴 Bloqueia a adoção (sem isto, o tio não usa):**
 
-- [ ] **Validar no hardware real** — uma leitura tem que **bater com o test panel do NI-MAX**. Nada
-      foi validado em hardware ainda. Guia: [guia-teste-hardware.md](guia-teste-hardware.md). (Fase 5)
+- [~] **Validar no hardware real** — **validação FUNCIONAL feita (29/06/2026):** o software lê o NI
+      9235 real e responde à deformação aplicada (força na chapa → gráfico coerente com a direção).
+      **Falta** a comparação numérica fina com o test panel do NI-MAX (mesma unidade, por **variação**
+      carregado−repouso) e validar o TXT no AqDAnalysis. Guia:
+      [guia-teste-hardware.md](guia-teste-hardware.md). (Fase 5)
 - [ ] **Empacotar em `.exe`** (PyInstaller) — o tio não roda `pip install`; hoje o programa **não
       abre** na máquina dele. (Fase 6)
 - [ ] **Validar o TXT no AqAnalysis** — ver §1 abaixo; é o elo da análise. Sem isto ele não fecha o
@@ -25,12 +28,22 @@ correspondente.
 - [ ] **Sincronização tensão × strain (start-trigger)** — o XY carga × deformação precisa dos canais
       **simultâneos**; hoje há offset entre tasks. Só valida no Windows.
       ([ADR-007](adr/007-aquisicao-continua.md)/[ADR-009](adr/009-leitura-de-strain-9235.md))
-- [ ] **Capturar a leitura ao vivo na aferição** — hoje a tensão de cada ponto é **digitada à mão**;
-      falta o "Leitura do A/D" do AqDados (capturar o valor atual ao aplicar a carga conhecida).
-      ([ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
+- [x] **Capturar a leitura ao vivo na aferição** — **feito (01/07/2026):** botão **"Capturar tensão"**
+      no painel de aferição lê a tensão crua do canal ao vivo (`MonitorAoVivo.ler_tensao_atual`) e a
+      insere na tabela; o operador só digita a carga conhecida — o "Leitura do A/D" do AqDados. Só em
+      canais de tensão (célula de carga, LVDT, acelerômetro). Atende o **pedido direto do tio
+      (30/06/2026):** *"falar pra ele [o software] que o valor de tensão que você está lendo é tal
+      valor de engenharia"*. ([ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
 - [ ] **Alerta de correlação baixa na aferição** — Aplicar fica liberado mesmo com correlação ruim
       (ex.: 6%); avisar/pintar abaixo de um limiar (risco metrológico no laudo).
       ([ADR-006](adr/006-calibracao-por-pontos.md)/[ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
+
+- [x] **Launcher do dashboard com hardware real** — **feito (30/06/2026):** novo entrypoint
+      `apresentacao/qt/hardware.py` (`python -m ensaios_ni.apresentacao.qt.hardware --config
+      canais.toml --taxa --bloco --saida --capacidade-janela`) abre o dashboard completo
+      (metadata/exportar/tara/aferir) ligado ao `AdaptadorDaqmx(canais=...)`, repassando canais +
+      config; config ausente/inválido/TOML quebrado vira mensagem amigável. O `...qt.janela` segue
+      como demo `fake`. (Fase 5)
 
 **🟡 Paridade total / robustez:**
 
@@ -111,6 +124,10 @@ Como fechar (backend primeiro, frontend depois — commits separados):
 Não detalhadas aqui para não duplicar; o ADR é a fonte de verdade. As de maior impacto estão
 consolidadas em **Urgências** no topo.
 
+- [ ] **Mensagens de erro amigáveis na aquisição** — o `MonitorAoVivo.passo()` mostra o `str(erro)`
+      cru no rótulo de estado (ex.: `No module named 'nidaqmx'` no Mac; falha de chassi/rede no
+      Windows do tio). Traduzir para texto que o tio entenda (driver NI-DAQmx ausente, hardware não
+      encontrado, canal inexistente). Polimento previsto na Fase 6 (ver [roadmap.md](roadmap.md)).
 - [ ] **Excel "do jeito do tio"** — metadata no cabeçalho (obra, data, sensor, taxa), aba de resumo.
       Camada de entrega, a definir com o gosto dele. [ADR-011](adr/011-estrategia-de-exportacao.md).
 - [ ] **Calibração "Ganho e Ponto de Referência"** — segundo modo de aferição do AqDados; redutível

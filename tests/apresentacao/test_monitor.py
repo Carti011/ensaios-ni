@@ -23,6 +23,17 @@ def _canais_tensao_e_strain() -> Canais:
     )
 
 
+def test_ler_tensao_atual_devolve_a_media_da_tensao_crua(tmp_path):
+    # o "Leitura do A/D" do AqDados: lê a tensão crua (volts) do canal para a aferição.
+    # NÃO converte — a aferição mapeia volts -> engenharia, então precisa dos volts crus
+    # (com o ganho 10 do canal, converter daria 22,0; o esperado é a média crua 2,2).
+    fonte = AquisicaoFake(tensoes={"Mod1/ai0": [2.0, 2.2, 2.4]})
+    monitor = MonitorAoVivo(
+        fonte, _canais_tensao(), taxa_hz=10.0, amostras_por_bloco=2, caminho=tmp_path / "e.csv"
+    )
+    assert monitor.ler_tensao_atual("Mod1/ai0", amostras=3) == pytest.approx(2.2)
+
+
 def test_processar_bloco_expoe_valores_convertidos_e_tempo(tmp_path):
     fonte = AquisicaoFake(tensoes={"Mod1/ai0": [1.0, 2.0, 3.0, 4.0]})
     monitor = MonitorAoVivo(

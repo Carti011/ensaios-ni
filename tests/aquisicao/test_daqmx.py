@@ -1,7 +1,17 @@
 import sys
 import types
 
-from ensaios_ni.aquisicao.daqmx import AdaptadorDaqmx, ConfigStrain
+from ensaios_ni.aquisicao.daqmx import AdaptadorDaqmx
+from ensaios_ni.dominio.canais import Canais, Canal, ParametrosStrain
+
+
+def _canais_strain(params_por_nome):
+    return Canais(
+        {
+            nome: Canal(nome=nome, tipo="strain", unidade="µε", strain=params)
+            for nome, params in params_por_nome.items()
+        }
+    )
 
 
 class _TaskFake:
@@ -122,14 +132,45 @@ def test_strain_usa_parametros_do_9235_nunca_os_defaults_da_api(monkeypatch):
     assert kwargs["gage_factor"] == 2.15                    # default seguro (configurável)
 
 
-def test_strain_aceita_gage_factor_configuravel(monkeypatch):
+def test_strain_usa_parametros_do_canal(monkeypatch):
+    # o gage factor (e demais parâmetros) vêm da config do canal, não fixos no código
     registro = _instalar_nidaqmx_fake(monkeypatch, dados=[1e-4])
-    adaptador = AdaptadorDaqmx(config_strain=ConfigStrain(gage_factor=2.14, lead_wire_resistance=1.2))
-    adaptador.ler_strain(["cDAQ1Mod3/ai0"], amostras=1, taxa_hz=1024.0)
+    canais = _canais_strain(
+        {"cDAQ1Mod3/ai0": ParametrosStrain(gage_factor=2.14, lead_wire_resistance=1.2)}
+    )
+    AdaptadorDaqmx(canais=canais).ler_strain(["cDAQ1Mod3/ai0"], amostras=1, taxa_hz=1024.0)
 
     _, kwargs = registro["strain"][0]
     assert kwargs["gage_factor"] == 2.14
     assert kwargs["lead_wire_resistance"] == 1.2
+
+
+def test_strain_aplica_parametros_por_canal(monkeypatch):
+    # cada extensômetro tem seu gage factor (varia por lote): cada task usa o do seu canal
+    registro = _instalar_nidaqmx_fake(monkeypatch, dados=[[1e-4], [2e-4]])
+    canais = _canais_strain(
+        {
+            "cDAQ1Mod3/ai0": ParametrosStrain(gage_factor=2.14),
+            "cDAQ1Mod3/ai1": ParametrosStrain(gage_factor=2.16),
+        }
+    )
+    AdaptadorDaqmx(canais=canais).ler_strain(
+        ["cDAQ1Mod3/ai0", "cDAQ1Mod3/ai1"], amostras=1, taxa_hz=1024.0
+    )
+
+    factors = [kwargs["gage_factor"] for _, kwargs in registro["strain"]]
+    assert factors == [2.14, 2.16]
+
+
+def test_strain_sem_canais_usa_defaults_seguros(monkeypatch):
+    # sem config de canal, cai no default seguro do 9235 (nunca os da API)
+    registro = _instalar_nidaqmx_fake(monkeypatch, dados=[1e-4])
+    AdaptadorDaqmx().ler_strain(["cDAQ1Mod3/ai0"], amostras=1, taxa_hz=1024.0)
+
+    _, kwargs = registro["strain"][0]
+    assert kwargs["gage_factor"] == 2.15
+    assert kwargs["strain_config"] == "QUARTER_BRIDGE_I"
+    assert kwargs["nominal_gage_resistance"] == 120.0
 
 
 def test_strain_configura_sample_clock(monkeypatch):

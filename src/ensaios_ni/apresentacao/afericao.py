@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from ensaios_ni.dominio.erros import RegressaoIndeterminada
@@ -20,10 +20,23 @@ class Afericao:
         caminho: Path | None = None,
         canal: str = "",
         pontos: Sequence[tuple[float, float]] = (),
+        capturar: Callable[[], float] | None = None,
     ) -> None:
         self._caminho = Path(caminho) if caminho is not None else None
         self._canal = canal
         self._pontos: list[tuple[float, float]] = [(float(v), float(val)) for v, val in pontos]
+        self._capturar = capturar
+
+    @property
+    def pode_capturar(self) -> bool:
+        """Há uma fonte de leitura ao vivo ligada (canal de tensão com hardware/fake)."""
+        return self._capturar is not None
+
+    def capturar_tensao(self) -> float | None:
+        """Lê a tensão que o canal está gerando agora (o "Leitura do A/D"). None se indisponível."""
+        if self._capturar is None:
+            return None
+        return self._capturar()
 
     @property
     def pontos(self) -> list[tuple[float, float]]:

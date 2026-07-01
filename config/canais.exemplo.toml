@@ -59,11 +59,20 @@ pontos = [[0.0, 0.0], [2.5, 20.0], [5.0, 50.0], [7.5, 90.0]]
 # offset = 0.0
 
 # Strain (9235): o driver já devolve strain adimensional (gage factor/ponte aplicados pelo
-# DAQmx — ver ConfigStrain em aquisicao/daqmx.py). Para microstrain, basta um canal linear
+# DAQmx — ver ParametrosStrain em dominio/canais.py). Para microstrain, basta um canal linear
 # com ganho 1.000.000. tipo = "strain" faz o ensaio ler este canal na task do 9235.
+#
+# Parâmetros do extensômetro (opcionais, por canal). Omitidos = defaults SEGUROS do 9235
+# (quarter-bridge 120 Ω, 2,0 V). Excitação e ponte são FIXOS do hardware — não configuráveis
+# de propósito (mudá-los reabriria a armadilha do strain: número errado e silencioso).
+#   gage_factor       sensibilidade do gage; VARIA por lote (2,14–2,16). Informe o do seu gage.
+#   poisson           coeficiente de Poisson do material (default 0,3).
+#   resistencia       resistência nominal do gage em Ω (default 120, a do 9235).
+#   resistencia_cabo  resistência do cabo (3 fios) em Ω; ajuste para cabo longo (default 0).
 [canais."Mod3/ai0"]
 tipo = "strain"
 unidade = "µε"
 rotulo = "Sg1 bico"
+gage_factor = 2.14
 ganho = 1000000.0
 offset = 0.0

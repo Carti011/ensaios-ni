@@ -76,6 +76,16 @@ def test_definir_pontos_substitui_a_tabela_inteira():
     assert af.reta().a == pytest.approx(100.0)
 
 
+def test_capturar_tensao_le_a_leitura_ao_vivo_pela_callable():
+    # o "Leitura do A/D": em vez de digitar, captura a tensão que o canal está lendo agora
+    af = Afericao(capturar=lambda: 2.241)
+    assert af.capturar_tensao() == pytest.approx(2.241)
+
+
+def test_sem_captura_configurada_retorna_none():
+    assert Afericao().capturar_tensao() is None
+
+
 def test_aplicar_persiste_a_afericao_no_toml(tmp_path):
     arq = tmp_path / "canais.toml"
     arq.write_text(
