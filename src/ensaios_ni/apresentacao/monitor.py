@@ -166,6 +166,14 @@ class MonitorAoVivo:
         """Tara (Zero Channel): o próximo bloco de repouso vira o zero dos canais."""
         self._zerar_pendente = True
 
+    def ler_tensao_atual(self, canal: str, amostras: int = 100) -> float:
+        """Tensão crua (volts) do canal, média de uma leitura curta — o "Leitura do A/D" da aferição.
+
+        Sem conversão de propósito: a aferição mapeia volts -> unidade, então precisa dos volts crus.
+        """
+        leitura = self._fonte.ler_tensao([canal], amostras, self._taxa_hz)[canal]
+        return sum(leitura) / len(leitura)
+
     def recarregar_canais(self, canais: Canais) -> None:
         """Troca a calibração (após aferir e aplicar); vale do próximo Iniciar.
 

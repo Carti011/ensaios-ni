@@ -208,10 +208,16 @@ class JanelaMonitor(QWidget):
         # sem arquivo de config carregado não há onde persistir a aferição
         if self._caminho_config is None:
             return None
+        # captura da tensão ao vivo (o "Leitura do A/D") só faz sentido em canal de tensão;
+        # strain (9235) não se afere por pontos de tensão
+        capturar = None
+        if self._canais is not None and self._canais[nome].tipo == "tensao":
+            capturar = lambda: self._monitor.ler_tensao_atual(nome)  # noqa: E731
         afericao = Afericao(
             caminho=self._caminho_config,
             canal=nome,
             pontos=ler_pontos(self._caminho_config, nome),
+            capturar=capturar,
         )
         painel = PainelAfericao(
             afericao,
@@ -458,6 +464,10 @@ class PainelAfericao(QDialog):
         self._lbl_correlacao = QLabel()
         btn_inserir = QPushButton("Inserir ponto")
         btn_remover = QPushButton("Remover ponto")
+        # "Leitura do A/D" do AqDados: captura a tensão lida ao vivo em vez de digitar
+        self._btn_capturar = QPushButton("Capturar tensão")
+        self._btn_capturar.setEnabled(afericao.pode_capturar)
+        self._btn_capturar.clicked.connect(self._capturar_tensao)
         btn_inserir.clicked.connect(self._inserir_linha_vazia)
         btn_remover.clicked.connect(self._remover_selecionada)
         # botões com texto próprio (os StandardButton do Qt vêm em inglês — português total)
@@ -486,6 +496,15 @@ class PainelAfericao(QDialog):
 
     def _inserir_linha_vazia(self) -> None:
         self._anexar_linha()
+
+    def _capturar_tensao(self) -> None:
+        # o tio aplica a carga conhecida e clica aqui: a tensão lida ao vivo entra na tabela;
+        # o valor de engenharia fica em branco para ele digitar a carga aplicada
+        tensao = self._afericao.capturar_tensao()
+        if tensao is None:
+            return
+        self._anexar_linha(tensao, None)
+        self._tabela.setCurrentCell(self._tabela.rowCount() - 1, 1)
 
     def _remover_selecionada(self) -> None:
         linha = self._tabela.currentRow()
@@ -522,6 +541,7 @@ class PainelAfericao(QDialog):
 
     def _montar_layout(self, btn_inserir: QPushButton, btn_remover: QPushButton) -> None:
         acoes = QHBoxLayout()
+        acoes.addWidget(self._btn_capturar)
         acoes.addWidget(btn_inserir)
         acoes.addWidget(btn_remover)
         acoes.addStretch(1)
