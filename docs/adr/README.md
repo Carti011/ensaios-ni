@@ -32,6 +32,7 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 | [019](019-foco-em-validacao-fisica-e-adocao.md) | Foco em validação física e adoção | Aceito | A prioridade vira **hardware + `.exe` + TXT no AqAnalysis** (não features no Mac); documentação de teste unificada no guia de campo `guia-teste-hardware.md`. |
 | [020](020-parametros-de-strain-por-canal.md) | Parâmetros de strain por canal | Aceito (refina 009) | Gage factor (e poisson/resistências) **por canal** no `canais.toml` (`ParametrosStrain` no domínio); excitação/ponte fixas por segurança; remove `ConfigStrain`. |
 | [021](021-fft-ao-vivo-paridade-dinamica.md) | FFT ao vivo (paridade dinâmica) | Aceito (arbitra 011) | Substituir o FlexLogger **também no dinâmico**: FFT ao vivo no dashboard (Fase 7). Análise pesada segue no AqDAnalysis via TXT. |
+| [022](022-empacotamento-exe-pyinstaller.md) | Empacotamento em `.exe` (PyInstaller) | Aceito | Distribui o dashboard como `.exe` **one-file** (entrypoint `qt.hardware`, sem console); driver NI nativo **fora** do bundle; `.spec` em `packaging/`. Build só no Windows. |
 
 ## Fios condutores (para entender o porquê sem ler tudo)
 
@@ -42,5 +43,6 @@ Convenção: `NNN-titulo.md`, numeração sequencial. Status segue o template do
 - **Paridade dinâmica:** 011 → 021 (não reescrever a análise → mas a **visualização** de frequência ao vivo, o FFT, é nossa).
 - **Dashboard (Fase 4):** 013 → 015 → 016 → 017 → 018 (stack PyQt/PySide + pyqtgraph → binding PySide6 + UX/fluxo → visualização: empilhamento, XY, seleção → aferição na UI + escrita de config + nome do sinal → metadata do ensaio em arquivo paralelo).
 - **Direção & documentação:** 014 → 019 (fonte única na doc → foco em validação física/adoção, com a documentação de teste unificada num guia de campo).
+- **Adoção (Fase 6):** 019 → 022 (priorizar adoção sobre features → empacotar o `.exe` que o tio consegue abrir).
 
 > Mantenha este índice atualizado ao criar um ADR novo (é o "dono" da lista de ADRs — [ADR-014](014-fonte-unica-na-documentacao.md)).

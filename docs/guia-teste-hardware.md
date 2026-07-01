@@ -218,6 +218,37 @@ Com o número físico batendo e o TXT importando, a Fase 5 está validada. O que
 
 ---
 
+## Empacotar o `.exe` (Fase 6) — no Windows
+
+Para o tio abrir por um **ícone**, sem Python nem linha de comando. O binário é específico da
+plataforma: **gera-se no Windows** (ver [ADR-022](adr/022-empacotamento-exe-pyinstaller.md)).
+
+Pré-requisitos na máquina de build (uma vez):
+
+- Python 3.12 + driver NI-DAQmx (os mesmos do Passo 0).
+- `pip install -e .[hardware,gui,excel,build]` — o extra `build` traz o PyInstaller.
+
+Gerar, a partir da **raiz do projeto**:
+
+```text
+pyinstaller packaging/ensaios-ni.spec
+```
+
+Saída: **`dist/ensaios-ni.exe`** (arquivo único). Copiar para a máquina do tio.
+
+**Aprovação:**
+
+- [ ] Duplo-clique abre a **tela inicial** ("Abrir configuração…"), **sem** janela de terminal.
+- [ ] Escolher um `canais.toml` monta o dashboard.
+- [ ] **Iniciar** lê o hardware — exige o **driver NI-DAQmx** instalado na máquina do tio (o `.exe`
+      traz só o wrapper Python `nidaqmx`, não o driver nativo).
+
+> Build falhou por módulo ausente (comum com PySide6/pyqtgraph)? Acrescentar o módulo em
+> `hiddenimports` no `packaging/ensaios-ni.spec` e rebuildar. É o ciclo esperado do primeiro build
+> ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)).
+
+---
+
 ## Se algo não bater (troubleshooting)
 
 - **Chassi não aparece no NI-MAX** → rede/IP/cabo/firewall (não é o software).

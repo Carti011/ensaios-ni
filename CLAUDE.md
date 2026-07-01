@@ -84,7 +84,9 @@ ensaios-ni/
 │   ├── onde-pesquisar.md          # protocolo de dúvida + filosofia de produto
 │   ├── contexto-hardware.md
 │   ├── guia-teste-hardware.md     # validação no hardware real do tio (Fase 5)
-│   └── adr/001…021                # decisões de arquitetura
+│   └── adr/001…022                # decisões de arquitetura
+├── packaging/
+│   └── ensaios-ni.spec            # build do .exe (Fase 6, PyInstaller — ADR-022; só no Windows)
 ├── src/ensaios_ni/
 │   ├── dominio/                   # Canal, conversão, regressao (Reta), SerieTemporal, Metadata (testável no Mac)
 │   ├── aquisicao/
