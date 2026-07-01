@@ -15,6 +15,9 @@ class Afericao:
     testável no Mac sem display.
     """
 
+    # abaixo deste R (Pearson) a reta não representa bem os pontos — alerta metrológico (ADR-006)
+    CORRELACAO_MINIMA = 0.95
+
     def __init__(
         self,
         caminho: Path | None = None,
@@ -74,10 +77,34 @@ class Afericao:
             return "—"
         return f"{abs(reta.correlacao) * 100:.2f} %".replace(".", ",")
 
+    def motivo_sem_reta(self) -> str | None:
+        """Por que ainda não há reta para aplicar, para a UI orientar. None quando há reta.
+
+        Distingue os dois casos que travam o Aplicar: faltam pontos, ou os pontos têm a mesma
+        tensão (o caso da captura ao vivo repetida — sem variação de carga, a reta é indeterminada).
+        """
+        if self.reta() is not None:
+            return None
+        if len(self._pontos) < 2:
+            return "Informe ao menos 2 pontos para ajustar a reta."
+        return "As tensões dos pontos precisam ser diferentes — aplique cargas distintas."
+
+    def correlacao_baixa(self) -> bool:
+        """A reta ajustada representa mal os pontos (correlação < `CORRELACAO_MINIMA`)?
+
+        Sem reta (poucos pontos / tensão sem variação) não há o que alertar: a UI já mostra "—".
+        """
+        reta = self.reta()
+        if reta is None:
+            return False
+        return abs(reta.correlacao) < self.CORRELACAO_MINIMA
+
     def aplicar(self) -> None:
-        """Persiste a aferição no TOML do canal. Exige ao menos 2 pontos (uma reta)."""
+        """Persiste a aferição no TOML do canal. Exige uma reta válida (não grava calibração ruim)."""
         if self._caminho is None:
             raise ValueError("aferição sem arquivo de destino: informe caminho e canal")
-        if len(self._pontos) < 2:
-            raise ValueError("aferição precisa de ao menos 2 pontos para ajustar a reta")
+        if self.reta() is None:
+            raise ValueError(
+                "aferição sem reta válida: informe ao menos 2 pontos com tensões diferentes"
+            )
         salvar_afericao(self._caminho, self._canal, self._pontos)
