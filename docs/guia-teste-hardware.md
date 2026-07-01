@@ -39,7 +39,7 @@ calibrado e exportado**, na máquina dele.
 2. **Driver NI-DAQmx** — baixar em ni.com (gratuito), instalar (traz o NI-MAX). Abrir o NI-MAX.
 3. **Baixar o projeto** — `git clone <repo>` e `cd ensaios-ni`. (Sem git: git-scm.com/download/win.)
 4. **Instalar** — `pip install -e .[hardware,gui]` (hardware = `nidaqmx`; gui = dashboard).
-5. **Conferir a base** — `pytest` → deve dar **178 passed** (confirma que o software está saudável
+5. **Conferir a base** — `pytest` → deve dar **203 passed** (confirma que o software está saudável
    nessa máquina, mesmo antes de tocar no hardware).
 
 🧪 **Simulado (Windows do dev, sem hardware):** idem, mas no NI-MAX crie **dispositivos simulados**
