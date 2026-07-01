@@ -16,6 +16,8 @@ dependencies = ["tomlkit>=0.13"]
 hardware = ["nidaqmx>=1.0"]
 excel = ["openpyxl>=3.1"]
 gui = ["PySide6>=6.6", "pyqtgraph>=0.13"]
+# build: empacota o .exe do dashboard (Fase 6, ADR-022). Só no Windows: pyinstaller packaging/ensaios-ni.spec
+build = ["pyinstaller>=6.0"]
 
 [dependency-groups]
 dev = ["pytest>=8", "openpyxl>=3.1", "PySide6>=6.6", "pyqtgraph>=0.13"]
