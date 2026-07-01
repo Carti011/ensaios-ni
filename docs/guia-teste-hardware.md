@@ -141,14 +141,18 @@ python -m ensaios_ni.apresentacao.qt.hardware --config config/canais.toml --taxa
 > `...qt.janela` continua existindo, mas é a **demo com o adaptador `fake`** — sem hardware.)
 
 1. Selecionar o canal → **Aferir…**.
-2. Para cada ponto: aplicar uma **carga conhecida**, ler a **tensão** correspondente e inserir o par
-   `(Tensão, Valor de engenharia)` na tabela.
+2. Para cada ponto: aplicar uma **carga conhecida** e clicar **"Capturar tensão"** (o "Leitura do A/D"
+   do AqDados) — a tensão lida ao vivo entra na tabela; digite o **Valor de engenharia** (a carga
+   aplicada) ao lado. Repita com cargas **diferentes** (a tensão precisa variar entre os pontos).
 3. Conferir o **Ganho K**, o **1/K** e a **correlação %** (quanto mais perto de 100%, melhor a reta).
+   Abaixo de **95%** o painel avisa; se as tensões saírem iguais, ele explica que faltam cargas
+   distintas (e o Aplicar fica travado — proposital: não grava calibração inválida).
 4. **Aplicar** — persiste no `canais.toml`. A nova calibração vale do próximo **Iniciar**.
 
-> ⚠️ **Gap conhecido (ver [avaliacao-critica.md](avaliacao-critica.md) §🟠5):** hoje a tensão de cada
-> ponto é **digitada à mão** — não há "capturar a leitura atual" como o "Leitura do A/D" do AqDados.
-> Anote a tensão de outra fonte (test panel / CSV do passo 4) enquanto a captura ao vivo não existe.
+> **Só no hardware.** A captura ao vivo lê a tensão **atual** do canal. No Mac com o `fake` o sinal é
+> sintético e sua média é constante, então **capturar ali dá sempre a mesma tensão** — o fluxo de
+> captura só se exercita de verdade aqui, aplicando cargas físicas distintas. No Mac, para testar a
+> aferição, digite os pontos à mão.
 
 ---
 

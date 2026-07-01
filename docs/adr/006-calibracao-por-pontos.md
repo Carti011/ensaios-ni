@@ -108,6 +108,16 @@ Decisões:
 Pendente ainda: o modo **"Ganho e Ponto de Referência"** do AqDados (reparametrização do linear) —
 adiado por ser redutível ao `ganho`/`offset` atual e de menor valor imediato.
 
+### Alerta de correlação baixa (01/07/2026)
+
+Resolvida a pendência 2 acima (o **limiar de qualidade** da correlação). Na aferição pela UI
+([ADR-017](017-afericao-na-ui-e-escrita-de-config.md)), correlação **abaixo de 95%** passa a
+**avisar** (pinta a correlação e mostra um texto), mas **não bloqueia** o Aplicar: quem decide se a
+calibração está boa é o operador (o tio), como já vale para o resto do fluxo. O limiar é uma
+constante no Presenter (`Afericao.CORRELACAO_MINIMA`), fácil de ajustar se o tio pedir outro valor;
+sem reta (poucos pontos / tensão sem variação) não há o que alertar. Fecha o item 🟠 "alerta de
+correlação baixa" das Urgências em [tarefas-futuras.md](../tarefas-futuras.md).
+
 ## Consequências
 
 **Melhora:**

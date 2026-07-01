@@ -85,5 +85,6 @@ só desenha e fia eventos. Guardas de `nidaqmx` e `PySide6` intactas.
   (arredondamento), como no AqDados. Aceito.
 - **Pendência aberta:** editar pontos exige re-aplicar para persistir (não há autosave) — proposital
   (o tio decide quando a calibração está boa). A validação de qualidade por um limiar de correlação
-  segue adiada (ADR-006).
+  foi **feita** em 01/07 (alerta abaixo de 95%, **avisa sem bloquear** — ver
+  [ADR-006](006-calibracao-por-pontos.md)).
 - **Próximo:** fatia 4 (metadata + exportar pela UI; e a **tara ao vivo** que veio para cá).

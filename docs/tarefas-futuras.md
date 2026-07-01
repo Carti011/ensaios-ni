@@ -34,8 +34,9 @@ correspondente.
       canais de tensão (célula de carga, LVDT, acelerômetro). Atende o **pedido direto do tio
       (30/06/2026):** *"falar pra ele [o software] que o valor de tensão que você está lendo é tal
       valor de engenharia"*. ([ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
-- [ ] **Alerta de correlação baixa na aferição** — Aplicar fica liberado mesmo com correlação ruim
-      (ex.: 6%); avisar/pintar abaixo de um limiar (risco metrológico no laudo).
+- [x] **Alerta de correlação baixa na aferição** — **feito (01/07/2026):** correlação **abaixo de
+      95%** pinta o indicador e mostra um aviso no painel de aferição, mas **não bloqueia** o Aplicar
+      (o tio decide — como o resto do fluxo). Limiar = constante `Afericao.CORRELACAO_MINIMA`.
       ([ADR-006](adr/006-calibracao-por-pontos.md)/[ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
 
 - [x] **Launcher do dashboard com hardware real** — **feito (30/06/2026):** novo entrypoint
