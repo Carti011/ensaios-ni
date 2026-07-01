@@ -126,6 +126,10 @@ Como fechar (backend primeiro, frontend depois — commits separados):
 Não detalhadas aqui para não duplicar; o ADR é a fonte de verdade. As de maior impacto estão
 consolidadas em **Urgências** no topo.
 
+- [ ] **Mensagens de erro amigáveis na aquisição** — o `MonitorAoVivo.passo()` mostra o `str(erro)`
+      cru no rótulo de estado (ex.: `No module named 'nidaqmx'` no Mac; falha de chassi/rede no
+      Windows do tio). Traduzir para texto que o tio entenda (driver NI-DAQmx ausente, hardware não
+      encontrado, canal inexistente). Polimento previsto na Fase 6 (ver [roadmap.md](roadmap.md)).
 - [ ] **Excel "do jeito do tio"** — metadata no cabeçalho (obra, data, sensor, taxa), aba de resumo.
       Camada de entrega, a definir com o gosto dele. [ADR-011](adr/011-estrategia-de-exportacao.md).
 - [ ] **Calibração "Ganho e Ponto de Referência"** — segundo modo de aferição do AqDados; redutível

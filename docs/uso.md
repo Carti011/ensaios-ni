@@ -57,13 +57,18 @@ Ver o ensaio ao vivo, aferir canais, tarar e exportar pela tela. Dois modos:
 # demo no Mac (adaptador fake, sem hardware) — sinal sintético
 PYTHONPATH=src uv run python -m ensaios_ni.apresentacao.qt.janela
 
-# hardware real (Windows) — lê o canais.toml real via AdaptadorDaqmx
+# hardware real (Windows) — tela inicial: "Abrir configuração…" e escolher o canais.toml
+python -m ensaios_ni.apresentacao.qt.hardware
+
+# hardware real, atalho direto (CLI/dev) — abre o dashboard já com o config
 python -m ensaios_ni.apresentacao.qt.hardware --config config/canais.toml --taxa 1024 --bloco 256
 ```
 
-O launcher de hardware aceita `--saida` (CSV do ensaio) e `--capacidade-janela` (pontos exibidos no
-gráfico; janela deslizante para ensaios longos). Config ausente ou inválido vira mensagem clara, sem
-traceback. Passo a passo de campo (calibrar, tara, exportar): [guia-teste-hardware.md](guia-teste-hardware.md).
+Sem `--config`, o launcher de hardware abre uma **tela inicial** com o botão **"Abrir configuração…"**
+(é como o tio abre pelo `.exe`, sem digitar nada). Com `--config`, vai direto ao dashboard. Aceita
+ainda `--saida` (CSV do ensaio) e `--capacidade-janela` (pontos no gráfico; janela deslizante para
+ensaios longos). Config ausente ou inválido vira mensagem clara, sem traceback. Passo a passo de
+campo (calibrar, tara, exportar): [guia-teste-hardware.md](guia-teste-hardware.md).
 
 ## Exportar um ensaio
 
