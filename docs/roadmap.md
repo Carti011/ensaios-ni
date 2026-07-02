@@ -22,13 +22,17 @@ inicial** de abertura sem CLI (o "Abrir configuração…", pré-requisito do `.
 leitura de tensão ao vivo na aferição** (o "Leitura do A/D", pedido direto do tio). Ainda em 01/07, a
 aferição ganhou **robustez e feedback** (alerta de correlação baixa) e a **Fase 6 arrancou**: o
 **`.exe` foi buildado e validado no Windows do dev** — abre a tela inicial e monta o dashboard, sem
-console ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)). **220 testes no Mac.**
+console ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)). Em **02/07**, a aquisição ganhou
+**mensagens de erro amigáveis** (driver ausente, chassi/rede fora, canal inexistente — o tio entende o
+que fazer, sem traceback) e montou-se o **pacote de distribuição** ([docs/pacote-tio/](pacote-tio/README.md)):
+guia de build, `LEIA.txt` para o tio e o `canais.toml` pronto (1 canal de strain — o cenário da ida).
+**220 testes no Mac.**
 
 Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do tio (não bloqueiam o
 "funciona"): a comparação numérica com o test panel do NI-MAX (na mesma unidade, por **variação**
 carregado−repouso) e validar o **TXT** no AqDAnalysis do tio. Na Fase 6, o `.exe` já **abre**; falta o
-**Iniciar no hardware do tio** (driver + chassi) e o polimento (mensagens de erro, robustez de longa
-duração). Depois, a Fase 7 (FFT ao vivo).
+**Iniciar no hardware do tio** (driver + chassi) e o polimento restante (robustez de longa duração;
+as **mensagens de erro amigáveis já foram feitas** em 02/07). Depois, a Fase 7 (FFT ao vivo).
 
 ```text
 [0]──[1]──[2]──[3]──[4]──[5]──[6]──[7]

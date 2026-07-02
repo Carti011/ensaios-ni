@@ -100,6 +100,10 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
   montar a pasta no Desktop com `.exe` + `canais.toml` + `LEIA.txt`, e zipar), `LEIA.txt` (instruções
   em linguagem leiga para o tio), `canais-exemplo.toml` (modelo comentado do `canais.toml`) e um
   `README.md` de índice. Reduz o atrito do primeiro contato do tio com o programa.
+- **Config de teste `config/canais-simulado.toml`** (versionado): espelha o cenário do tio (1 canal de
+  strain, gage factor 2,14) com nomes de **dispositivo simulado** do NI-MAX (`cDAQ1Mod3/ai0`), para
+  exercitar o `Iniciar` do `.exe` no Windows do dev sem o hardware. O `config/canais.toml` **real**
+  (com o nome/serial do chassi do tio) segue fora do git.
 
 ### Corrigido
 
