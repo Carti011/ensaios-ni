@@ -4,7 +4,7 @@ Plano do início ao fim. O **critério de sucesso** não é "o código funciona"
 FlexLogger (pago) e usar o nosso software no trabalho real dele** (provas de carga e vibração em
 estruturas), com confiança profissional. Toda fase é medida contra isso.
 
-> Atualizado em 28/06/2026. As fases ganham detalhe conforme chegamos nelas — coisas novas vão
+> Atualizado em 01/07/2026. As fases ganham detalhe conforme chegamos nelas — coisas novas vão
 > aparecer durante a implementação (é esperado).
 
 ---

@@ -120,7 +120,7 @@ Aquisição real no Windows, exportação para Excel/análise e configuração d
 - [docs/uso.md](docs/uso.md) — instalar, rodar um ensaio, exportar.
 - [docs/guia-teste-hardware.md](docs/guia-teste-hardware.md) — validar no hardware real, do ambiente
   ao ensaio.
-- [docs/adr/README.md](docs/adr/README.md) — índice das decisões de arquitetura (20 ADRs).
+- [docs/adr/README.md](docs/adr/README.md) — índice das decisões de arquitetura (22 ADRs).
 - [docs/roadmap.md](docs/roadmap.md) — plano em fases e estado atual.
 - [CONTEXT.md](CONTEXT.md) — glossário do domínio (tensão, strain, aferição, tara…).
 - [docs/contexto-hardware.md](docs/contexto-hardware.md) — inventário do hardware e a API do
@@ -131,10 +131,11 @@ Aquisição real no Windows, exportação para Excel/análise e configuração d
 Backend e dashboard completos e testados — leitura de tensão e strain (finita e contínua),
 calibração, gravação, exportadores e a interface ao vivo —, validados no Windows com dispositivos
 simulados e no Mac com o adaptador sintético (214 testes). Em campo, o software **já leu o
-extensômetro real** (NI 9235) e respondeu corretamente à deformação aplicada. Os próximos passos são
-fechar a **validação numérica** contra o test panel do NI-MAX, o elo de **exportação** com a
-ferramenta de análise do usuário e o **empacotamento** num executável para distribuição: trabalho de
-campo e integração, não de capacidade. Plano completo no [roadmap](docs/roadmap.md).
+extensômetro real** (NI 9235) e respondeu corretamente à deformação aplicada. O **executável de
+distribuição** já foi gerado no Windows: abre a tela inicial e monta o dashboard, sem console. Os
+próximos passos são de campo e integração, não de capacidade — fechar a **validação numérica** contra
+o test panel do NI-MAX, o elo de **exportação** com a ferramenta de análise do usuário e rodar o
+`.exe` **sobre o hardware do tio**. Plano completo no [roadmap](docs/roadmap.md).
 
 ## Estrutura
 
