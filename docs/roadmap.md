@@ -22,7 +22,7 @@ inicial** de abertura sem CLI (o "Abrir configuração…", pré-requisito do `.
 leitura de tensão ao vivo na aferição** (o "Leitura do A/D", pedido direto do tio). Ainda em 01/07, a
 aferição ganhou **robustez e feedback** (alerta de correlação baixa) e a **Fase 6 arrancou**: o
 **`.exe` foi buildado e validado no Windows do dev** — abre a tela inicial e monta o dashboard, sem
-console ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)). **214 testes no Mac.**
+console ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)). **220 testes no Mac.**
 
 Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do tio (não bloqueiam o
 "funciona"): a comparação numérica com o test panel do NI-MAX (na mesma unidade, por **variação**
