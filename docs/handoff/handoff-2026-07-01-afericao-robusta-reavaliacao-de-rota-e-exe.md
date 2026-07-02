@@ -1,7 +1,7 @@
 # Handoff: aferição robusta, reavaliação de rota (adoção) e empacotamento em `.exe`
 
 **Data:** 2026-07-01
-**Status:** em andamento — 7 commits na `develop`, **push feito** e **PR #10** aberta (`main ← develop`; merge é do Weslley). Próximo passo concreto: **buildar o `.exe` no Windows**.
+**Status:** em andamento — **PR #10** aberta (`main ← develop`; merge é do Weslley). O **`.exe` foi buildado e validado no Windows** (abre a tela inicial e monta o dashboard, sem console). Próximo passo: **Iniciar no hardware do tio** (aquisição) + Fase 6 restante / Fase 7 (FFT).
 
 > **Fonte única do status é o [roadmap.md](../roadmap.md).** Este é o segundo handoff de 01/07 — o anterior ([launcher + tela inicial + captura ao vivo](handoff-2026-07-01-launcher-tela-inicial-e-captura-ao-vivo.md)) cobre a base que esta sessão estendeu. Houve uma **virada de rota** aqui (adoção acima de features); leia a §2 e a §6.
 
@@ -34,6 +34,8 @@ Substituir o **FlexLogger** (única peça paga da pilha NI) por software própri
 6. **`1cf2016` docs** — [ADR-022](../adr/022-empacotamento-exe-pyinstaller.md); guia de build no `guia-teste-hardware.md`; índice de ADRs, CHANGELOG, árvore + range no CLAUDE.md.
 7. **`a20394d` chore(build)** — `uv.lock` travando o pyinstaller e transitivas.
 
+**Validação do `.exe` no Windows (pós-push, 01/07):** o Claude Code no **Windows 11** rodou `pyinstaller packaging/ensaios-ni.spec` **sem ajuste** no `.spec` → `dist/ensaios-ni.exe` (65,9 MB, one-file, sem console). Confirmado por automação de UI: a **tela inicial abre** ("Abrir configuração…") e o **dashboard monta** com o `canais.exemplo.toml` (5 canais, sub-plots por unidade, XY, controles), sem console nem traceback. **214 testes verdes no Windows.** **Não** foi testado o **Iniciar** (aquisição) — exige driver + hardware/simulado; fica pro tio. Aviso inofensivo: `pyqtgraph.opengl` sem `PyOpenGL` (só usamos 2D). Startup: cold-start da 1ª descompressão pode demorar, aberturas seguintes são rápidas — o Weslley confirmou que na prática abre bem, e o startup **não é problema** (o app não vive abrindo/fechando).
+
 **Descartado nesta sessão (importante):** tentei tornar a captura ao vivo **demonstrável no Mac** dando um cursor de avanço ao `fake` (`avancar_leitura`). **Revertido** — a captura tira a **média** de uma senoide (centrada em 5 V), então avançar a janela **não muda a média**; só uma rampa absurda ou hacks fariam variar. Seria código de demo artificial. A captura ao vivo se valida **no hardware** (a carga física varia a tensão); no Mac, digita-se os pontos à mão. Documentado no guia.
 
 **Como os 2 bugs foram achados:** exercitando o software de verdade ("fora da caixa") — rodei o fluxo real de captura na demo (`_demonstracao`) e a CLI ponta a ponta (ensaio → csv-excel-br → xlsx → janela invertida). Foi aí que apareceram o feedback ausente e o `aplicar` sem reta.
@@ -42,8 +44,8 @@ Substituir o **FlexLogger** (única peça paga da pilha NI) por software própri
 
 - **214 testes verdes** no Mac (`uv run pytest`), sem `nidaqmx`. Guardas de AST verdes.
 - **Funciona:** ciclo ler → calibrar (com aferição robusta) → gravar → exportar, pela CLI e pelo dashboard, no Mac com o `fake`; leitura real do 9235 no hardware do tio responde à deformação (29/06).
-- **Working tree limpo.** `develop` **pushada** (`d6816f1..a20394d`). **PR #10** aberta: <https://github.com/Carti011/ensaios-ni/pull/10> (7 commits, 18 arquivos, +498/−32).
-- **`.exe`:** preparado no Mac (spec compila, `pyproject` íntegro), **não buildado** (é no Windows).
+- **`develop` pushada. PR #10** aberta: <https://github.com/Carti011/ensaios-ni/pull/10> (merge é do Weslley).
+- **`.exe`: buildado e validado no Windows do dev (01/07)** — abre a tela inicial e monta o dashboard, sem console. Falta só o **Iniciar** no hardware do tio (aquisição).
 
 ## 5. Bloqueios e dependências
 
@@ -54,8 +56,8 @@ Substituir o **FlexLogger** (única peça paga da pilha NI) por software própri
 
 ## 6. Próximos passos (ordenados por valor para a adoção)
 
-1. **Buildar o `.exe` no Windows** (a razão da PR): `pip install -e .[hardware,gui,excel,build]` → `pyinstaller packaging/ensaios-ni.spec` → `dist/ensaios-ni.exe`. Testar: duplo-clique → tela inicial → escolher `canais.toml` → Iniciar lê o hardware. Se falhar por módulo, ajustar `hiddenimports` no `.spec`.
-2. **Ida ao tio:** fechar a **validação numérica** (variação carregado−repouso vs NI-MAX) e **importar o TXT** no AqDAnalysis. Roteiro em [guia-teste-hardware.md](../guia-teste-hardware.md).
+1. **[FEITO] Buildar o `.exe`** — validado no Windows do dev (01/07): builda sem ajuste, abre e monta o dashboard. **Resta o `Iniciar` (aquisição)** empacotado, que só se testa com driver + hardware/simulado — junto do item 2. (Risco a vigiar: o `nidaqmx` empacotado achar as DLLs do driver em runtime; só aparece ao clicar Iniciar.)
+2. **Ida ao tio:** clicar **Iniciar** no `.exe` sobre o hardware real; fechar a **validação numérica** (variação carregado−repouso vs NI-MAX) e **importar o TXT** no AqDAnalysis. Roteiro em [guia-teste-hardware.md](../guia-teste-hardware.md).
 3. **Fase 6 restante, atacável no Mac (se ficar no Mac):**
    - **Mensagens de erro amigáveis** — o `MonitorAoVivo.passo()` mostra `str(erro)` cru (ex.: `No module named 'nidaqmx'` no Mac; falha de chassi/rede no Windows). Traduzir para texto que o tio entenda. [tarefas-futuras.md](../tarefas-futuras.md).
    - **Robustez de longa duração** — rotação de arquivo + recuperação de queda de rede (ensaio de meses num CSV é inviável). Arquitetural, lógica pura testável. [ADR-012](../adr/012-serie-temporal-e-exportadores.md).

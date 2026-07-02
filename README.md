@@ -4,7 +4,7 @@ Aquisição de dados para hardware **National Instruments** em Python, no lugar 
 instrumentação pago.
 
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/testes-203%20passando-0A9EDC?logo=pytest&logoColor=white)
+![Tests](https://img.shields.io/badge/testes-214%20passando-0A9EDC?logo=pytest&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/aquisição-Windows%20%7C%20Linux%20x86-lightgrey)
 
@@ -39,7 +39,7 @@ O driver da NI só existe em Windows e Linux x86, não em macOS nem ARM. Para n�
 um PC Windows, a aquisição fica atrás de uma porta (interface) com dois adaptadores: um real sobre o
 `nidaqmx` e um sintético que roda em qualquer máquina. Conversão, calibração, persistência e
 dashboard dependem só da porta, então quase todo o código é desenvolvido e testado no Mac, sem o
-hardware presente — os 203 testes rodam em menos de um segundo.
+hardware presente — os 214 testes rodam em menos de um segundo.
 
 ```mermaid
 flowchart LR
@@ -71,7 +71,7 @@ A decisão e o porquê estão no [ADR-001](docs/adr/001-arquitetura-porta-adapta
   se algo fora do adaptador real importar `nidaqmx` (e o mesmo vale para `PySide6` e `openpyxl`).
   Convenção que nada verifica é convenção que se quebra.
 - **Dependências opcionais de verdade.** `nidaqmx`, `openpyxl` e a GUI (`PySide6`/`pyqtgraph`) são
-  extras; o pacote importa e os 203 testes rodam sem nenhum deles instalado.
+  extras; o pacote importa e os 214 testes rodam sem nenhum deles instalado.
 - **Calibração como no laboratório.** A conversão volts → unidade usa regressão linear por mínimos
   quadrados, com a correlação de Pearson do ajuste — o método que o engenheiro já aplica, não uma
   constante chumbada no código.
@@ -104,12 +104,12 @@ A decisão e o porquê estão no [ADR-001](docs/adr/001-arquitetura-porta-adapta
 Os testes, a demonstração por CLI e o dashboard rodam em qualquer plataforma, sem hardware:
 
 ```bash
-uv run pytest                                              # 203 testes
+uv run pytest                                              # 214 testes
 PYTHONPATH=src uv run python -m ensaios_ni                 # ensaio sintético ponta a ponta, gera um CSV
 PYTHONPATH=src uv run python -m ensaios_ni.apresentacao.qt.janela  # abre o dashboard com o adaptador fake
 ```
 
-<img src=".github/assets/testes.png" alt="Toda a suíte de testes (203) passando no Mac, sem o hardware NI conectado" width="380">
+<img src=".github/assets/testes.png" alt="Toda a suíte de testes (214) passando no Mac, sem o hardware NI conectado" width="380">
 
 Aquisição real no Windows, exportação para Excel/análise e configuração de canais estão no
 **[guia de uso](docs/uso.md)**; a validação no hardware físico, no
@@ -130,7 +130,7 @@ Aquisição real no Windows, exportação para Excel/análise e configuração d
 
 Backend e dashboard completos e testados — leitura de tensão e strain (finita e contínua),
 calibração, gravação, exportadores e a interface ao vivo —, validados no Windows com dispositivos
-simulados e no Mac com o adaptador sintético (203 testes). Em campo, o software **já leu o
+simulados e no Mac com o adaptador sintético (214 testes). Em campo, o software **já leu o
 extensômetro real** (NI 9235) e respondeu corretamente à deformação aplicada. Os próximos passos são
 fechar a **validação numérica** contra o test panel do NI-MAX, o elo de **exportação** com a
 ferramenta de análise do usuário e o **empacotamento** num executável para distribuição: trabalho de

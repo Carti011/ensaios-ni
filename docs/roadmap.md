@@ -19,18 +19,22 @@ dashboard) já estavam prontas. Em 30/06 o **gage factor** passou a vir do `cana
 ([ADR-020](adr/020-parametros-de-strain-por-canal.md)). Em **01/07** fecharam três frentes no Mac: o
 **launcher do dashboard com hardware real** (`qt.hardware`, sobre o `AdaptadorDaqmx`), a **tela
 inicial** de abertura sem CLI (o "Abrir configuração…", pré-requisito do `.exe`) e a **captura da
-leitura de tensão ao vivo na aferição** (o "Leitura do A/D", pedido direto do tio). **203 testes no
-Mac.**
+leitura de tensão ao vivo na aferição** (o "Leitura do A/D", pedido direto do tio). Ainda em 01/07, a
+aferição ganhou **robustez e feedback** (alerta de correlação baixa) e a **Fase 6 arrancou**: o
+**`.exe` foi buildado e validado no Windows do dev** — abre a tela inicial e monta o dashboard, sem
+console ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)). **214 testes no Mac.**
 
 Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do tio (não bloqueiam o
 "funciona"): a comparação numérica com o test panel do NI-MAX (na mesma unidade, por **variação**
-carregado−repouso) e validar o **TXT** no AqDAnalysis do tio. Depois, a Fase 6 (`.exe`).
+carregado−repouso) e validar o **TXT** no AqDAnalysis do tio. Na Fase 6, o `.exe` já **abre**; falta o
+**Iniciar no hardware do tio** (driver + chassi) e o polimento (mensagens de erro, robustez de longa
+duração). Depois, a Fase 7 (FFT ao vivo).
 
 ```text
 [0]──[1]──[2]──[3]──[4]──[5]──[6]──[7]
- ✅    ✅    ✅    ✅    ✅    🟡    ⬜    ⬜
-                          você
-                          aqui
+ ✅    ✅    ✅    ✅    ✅    🟡    🟡    ⬜
+                          você aqui
+                       (5 no tio, 6 o .exe)
 ```
 
 ---

@@ -18,8 +18,10 @@ correspondente.
       **Falta** a comparação numérica fina com o test panel do NI-MAX (mesma unidade, por **variação**
       carregado−repouso) e validar o TXT no AqDAnalysis. Guia:
       [guia-teste-hardware.md](guia-teste-hardware.md). (Fase 5)
-- [ ] **Empacotar em `.exe`** (PyInstaller) — o tio não roda `pip install`; hoje o programa **não
-      abre** na máquina dele. (Fase 6)
+- [~] **Empacotar em `.exe`** — **buildado e validado no Windows (01/07/2026):** `pyinstaller
+      packaging/ensaios-ni.spec` gera `dist/ensaios-ni.exe` (one-file, sem console); abre a tela
+      inicial e monta o dashboard. **Falta** o `Iniciar` (aquisição) no hardware do tio.
+      ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md), Fase 6)
 - [ ] **Validar o TXT no AqAnalysis** — ver §1 abaixo; é o elo da análise. Sem isto ele não fecha o
       trabalho.
 

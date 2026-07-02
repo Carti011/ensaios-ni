@@ -5,6 +5,13 @@
 Aceito (01/07/2026). Implementa a **distribuição** da [Fase 6](../roadmap.md) (empacotamento &
 adoção). O `.spec` e o guia são preparados no Mac; **o binário só se gera e valida no Windows**.
 
+> **Validado no Windows (01/07/2026).** `pyinstaller packaging/ensaios-ni.spec` gerou
+> `dist/ensaios-ni.exe` (65,9 MB, one-file, sem console) **sem ajuste** no `.spec`. A tela inicial
+> abre e o dashboard monta com o `canais.exemplo.toml` (5 canais, sub-plots, XY, controles); 214
+> testes verdes no Windows. Startup rápido nas aberturas normais (o cold-start da 1ª descompressão
+> pode demorar). Único aviso: `pyqtgraph.opengl` sem `PyOpenGL` — inofensivo (só usamos 2D; entra em
+> cena se a Fase 7/FFT precisar de 3D). Falta o **Iniciar** no hardware do tio (driver + chassi).
+
 ## Contexto
 
 O critério de sucesso é o tio **largar o FlexLogger** — mas hoje **o programa não abre na máquina
