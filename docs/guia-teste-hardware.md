@@ -222,7 +222,7 @@ Com o número físico batendo e o TXT importando, a Fase 5 está validada. O que
 
 Para o tio abrir por um **ícone**, sem Python nem linha de comando. O passo a passo completo — gerar o
 `.exe`, testar o Iniciar no simulado do NI-MAX, montar a pasta no Desktop e zipar para o tio — é o
-**[empacotar-e-enviar.md](empacotar-e-enviar.md)**, dono dessa rotina. Em resumo: na raiz do projeto no
+**[pacote-tio/instrucoes-weslley.md](pacote-tio/instrucoes-weslley.md)**, dono dessa rotina. Em resumo: na raiz do projeto no
 Windows, `pip install -e .[hardware,gui,excel,build]` e `pyinstaller packaging/ensaios-ni.spec` geram
 **`dist/ensaios-ni.exe`** (arquivo único; ver [ADR-022](adr/022-empacotamento-exe-pyinstaller.md)).
 

@@ -2,7 +2,7 @@
 
 Guia prático (para o Weslley) de como **gerar o executável no Windows** e **montar o pacote `.zip`**
 que o tio recebe, descompacta e abre. É o passo que transforma "roda no meu Mac" em "o tio consegue
-usar sozinho". Decisão de empacotamento: [ADR-022](adr/022-empacotamento-exe-pyinstaller.md).
+usar sozinho". Decisão de empacotamento: [ADR-022](../adr/022-empacotamento-exe-pyinstaller.md).
 
 > **Onde cada coisa roda:** o `.exe` só se **gera no Windows** (é específico da plataforma; o Mac
 > nem tem o `nidaqmx` para a coleta). Preparar o `.spec`, este guia e os arquivos que acompanham o
@@ -49,7 +49,7 @@ que o tio vai abrir.
 > **Deu erro de módulo ausente** (comum com PySide6/pyqtgraph)? Acrescente o módulo em
 > `hiddenimports` no `packaging/ensaios-ni.spec` e rode de novo. É o ciclo esperado do primeiro build
 > (não aconteceu no build de 01/07, mas pode acontecer se a máquina for diferente). Ver
-> [ADR-022](adr/022-empacotamento-exe-pyinstaller.md).
+> [ADR-022](../adr/022-empacotamento-exe-pyinstaller.md).
 
 **Rebuild:** toda vez que o **código mudar** (ex.: novas mensagens de erro), refaça o Passo 2 para o
 `.exe` incluir a mudança. O `.exe` é uma foto do código no momento do build.
@@ -79,8 +79,8 @@ Junte numa pasta única (ex.: **`Desktop\ensaios-ni-tio`**) os **três** arquivo
 | Arquivo | De onde vem | O que é |
 | ------- | ----------- | ------- |
 | `ensaios-ni.exe` | `dist\ensaios-ni.exe` (Passo 2) | o programa |
-| `canais.toml` | copiar de `packaging\distribuicao\canais-exemplo.toml` e **preencher** | a configuração do ensaio |
-| `LEIA.txt` | `packaging\distribuicao\LEIA.txt` | instruções para o tio |
+| `canais.toml` | copiar de `canais-exemplo.toml` (**nesta pasta**) e **preencher** | a configuração do ensaio |
+| `LEIA.txt` | `LEIA.txt` (**nesta pasta**) | instruções para o tio |
 
 **Preencher o `canais.toml` é o ponto que evita frustração.** A tela inicial pede esse arquivo antes
 de abrir o dashboard. Duas opções:
@@ -121,4 +121,4 @@ no `ensaios-ni.exe`.
 - **Windows 64-bit** (o `.exe` foi buildado para essa arquitetura).
 - Nada de Python, `pip` ou linha de comando — o `.exe` é auto-contido.
 
-Operação passo a passo no hardware (calibrar, tara, exportar): [guia-teste-hardware.md](guia-teste-hardware.md).
+Operação passo a passo no hardware (calibrar, tara, exportar): [guia-teste-hardware.md](../guia-teste-hardware.md).

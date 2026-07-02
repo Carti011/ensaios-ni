@@ -95,11 +95,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
   `nidaqmx`, roda no Mac (as palavras-chave são fundadas na doc da NI, a confirmar no Windows). O
   widget PySide exibe a mensagem já traduzida, sem mudança de código (só lê `monitor.erro`). Presenter
   puro + módulo puro, testável no Mac.
-- **Guia de empacotamento e distribuição** (`docs/empacotar-e-enviar.md`) + **pacote de distribuição**
-  (`packaging/distribuicao/LEIA.txt` e `canais-exemplo.toml`): como gerar o `.exe` no Windows, testar
-  o Iniciar no simulado do NI-MAX antes de enviar, montar a pasta no Desktop (`.exe` + `canais.toml` +
-  `LEIA.txt`) e zipar para o tio. O `LEIA.txt` (linguagem leiga) e o `canais.toml` de exemplo comentado
-  reduzem o atrito do primeiro contato dele com o programa.
+- **Pasta de distribuição `docs/pacote-tio/`** — tudo num lugar para gerar o `.exe` e montar o `.zip`
+  do tio: `instrucoes-weslley.md` (gerar o `.exe` no Windows, testar o Iniciar no simulado do NI-MAX,
+  montar a pasta no Desktop com `.exe` + `canais.toml` + `LEIA.txt`, e zipar), `LEIA.txt` (instruções
+  em linguagem leiga para o tio), `canais-exemplo.toml` (modelo comentado do `canais.toml`) e um
+  `README.md` de índice. Reduz o atrito do primeiro contato do tio com o programa.
 
 ### Corrigido
 
