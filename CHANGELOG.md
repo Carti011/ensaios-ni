@@ -85,12 +85,21 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 - **Mensagens de erro amigáveis na aquisição (Fase 6).** Módulo puro `apresentacao/erros.py`
   (`mensagem_de_erro_de_aquisicao`) traduz os erros crus do `MonitorAoVivo.passo()` para texto que o
-  operador entende: **driver NI-DAQmx ausente** (orienta instalar o driver gratuito da NI), **erro do
-  hardware/driver NI** (DaqError — aponta o NI-MAX: chassi ligado, rede/IP, canais do config, com o
-  detalhe técnico preservado) e um **fallback** que mantém a mensagem original (ex.: o `ValueError` do
-  `fake`). Reconhece o erro do driver pela **origem da exceção** (`type(erro).__module__`), sem
-  importar `nidaqmx` — roda no Mac. O widget PySide passou a exibir a mensagem já traduzida, sem
-  mudança de código (só lê `monitor.erro`). Presenter puro + módulo puro, testável no Mac.
+  operador entende, cobrindo os cenários prováveis quando o tio clica **Iniciar** sozinho: **driver
+  NI-DAQmx ausente** (orienta instalar o driver gratuito da NI); **erro do driver NI** (DaqError)
+  refinado em sub-casos — **chassi/equipamento não encontrado** (confira cabo de rede, IP e o NI-MAX)
+  e **canal do config inexistente no equipamento** (confira os nomes no NI-MAX e ajuste o
+  `canais.toml`), com o detalhe técnico preservado; e um **fallback** que mantém a mensagem original
+  (ex.: o `ValueError` do `fake`). Reconhece o erro do driver pela **origem da exceção**
+  (`type(erro).__module__`) e os sub-casos por **palavras-chave** do texto do DAQmx — sem importar
+  `nidaqmx`, roda no Mac (as palavras-chave são fundadas na doc da NI, a confirmar no Windows). O
+  widget PySide exibe a mensagem já traduzida, sem mudança de código (só lê `monitor.erro`). Presenter
+  puro + módulo puro, testável no Mac.
+- **Guia de empacotamento e distribuição** (`docs/empacotar-e-enviar.md`) + **pacote de distribuição**
+  (`packaging/distribuicao/LEIA.txt` e `canais-exemplo.toml`): como gerar o `.exe` no Windows, testar
+  o Iniciar no simulado do NI-MAX antes de enviar, montar a pasta no Desktop (`.exe` + `canais.toml` +
+  `LEIA.txt`) e zipar para o tio. O `LEIA.txt` (linguagem leiga) e o `canais.toml` de exemplo comentado
+  reduzem o atrito do primeiro contato dele com o programa.
 
 ### Corrigido
 

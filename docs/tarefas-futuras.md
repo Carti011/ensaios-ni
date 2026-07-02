@@ -123,6 +123,28 @@ Como fechar (backend primeiro, frontend depois — commits separados):
 
 ---
 
+## 4. Interface gráfica para configurar os canais (discovery de dispositivos)
+
+Hoje o `canais.toml` é editado à mão (ou preenchido pelo Weslley antes de enviar o `.exe`). Para um
+usuário leigo em TI, **abrir e editar um arquivo de configuração é atrito real** — o tio observou que
+no **FlexLogger não precisou disso**: "já reconhecia tudo". De fato, o FlexLogger/AqDados fazem
+**discovery automático** dos dispositivos (via NI-MAX) e oferecem um **assistente** para montar a
+tabela de canais por tipo de sensor.
+
+É factível para nós — o `nidaqmx` lista os dispositivos e canais físicos presentes
+(`System.local().devices` e os canais de cada módulo). A ideia:
+
+- [ ] **Descobrir os canais** do chassi conectado e listá-los na UI (sem digitar endereço).
+- [ ] **Montar a tabela de canais pela tela** (nome do sinal, unidade, tipo, conversão) e **salvar o
+      `canais.toml`**, reusando o escritor `tomlkit` que já existe (`persistencia/config_canais.py`).
+- [ ] Assim o tio **cria o config sem editar arquivo** — liga o chassi, escolhe os canais e nomeia.
+
+Valor: remove o último passo manual entre "recebeu o `.exe`" e "está adquirindo" — puxa forte a
+**adoção**. Escopo: fatia de UI nova, **candidata a ADR** quando priorizada. **Prioridade:** depois do
+primeiro envio/feedback — se preencher o `canais.toml` pelo Weslley já resolver o primeiro contato,
+isso pode esperar; não construir especulativamente antes do feedback do tio. O discovery (listar
+dispositivos) só roda no Windows; a montagem/escrita do TOML é testável no Mac.
+
 ## Outras pendências conhecidas (menores — já nos ADRs)
 
 Não detalhadas aqui para não duplicar; o ADR é a fonte de verdade. As de maior impacto estão
@@ -130,10 +152,11 @@ consolidadas em **Urgências** no topo.
 
 - [x] **Mensagens de erro amigáveis na aquisição** — **feito (02/07/2026):** `apresentacao/erros.py`
       (`mensagem_de_erro_de_aquisicao`) traduz os erros do `MonitorAoVivo.passo()`: **driver NI-DAQmx
-      ausente** (orienta instalar), **erro do hardware/driver NI** (aponta o NI-MAX — chassi/rede/IP/
-      canais —, preservando o detalhe técnico) e **fallback** que mantém o texto original. Detecta o
-      erro do driver pela origem da exceção (`type(erro).__module__`), sem importar `nidaqmx`.
-      Polimento da Fase 6 (ver [roadmap.md](roadmap.md)).
+      ausente** (orienta instalar), **erro do driver NI** em sub-casos — **chassi não encontrado**
+      (cabo/IP/NI-MAX) e **canal do config inexistente** (nomes no NI-MAX → `canais.toml`) — sempre
+      com o detalhe técnico, e **fallback** que mantém o texto original. Detecta o driver pela origem
+      da exceção; os sub-casos por palavras-chave do DAQmx (fundadas na doc da NI, **a confirmar no
+      Windows**). Sem importar `nidaqmx`. Polimento da Fase 6 (ver [roadmap.md](roadmap.md)).
 - [ ] **Excel "do jeito do tio"** — metadata no cabeçalho (obra, data, sensor, taxa), aba de resumo.
       Camada de entrega, a definir com o gosto dele. [ADR-011](adr/011-estrategia-de-exportacao.md).
 - [ ] **Calibração "Ganho e Ponto de Referência"** — segundo modo de aferição do AqDados; redutível

@@ -1,0 +1,37 @@
+# =====================================================================
+#  canais.toml  —  configuração dos canais/sensores de UM ensaio
+# =====================================================================
+#
+# Este arquivo diz ao programa QUAL sensor está em QUAL entrada do chassi,
+# em que UNIDADE ele mede e COMO converter volts -> unidade de engenharia.
+# É o equivalente à "tabela de canais" do AqDados.
+#
+# COMO PREENCHER (feito pelo Weslley antes de enviar):
+#   1. O NOME de cada canal (ex.: "cDAQ9184-1820306Mod1/ai0") vem do NI-MAX,
+#      na máquina do tio. Troque os nomes de exemplo abaixo pelos reais.
+#   2. Ajuste unidade, rotulo (o "Nome do Sinal") e a conversão de cada canal.
+#   3. Apague os canais que não usar; copie/cole blocos para adicionar mais.
+#
+# CONVERSÃO (por canal):
+#   - linear:     ganho e offset      ->  valor = ganho * volts + offset
+#   - por pontos: pontos = [[volts, valor], ...]  (calibração por regressão)
+#     (ou afira pela própria tela do programa, no botão "Aferir")
+#
+# Detalhe técnico completo: config/canais.exemplo.toml no repositório.
+
+# ---- Exemplo: célula de carga (tensão -> kgf) ----
+[canais."Mod1/ai0"]
+tipo = "tensao"
+unidade = "kgf"
+rotulo = "Carga"          # nome que aparece na tela
+ganho = 100.0             # provisório: substitua pela aferição real
+offset = 0.0
+
+# ---- Exemplo: extensômetro / strain gauge (9235 -> microstrain) ----
+[canais."Mod3/ai0"]
+tipo = "strain"           # lê na task do 9235 (quarter-bridge 120 Ω / 2,0 V)
+unidade = "µε"
+rotulo = "Sg1 bico"
+gage_factor = 2.14        # o do SEU extensômetro (varia 2,14–2,16 por lote)
+ganho = 1000000.0         # strain -> microstrain (não mexer)
+offset = 0.0
