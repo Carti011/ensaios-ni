@@ -83,6 +83,15 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - ADR-022 (Aceito) — empacotamento em `.exe` (PyInstaller), o bloqueador nº 1 da adoção (Fase 6).
 - ADR-021 (Aceito) — **FFT ao vivo (paridade dinâmica)**: decisão de escopo de substituir o FlexLogger também no ensaio dinâmico, com espectro de frequência ao vivo no dashboard (o "Frequency Graph"). Resolve o "ADR-árbitro" pendente nos ADR-011/015/019. A análise pesada (fadiga, Rainflow, relatórios) segue no AqDAnalysis via TXT. Vira a **Fase 7** do roadmap, depois do `.exe`.
 
+- **Mensagens de erro amigáveis na aquisição (Fase 6).** Módulo puro `apresentacao/erros.py`
+  (`mensagem_de_erro_de_aquisicao`) traduz os erros crus do `MonitorAoVivo.passo()` para texto que o
+  operador entende: **driver NI-DAQmx ausente** (orienta instalar o driver gratuito da NI), **erro do
+  hardware/driver NI** (DaqError — aponta o NI-MAX: chassi ligado, rede/IP, canais do config, com o
+  detalhe técnico preservado) e um **fallback** que mantém a mensagem original (ex.: o `ValueError` do
+  `fake`). Reconhece o erro do driver pela **origem da exceção** (`type(erro).__module__`), sem
+  importar `nidaqmx` — roda no Mac. O widget PySide passou a exibir a mensagem já traduzida, sem
+  mudança de código (só lê `monitor.erro`). Presenter puro + módulo puro, testável no Mac.
+
 ### Corrigido
 
 - **Aferição não persiste mais calibração sem reta válida.** `Afericao.aplicar()` só checava se havia ≥ 2 pontos; com pontos de **tensão igual** (que não formam reta) gravava mesmo assim, deixando o `canais.toml` com uma calibração que o `carregar_canais` depois recusava. Passou a exigir uma **reta válida** (`reta() is not None`) antes de escrever — a regra de negócio saiu de só a UI (botão desabilitado) para o Presenter. Descoberto exercitando o fluxo de captura ao vivo.

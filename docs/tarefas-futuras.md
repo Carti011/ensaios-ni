@@ -128,10 +128,12 @@ Como fechar (backend primeiro, frontend depois — commits separados):
 Não detalhadas aqui para não duplicar; o ADR é a fonte de verdade. As de maior impacto estão
 consolidadas em **Urgências** no topo.
 
-- [ ] **Mensagens de erro amigáveis na aquisição** — o `MonitorAoVivo.passo()` mostra o `str(erro)`
-      cru no rótulo de estado (ex.: `No module named 'nidaqmx'` no Mac; falha de chassi/rede no
-      Windows do tio). Traduzir para texto que o tio entenda (driver NI-DAQmx ausente, hardware não
-      encontrado, canal inexistente). Polimento previsto na Fase 6 (ver [roadmap.md](roadmap.md)).
+- [x] **Mensagens de erro amigáveis na aquisição** — **feito (02/07/2026):** `apresentacao/erros.py`
+      (`mensagem_de_erro_de_aquisicao`) traduz os erros do `MonitorAoVivo.passo()`: **driver NI-DAQmx
+      ausente** (orienta instalar), **erro do hardware/driver NI** (aponta o NI-MAX — chassi/rede/IP/
+      canais —, preservando o detalhe técnico) e **fallback** que mantém o texto original. Detecta o
+      erro do driver pela origem da exceção (`type(erro).__module__`), sem importar `nidaqmx`.
+      Polimento da Fase 6 (ver [roadmap.md](roadmap.md)).
 - [ ] **Excel "do jeito do tio"** — metadata no cabeçalho (obra, data, sensor, taxa), aba de resumo.
       Camada de entrega, a definir com o gosto dele. [ADR-011](adr/011-estrategia-de-exportacao.md).
 - [ ] **Calibração "Ganho e Ponto de Referência"** — segundo modo de aferição do AqDados; redutível

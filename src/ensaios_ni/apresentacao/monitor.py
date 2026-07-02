@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 
+from ensaios_ni.apresentacao.erros import mensagem_de_erro_de_aquisicao
 from ensaios_ni.aquisicao.porta import FonteDeAquisicao
 from ensaios_ni.dominio.canais import Canais
 from ensaios_ni.dominio.conversao import calcular_tara, converter
@@ -128,7 +129,7 @@ class MonitorAoVivo:
             self.parar()
             return False
         except Exception as erro:  # falha de aquisição: encerra limpo, sem vazar traceback
-            self._erro = str(erro)
+            self._erro = mensagem_de_erro_de_aquisicao(erro)
             self._fechar_gravador()
             self._fluxos = []
             self._estado = EstadoMonitor.ERRO

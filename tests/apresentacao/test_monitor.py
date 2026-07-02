@@ -95,6 +95,26 @@ def test_erro_na_aquisicao_vai_para_estado_erro_sem_estourar(tmp_path):
     assert "Mod9/ai9" in monitor.erro
 
 
+class _FonteSemDriver(AquisicaoFake):
+    """Simula o adaptador real no Mac: o import lazy do nidaqmx estoura no 1º next()."""
+
+    def transmitir_tensao(self, canais, taxa_hz, amostras_por_bloco):
+        raise ModuleNotFoundError("No module named 'nidaqmx'", name="nidaqmx")
+        yield  # pragma: no cover — só para tornar a função um gerador (raise antes)
+
+
+def test_erro_de_driver_ausente_vira_mensagem_amigavel(tmp_path):
+    # o tio clica Iniciar sem o driver: o estado ERRO deve trazer texto que ele entenda
+    monitor = MonitorAoVivo(
+        _FonteSemDriver(), _canais_tensao(), taxa_hz=2.0, amostras_por_bloco=2, caminho=tmp_path / "e.csv"
+    )
+    monitor.iniciar()
+    assert monitor.passo() is False
+    assert monitor.estado is EstadoMonitor.ERRO
+    assert "NI-DAQmx" in monitor.erro
+    assert "instal" in monitor.erro.lower()
+
+
 def test_quando_a_fonte_esgota_para_limpo_e_o_csv_fica_integro(tmp_path):
     caminho = tmp_path / "e.csv"
     fonte = AquisicaoFake(tensoes={"Mod1/ai0": [1.0, 2.0]})
