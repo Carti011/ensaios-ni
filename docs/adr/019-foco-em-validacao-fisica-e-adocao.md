@@ -9,8 +9,8 @@ ela motivou.
 ## Contexto
 
 Com a **Fase 4 concluída** (ver [roadmap.md](../roadmap.md)), o backend e o dashboard estão completos
-e cobertos por 178 testes no Mac. Uma avaliação crítica desta sessão (registrada em
-[avaliacao-critica.md](../avaliacao-critica.md)) deixou claro um descompasso: **"178 testes verdes"
+e cobertos por 178 testes no Mac. Uma avaliação crítica desta sessão (registrada então num
+`avaliacao-critica.md`, hoje removido) deixou claro um descompasso: **"178 testes verdes"
 mede a parte controlável (código no Mac), mas o critério de sucesso do projeto — o tio largar o
 FlexLogger — depende inteiramente da parte ainda não tocada**:
 
@@ -36,9 +36,9 @@ ensaio validado no hardware real**.
    `guia-windows.md` e `validacao-windows.md` foram **fundidos** nele. Aplica o [ADR-014](014-fonte-unica-na-documentacao.md)
    (fonte única): um dono por informação, os demais apontam.
 3. **A avaliação crítica fica registrada em dois lugares com papéis distintos:** um documento de
-   trabalho **temporário** ([avaliacao-critica.md](../avaliacao-critica.md), removível quando as
-   urgências fecharem) e o backlog **permanente** ([tarefas-futuras.md](../tarefas-futuras.md), seção
-   "Urgências para a adoção").
+   trabalho **temporário** (`avaliacao-critica.md`, **removido em 01/07/2026** quando as urgências
+   fecharam ou migraram) e o backlog **permanente** ([tarefas-futuras.md](../tarefas-futuras.md),
+   seção "Urgências para a adoção").
 
 ## Consequências
 

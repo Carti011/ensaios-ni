@@ -11,7 +11,7 @@ calibrado e exportado**, na máquina dele.
 >
 > **Por que ele importa:** o critério de sucesso do projeto é o tio **largar o FlexLogger**. Nada do
 > que foi construído foi validado contra um sinal físico ainda — este guia é o que transforma
-> "passa nos testes" em "funciona de verdade". Ver [avaliacao-critica.md](avaliacao-critica.md) §🔴1.
+> "passa nos testes" em "funciona de verdade". Ver as Urgências em [tarefas-futuras.md](tarefas-futuras.md).
 
 ---
 
@@ -174,7 +174,7 @@ canais (Zero Channel). A tara é **por-ensaio** — cada Iniciar recomeça sem z
 5. **Validar o TXT no AqAnalysis dele:** exportar `txt-aqanalysis` e **importar no AqDAnalysis do tio**
    ("Ferramentas → Importa Arquivo Texto"). Conferir separador, decimal (vírgula) e cabeçalho.
 
-> ⚠️ **Crítico (ver [avaliacao-critica.md](avaliacao-critica.md) §🔴3):** o TXT é **provisório** e
+> ⚠️ **Crítico (ver [tarefas-futuras.md §1](tarefas-futuras.md)):** o TXT é **provisório** e
 > nunca foi importado de verdade. Se não entrar, ajustar separador/decimal/cabeçalho no wizard de
 > importação e calibrar o exportador (é plugável — o ajuste é trivial). **Sem isto, o tio não fecha o
 > ciclo de análise.** Ver [tarefas-futuras.md §1](tarefas-futuras.md) e [ADR-011](adr/011-estrategia-de-exportacao.md).
@@ -193,7 +193,7 @@ python -m ensaios_ni --continuo --fonte daqmx --config config/canais.toml --taxa
 - [ ] Encerra por **duração** (ou por **Ctrl-C**) gravando o CSV; o `tempo_s` é **contínuo e
       crescente** (sem reiniciar a cada bloco).
 
-> ⚠️ **Limite conhecido (ver [avaliacao-critica.md](avaliacao-critica.md) §🟡8):** um ensaio de meses
+> ⚠️ **Limite conhecido (ver [tarefas-futuras.md](tarefas-futuras.md)):** um ensaio de meses
 > num único CSV é inviável (volume + memória + queda de rede). Para teste curto está ok; monitoramento
 > real de longa duração exige rotação de arquivo e recuperação de rede (pendente).
 

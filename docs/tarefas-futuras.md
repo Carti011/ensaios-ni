@@ -8,7 +8,7 @@ correspondente.
 
 ## Urgências para a adoção (Fase 5–6)
 
-> Consolidado da [avaliacao-critica.md](avaliacao-critica.md) (28/06/2026). Estas pendências **decidem
+> Consolidado de uma avaliação crítica de 28/06/2026. Estas pendências **decidem
 > se o tio larga o FlexLogger** — têm prioridade sobre o resto do backlog. Por gravidade:
 
 **🔴 Bloqueia a adoção (sem isto, o tio não usa):**

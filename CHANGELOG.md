@@ -89,6 +89,10 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 - **Recarregar a calibração no monitor após aferir.** Ao aplicar uma aferição pela UI, o `MonitorAoVivo` passou a reler os canais do `canais.toml` (`recarregar_canais`, recusada durante a aquisição via `AquisicaoEmAndamento`) — antes a calibração nova era persistida no TOML, mas o gráfico continuava com a antiga em memória. A nova vale do próximo Iniciar; o botão **Aferir** fica desabilitado durante a aquisição (calibração fixa no ensaio, para o laudo ter rastreabilidade).
 
+### Removido
+
+- **`docs/avaliacao-critica.md`** — documento de trabalho temporário (28/06/2026) que já cumpriu o papel: metade das urgências fechou nesta sessão (`.exe`, captura ao vivo, alerta de correlação) e o registro permanente das pendências vive no [tarefas-futuras.md](docs/tarefas-futuras.md) (como o [ADR-019](docs/adr/019-foco-em-validacao-fisica-e-adocao.md) já previa). Ponteiros vivos (guia de teste, ADR-019/022, tarefas-futuras) reapontados; menções em handoffs/CHANGELOG são históricas.
+
 ### Alterado
 
 - **Documentação de teste no Windows reorganizada num guia único.** `guia-windows.md` (instalação) e `validacao-windows.md` (validação no NI-MAX simulado) foram **fundidos** em `docs/guia-teste-hardware.md`, reorientado para a **validação no hardware real** (Fase 5); ponteiros atualizados (CLAUDE.md, uso.md, ADR-007/009/014). O `uso.md` permanece como manual de operação. `tarefas-futuras.md` ganhou a seção **Urgências para a adoção**, consolidando a avaliação crítica.

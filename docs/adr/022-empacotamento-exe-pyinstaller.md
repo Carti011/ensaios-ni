@@ -16,8 +16,7 @@ adoção). O `.spec` e o guia são preparados no Mac; **o binário só se gera e
 
 O critério de sucesso é o tio **largar o FlexLogger** — mas hoje **o programa não abre na máquina
 dele**: ele não roda `pip install`, não tem Python configurado, não mexe em linha de comando. Esse é
-o **bloqueador nº 1 da adoção** (ver [avaliacao-critica.md](../avaliacao-critica.md) §🔴2 e a
-reavaliação de rota no [roadmap.md](../roadmap.md)). Sem um executável clicável, todo o resto
+o **bloqueador nº 1 da adoção** (ver a reavaliação de rota no [roadmap.md](../roadmap.md)). Sem um executável clicável, todo o resto
 (dashboard, aferição, exportadores) é inalcançável para ele.
 
 O pré-requisito de UX já foi feito em 01/07: a **tela inicial sem CLI** (`qt.hardware` → botão
