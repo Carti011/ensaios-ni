@@ -29,3 +29,21 @@ def test_erro_inesperado_cai_no_fallback_preservando_o_detalhe():
     erro = ValueError("canal 'Mod9/ai9' não tem dados sintéticos no fake")
     msg = mensagem_de_erro_de_aquisicao(erro)
     assert "Mod9/ai9" in msg
+
+
+def test_canal_inexistente_orienta_conferir_os_nomes_no_config():
+    # DAQmx quando um canal do config não existe no equipamento (nome errado no canais.toml)
+    erro = _DaqErrorFalso("Physical channel specified does not exist. Status Code: -200170")
+    msg = mensagem_de_erro_de_aquisicao(erro)
+    assert "canais.toml" in msg
+    assert "NI-MAX" in msg
+    assert "-200170" in msg  # detalhe técnico preservado
+
+
+def test_chassi_nao_encontrado_orienta_rede_e_ni_max():
+    # DAQmx quando o chassi Ethernet não responde (desligado, cabo, IP errado)
+    erro = _DaqErrorFalso("Device cannot be found. Verify it is connected. Status Code: -200220")
+    msg = mensagem_de_erro_de_aquisicao(erro)
+    assert "chassi" in msg.lower()
+    assert any(p in msg.lower() for p in ("rede", "cabo", "ip"))
+    assert "-200220" in msg
