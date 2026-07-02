@@ -122,6 +122,28 @@ def test_painel_afericao_mostra_pontos_e_correlacao(app):
     assert "100,00 %" in painel._lbl_correlacao.text()
 
 
+def test_painel_afericao_avisa_quando_correlacao_baixa(app):
+    # reta com dispersão alta -> aviso visível, mas Aplicar segue liberado (o tio decide)
+    af = Afericao(pontos=[(0.0, 0.0), (1.0, 10.0), (2.0, 0.0), (3.0, 10.0)])
+    painel = PainelAfericao(af, unidade="kgf", titulo_sinal="Carga")
+    assert painel._lbl_aviso.text() != ""
+    assert painel._btn_aplicar.isEnabled() is True
+
+
+def test_painel_afericao_explica_quando_tensoes_iguais_travam_aplicar(app):
+    # cenário do bug: capturar a mesma tensão 2x -> Aplicar off, mas o painel diz por quê
+    af = Afericao(pontos=[(2.5, 100.0), (2.5, 200.0)])
+    painel = PainelAfericao(af, unidade="kgf", titulo_sinal="Carga")
+    assert painel._btn_aplicar.isEnabled() is False
+    assert "diferentes" in painel._lbl_aviso.text()
+
+
+def test_painel_afericao_sem_aviso_quando_correlacao_boa(app):
+    af = Afericao(pontos=[(0.0, 0.0), (5.0, 500.0), (10.0, 1000.0)])
+    painel = PainelAfericao(af, unidade="kgf", titulo_sinal="Carga")
+    assert painel._lbl_aviso.text() == ""
+
+
 def test_painel_afericao_botoes_em_portugues_e_aplicar_so_com_reta(app):
     # português total: nada de "Apply"/"Cancel"; e Aplicar só habilita com ao menos 2 pontos
     af = Afericao(pontos=[(0.0, 0.0)])

@@ -8,7 +8,7 @@ correspondente.
 
 ## Urgências para a adoção (Fase 5–6)
 
-> Consolidado da [avaliacao-critica.md](avaliacao-critica.md) (28/06/2026). Estas pendências **decidem
+> Consolidado de uma avaliação crítica de 28/06/2026. Estas pendências **decidem
 > se o tio larga o FlexLogger** — têm prioridade sobre o resto do backlog. Por gravidade:
 
 **🔴 Bloqueia a adoção (sem isto, o tio não usa):**
@@ -18,8 +18,10 @@ correspondente.
       **Falta** a comparação numérica fina com o test panel do NI-MAX (mesma unidade, por **variação**
       carregado−repouso) e validar o TXT no AqDAnalysis. Guia:
       [guia-teste-hardware.md](guia-teste-hardware.md). (Fase 5)
-- [ ] **Empacotar em `.exe`** (PyInstaller) — o tio não roda `pip install`; hoje o programa **não
-      abre** na máquina dele. (Fase 6)
+- [~] **Empacotar em `.exe`** — **buildado e validado no Windows (01/07/2026):** `pyinstaller
+      packaging/ensaios-ni.spec` gera `dist/ensaios-ni.exe` (one-file, sem console); abre a tela
+      inicial e monta o dashboard. **Falta** o `Iniciar` (aquisição) no hardware do tio.
+      ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md), Fase 6)
 - [ ] **Validar o TXT no AqAnalysis** — ver §1 abaixo; é o elo da análise. Sem isto ele não fecha o
       trabalho.
 
@@ -34,8 +36,9 @@ correspondente.
       canais de tensão (célula de carga, LVDT, acelerômetro). Atende o **pedido direto do tio
       (30/06/2026):** *"falar pra ele [o software] que o valor de tensão que você está lendo é tal
       valor de engenharia"*. ([ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
-- [ ] **Alerta de correlação baixa na aferição** — Aplicar fica liberado mesmo com correlação ruim
-      (ex.: 6%); avisar/pintar abaixo de um limiar (risco metrológico no laudo).
+- [x] **Alerta de correlação baixa na aferição** — **feito (01/07/2026):** correlação **abaixo de
+      95%** pinta o indicador e mostra um aviso no painel de aferição, mas **não bloqueia** o Aplicar
+      (o tio decide — como o resto do fluxo). Limiar = constante `Afericao.CORRELACAO_MINIMA`.
       ([ADR-006](adr/006-calibracao-por-pontos.md)/[ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
 
 - [x] **Launcher do dashboard com hardware real** — **feito (30/06/2026):** novo entrypoint
@@ -47,9 +50,10 @@ correspondente.
 
 **🟡 Paridade total / robustez:**
 
-- [ ] **FFT / frequência ao vivo** — o ensaio dinâmico (vibração 1024 Hz → frequências naturais) hoje
-      depende de exportar pro AqDAnalysis; o FlexLogger tem **FFT ao vivo**. Decidir o escopo de
-      "substituir totalmente" (precisa de um ADR-árbitro). [ADR-011](adr/011-estrategia-de-exportacao.md).
+- [~] **FFT / frequência ao vivo** — **escopo decidido (01/07/2026):** vamos substituir o FlexLogger
+      também no dinâmico, com FFT ao vivo no dashboard ([ADR-021](adr/021-fft-ao-vivo-paridade-dinamica.md),
+      resolve o ADR-árbitro que faltava). Vira a **Fase 7** ([roadmap.md](roadmap.md)), **depois** do
+      `.exe`. A análise pesada segue no AqDAnalysis via TXT ([ADR-011](adr/011-estrategia-de-exportacao.md)).
 - [ ] **Robustez de longa duração** — rotação de arquivo + recuperação de queda de rede do chassi
       Ethernet; um ensaio de meses num único CSV é inviável (volume + memória). Inclui o **exportar
       ensaios gigantes pela entrada** (`carregar_csv` lê o CSV inteiro em memória).

@@ -86,6 +86,64 @@ def test_sem_captura_configurada_retorna_none():
     assert Afericao().capturar_tensao() is None
 
 
+def test_capturar_a_mesma_tensao_duas_vezes_nao_forma_reta():
+    # repro do bug: a captura ao vivo no fake devolve sempre a mesma tensão (primeiros N);
+    # dois pontos com volts iguais -> regressão indeterminada -> sem reta -> Aplicar fica off
+    af = Afericao(capturar=lambda: 2.5)
+    af.adicionar_ponto(af.capturar_tensao(), 100.0)
+    af.adicionar_ponto(af.capturar_tensao(), 200.0)
+    assert af.reta() is None
+
+
+def test_motivo_sem_reta_com_tensoes_iguais_orienta_variar_a_carga():
+    # o feedback que faltava: pontos com a mesma tensão -> explica por que não dá para aplicar
+    af = Afericao(pontos=[(2.5, 100.0), (2.5, 200.0)])
+    motivo = af.motivo_sem_reta()
+    assert motivo is not None
+    assert "diferentes" in motivo
+
+
+def test_motivo_sem_reta_com_poucos_pontos():
+    assert "2 pontos" in Afericao(pontos=[(0.0, 0.0)]).motivo_sem_reta()
+
+
+def test_motivo_sem_reta_none_quando_ha_reta():
+    assert Afericao(pontos=[(0.0, 0.0), (10.0, 1000.0)]).motivo_sem_reta() is None
+
+
+def test_correlacao_baixa_sinaliza_ajuste_ruim():
+    # reta que não representa os pontos (dispersão alta): risco metrológico no laudo
+    af = Afericao(pontos=[(0.0, 0.0), (1.0, 10.0), (2.0, 0.0), (3.0, 10.0)])
+    assert af.reta() is not None
+    assert af.correlacao_baixa() is True
+
+
+def test_correlacao_boa_nao_alerta():
+    # reta que representa bem os pontos (correlação ~100%): sem alerta
+    af = Afericao(pontos=[(0.0, 0.0), (5.0, 500.0), (10.0, 1000.0)])
+    assert af.correlacao_baixa() is False
+
+
+def test_sem_reta_nao_alerta():
+    # sem reta a UI mostra "—"; não há correlação para julgar, então não alerta
+    assert Afericao(pontos=[(1.0, 10.0)]).correlacao_baixa() is False  # 1 ponto
+    assert Afericao(pontos=[(0.0, 100.0), (0.0, 200.0)]).correlacao_baixa() is False  # sem variação
+
+
+def test_aplicar_recusa_calibracao_sem_reta(tmp_path):
+    # bug: aplicar só checava len>=2 e gravava pontos de tensão igual -> config corrompida
+    arq = tmp_path / "canais.toml"
+    arq.write_text(
+        '[canais."Mod1/ai0"]\ntipo = "tensao"\nunidade = "kgf"\nganho = 100.0\noffset = 0.0\n',
+        encoding="utf-8",
+    )
+    conteudo_antes = arq.read_text(encoding="utf-8")
+    af = Afericao(caminho=arq, canal="Mod1/ai0", pontos=[(2.5, 0.0), (2.5, 100.0)])
+    with pytest.raises(ValueError):
+        af.aplicar()
+    assert arq.read_text(encoding="utf-8") == conteudo_antes  # não corrompeu o TOML
+
+
 def test_aplicar_persiste_a_afericao_no_toml(tmp_path):
     arq = tmp_path / "canais.toml"
     arq.write_text(

@@ -11,7 +11,7 @@ calibrado e exportado**, na máquina dele.
 >
 > **Por que ele importa:** o critério de sucesso do projeto é o tio **largar o FlexLogger**. Nada do
 > que foi construído foi validado contra um sinal físico ainda — este guia é o que transforma
-> "passa nos testes" em "funciona de verdade". Ver [avaliacao-critica.md](avaliacao-critica.md) §🔴1.
+> "passa nos testes" em "funciona de verdade". Ver as Urgências em [tarefas-futuras.md](tarefas-futuras.md).
 
 ---
 
@@ -39,7 +39,7 @@ calibrado e exportado**, na máquina dele.
 2. **Driver NI-DAQmx** — baixar em ni.com (gratuito), instalar (traz o NI-MAX). Abrir o NI-MAX.
 3. **Baixar o projeto** — `git clone <repo>` e `cd ensaios-ni`. (Sem git: git-scm.com/download/win.)
 4. **Instalar** — `pip install -e .[hardware,gui]` (hardware = `nidaqmx`; gui = dashboard).
-5. **Conferir a base** — `pytest` → deve dar **178 passed** (confirma que o software está saudável
+5. **Conferir a base** — `pytest` → deve dar **214 passed** (confirma que o software está saudável
    nessa máquina, mesmo antes de tocar no hardware).
 
 🧪 **Simulado (Windows do dev, sem hardware):** idem, mas no NI-MAX crie **dispositivos simulados**
@@ -141,14 +141,18 @@ python -m ensaios_ni.apresentacao.qt.hardware --config config/canais.toml --taxa
 > `...qt.janela` continua existindo, mas é a **demo com o adaptador `fake`** — sem hardware.)
 
 1. Selecionar o canal → **Aferir…**.
-2. Para cada ponto: aplicar uma **carga conhecida**, ler a **tensão** correspondente e inserir o par
-   `(Tensão, Valor de engenharia)` na tabela.
+2. Para cada ponto: aplicar uma **carga conhecida** e clicar **"Capturar tensão"** (o "Leitura do A/D"
+   do AqDados) — a tensão lida ao vivo entra na tabela; digite o **Valor de engenharia** (a carga
+   aplicada) ao lado. Repita com cargas **diferentes** (a tensão precisa variar entre os pontos).
 3. Conferir o **Ganho K**, o **1/K** e a **correlação %** (quanto mais perto de 100%, melhor a reta).
+   Abaixo de **95%** o painel avisa; se as tensões saírem iguais, ele explica que faltam cargas
+   distintas (e o Aplicar fica travado — proposital: não grava calibração inválida).
 4. **Aplicar** — persiste no `canais.toml`. A nova calibração vale do próximo **Iniciar**.
 
-> ⚠️ **Gap conhecido (ver [avaliacao-critica.md](avaliacao-critica.md) §🟠5):** hoje a tensão de cada
-> ponto é **digitada à mão** — não há "capturar a leitura atual" como o "Leitura do A/D" do AqDados.
-> Anote a tensão de outra fonte (test panel / CSV do passo 4) enquanto a captura ao vivo não existe.
+> **Só no hardware.** A captura ao vivo lê a tensão **atual** do canal. No Mac com o `fake` o sinal é
+> sintético e sua média é constante, então **capturar ali dá sempre a mesma tensão** — o fluxo de
+> captura só se exercita de verdade aqui, aplicando cargas físicas distintas. No Mac, para testar a
+> aferição, digite os pontos à mão.
 
 ---
 
@@ -170,7 +174,7 @@ canais (Zero Channel). A tara é **por-ensaio** — cada Iniciar recomeça sem z
 5. **Validar o TXT no AqAnalysis dele:** exportar `txt-aqanalysis` e **importar no AqDAnalysis do tio**
    ("Ferramentas → Importa Arquivo Texto"). Conferir separador, decimal (vírgula) e cabeçalho.
 
-> ⚠️ **Crítico (ver [avaliacao-critica.md](avaliacao-critica.md) §🔴3):** o TXT é **provisório** e
+> ⚠️ **Crítico (ver [tarefas-futuras.md §1](tarefas-futuras.md)):** o TXT é **provisório** e
 > nunca foi importado de verdade. Se não entrar, ajustar separador/decimal/cabeçalho no wizard de
 > importação e calibrar o exportador (é plugável — o ajuste é trivial). **Sem isto, o tio não fecha o
 > ciclo de análise.** Ver [tarefas-futuras.md §1](tarefas-futuras.md) e [ADR-011](adr/011-estrategia-de-exportacao.md).
@@ -189,7 +193,7 @@ python -m ensaios_ni --continuo --fonte daqmx --config config/canais.toml --taxa
 - [ ] Encerra por **duração** (ou por **Ctrl-C**) gravando o CSV; o `tempo_s` é **contínuo e
       crescente** (sem reiniciar a cada bloco).
 
-> ⚠️ **Limite conhecido (ver [avaliacao-critica.md](avaliacao-critica.md) §🟡8):** um ensaio de meses
+> ⚠️ **Limite conhecido (ver [tarefas-futuras.md](tarefas-futuras.md)):** um ensaio de meses
 > num único CSV é inviável (volume + memória + queda de rede). Para teste curto está ok; monitoramento
 > real de longa duração exige rotação de arquivo e recuperação de rede (pendente).
 
@@ -211,6 +215,37 @@ python -m ensaios_ni --continuo --fonte daqmx --config config/canais.toml --taxa
 
 Com o número físico batendo e o TXT importando, a Fase 5 está validada. O que sobra é a Fase 6
 (empacotar em `.exe` e adoção) — ver [roadmap.md](roadmap.md).
+
+---
+
+## Empacotar o `.exe` (Fase 6) — no Windows
+
+Para o tio abrir por um **ícone**, sem Python nem linha de comando. O binário é específico da
+plataforma: **gera-se no Windows** (ver [ADR-022](adr/022-empacotamento-exe-pyinstaller.md)).
+
+Pré-requisitos na máquina de build (uma vez):
+
+- Python 3.12 + driver NI-DAQmx (os mesmos do Passo 0).
+- `pip install -e .[hardware,gui,excel,build]` — o extra `build` traz o PyInstaller.
+
+Gerar, a partir da **raiz do projeto**:
+
+```text
+pyinstaller packaging/ensaios-ni.spec
+```
+
+Saída: **`dist/ensaios-ni.exe`** (arquivo único). Copiar para a máquina do tio.
+
+**Aprovação:**
+
+- [ ] Duplo-clique abre a **tela inicial** ("Abrir configuração…"), **sem** janela de terminal.
+- [ ] Escolher um `canais.toml` monta o dashboard.
+- [ ] **Iniciar** lê o hardware — exige o **driver NI-DAQmx** instalado na máquina do tio (o `.exe`
+      traz só o wrapper Python `nidaqmx`, não o driver nativo).
+
+> Build falhou por módulo ausente (comum com PySide6/pyqtgraph)? Acrescentar o módulo em
+> `hiddenimports` no `packaging/ensaios-ni.spec` e rebuildar. É o ciclo esperado do primeiro build
+> ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)).
 
 ---
 

@@ -462,6 +462,8 @@ class PainelAfericao(QDialog):
         self._lbl_ganho_k = QLabel()
         self._lbl_ganho_1k = QLabel()
         self._lbl_correlacao = QLabel()
+        # aviso de correlação baixa (risco metrológico no laudo — ADR-006): avisa, não bloqueia
+        self._lbl_aviso = QLabel()
         btn_inserir = QPushButton("Inserir ponto")
         btn_remover = QPushButton("Remover ponto")
         # "Leitura do A/D" do AqDados: captura a tensão lida ao vivo em vez de digitar
@@ -533,6 +535,19 @@ class PainelAfericao(QDialog):
             "Ganho 1/K: —" if reta is None else f"Ganho 1/K: {_numero_br(reta.a)} {unidade}/V"
         )
         self._lbl_correlacao.setText(f"correlação: {self._afericao.correlacao_percentual()}")
+        motivo = self._afericao.motivo_sem_reta()
+        if motivo is not None:
+            # sem reta ainda: explica o que falta (poucos pontos / tensões iguais)
+            self._lbl_correlacao.setStyleSheet("")
+            self._lbl_aviso.setText(f"⚠ {motivo}")
+        elif self._afericao.correlacao_baixa():
+            self._lbl_correlacao.setStyleSheet("color: #c0392b;")
+            self._lbl_aviso.setText(
+                "⚠ correlação abaixo de 95% — a reta não representa bem os pontos"
+            )
+        else:
+            self._lbl_correlacao.setStyleSheet("")
+            self._lbl_aviso.setText("")
         self._btn_aplicar.setEnabled(reta is not None)
 
     def _aplicar(self) -> None:
@@ -552,6 +567,7 @@ class PainelAfericao(QDialog):
         indicadores = QVBoxLayout()
         indicadores.addLayout(ganhos)
         indicadores.addWidget(self._lbl_correlacao)
+        indicadores.addWidget(self._lbl_aviso)
         raiz = QVBoxLayout(self)
         raiz.addWidget(self._tabela)
         raiz.addLayout(acoes)
