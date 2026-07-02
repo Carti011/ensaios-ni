@@ -66,8 +66,9 @@ Este passo reduz o maior risco: o `.exe` empacotado **nunca** adquiriu dados (o 
 exercitar isso **sem o hardware do tio**, com **dispositivos simulados do NI-MAX**:
 
 1. No NI-MAX, criar dispositivos simulados (chassi cDAQ-9184 + 2× 9205 + 1× 9235), se ainda não tiver.
-2. Preencher um `canais.toml` com os nomes **do simulado** (ex.: `cDAQ1Mod1/ai0`).
-3. Dar duplo-clique no `dist\ensaios-ni.exe` → "Abrir configuração…" → escolher o `canais.toml`.
+2. Usar o **`config\canais-simulado.toml`** (já no projeto, 1 canal de strain) — confira no NI-MAX que
+   o nome do device bate (default `cDAQ1Mod3`) e ajuste se for diferente.
+3. Dar duplo-clique no `dist\ensaios-ni.exe` → "Abrir configuração…" → escolher o `canais-simulado.toml`.
 4. **Clicar Iniciar.** Se o gráfico começar a correr com o sinal sintético, o elo
    empacotamento + aquisição **funciona** — a confiança de enviar sobe muito.
 
