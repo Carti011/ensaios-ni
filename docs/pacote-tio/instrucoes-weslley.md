@@ -46,6 +46,10 @@ pyinstaller packaging/ensaios-ni.spec
 Saída: **`dist\ensaios-ni.exe`** (arquivo único, ~66 MB, sem janela de terminal). É esse o arquivo
 que o tio vai abrir.
 
+> **Onde ele fica:** dentro da pasta **`dist\`** na raiz do projeto (ex.:
+> `C:\...\ensaios-ni\dist\ensaios-ni.exe`). **Não** vai para a área de trabalho sozinho — você abre
+> essa pasta e **copia** o `.exe` de lá para a pasta do Desktop no Passo 4.
+
 > **Deu erro de módulo ausente** (comum com PySide6/pyqtgraph)? Acrescente o módulo em
 > `hiddenimports` no `packaging/ensaios-ni.spec` e rode de novo. É o ciclo esperado do primeiro build
 > (não aconteceu no build de 01/07, mas pode acontecer se a máquina for diferente). Ver
