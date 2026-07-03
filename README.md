@@ -120,7 +120,7 @@ Aquisição real no Windows, exportação para Excel/análise e configuração d
 - [docs/uso.md](docs/uso.md) — instalar, rodar um ensaio, exportar.
 - [docs/guia-teste-hardware.md](docs/guia-teste-hardware.md) — validar no hardware real, do ambiente
   ao ensaio.
-- [docs/adr/README.md](docs/adr/README.md) — índice das decisões de arquitetura (22 ADRs).
+- [docs/adr/README.md](docs/adr/README.md) — índice das decisões de arquitetura (23 ADRs).
 - [docs/roadmap.md](docs/roadmap.md) — plano em fases e estado atual.
 - [CONTEXT.md](CONTEXT.md) — glossário do domínio (tensão, strain, aferição, tara…).
 - [docs/contexto-hardware.md](docs/contexto-hardware.md) — inventário do hardware e a API do

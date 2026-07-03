@@ -104,6 +104,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
   strain, gage factor 2,14) com nomes de **dispositivo simulado** do NI-MAX (`cDAQ1Mod3/ai0`), para
   exercitar o `Iniciar` do `.exe` no Windows do dev sem o hardware. O `config/canais.toml` **real**
   (com o nome/serial do chassi do tio) segue fora do git.
+- ADR-023 (Aceito) — **configuração de canais na UI**: biblioteca de **perfis** `.toml` gerenciada pelo app (o tio não edita arquivo à mão), **editor** de canais na tela reusando o `config_canais.py`/`tomlkit`, e **discovery** dos dispositivos atrás da porta — **nada de cache interno** (o `.toml` segue como formato e contrato do backend). Fatiado em **Parte A** (perfis + editor, testável no Mac — próxima frente) e **Parte B** (discovery, só no Windows). Entra na Fase 6 (adoção); promove a [tarefas-futuras §4](docs/tarefas-futuras.md) a decisão.
 
 ### Corrigido
 

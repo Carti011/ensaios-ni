@@ -38,7 +38,10 @@ Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do 
 carregado−repouso) e validar o **TXT** no AqDAnalysis do tio. Na Fase 6, o `.exe` já **abre e adquire
 no simulado** (02/07); falta o **Iniciar no hardware real do tio** (driver + chassi) e o polimento
 restante (robustez de longa duração;
-as **mensagens de erro amigáveis já foram feitas** em 02/07). Depois, a Fase 7 (FFT ao vivo).
+as **mensagens de erro amigáveis já foram feitas** em 02/07). Enquanto o tio testa o zip, a **próxima
+frente de desenvolvimento no Mac** é a **configuração de canais na UI**
+([ADR-023](adr/023-configuracao-de-canais-na-ui.md), Parte A — biblioteca de perfis + editor), que
+tira do tio a edição manual do `.toml`. Depois vem a Fase 7 (FFT ao vivo).
 
 ```text
 [0]──[1]──[2]──[3]──[4]──[5]──[6]──[7]
@@ -89,6 +92,11 @@ não é software no Mac: é levar ao **hardware real** e empacotar para o tio us
   Windows (ex.: PyInstaller → `.exe`) ou um caminho de instalação muito simples. **É o bloqueador
   nº 1 da adoção: hoje o programa não abre na máquina dele.** Entrypoint do `.exe` = a tela inicial
   sem CLI (`qt.hardware`).
+- **Configuração de canais na UI ([ADR-023](adr/023-configuracao-de-canais-na-ui.md)):** o tio não
+  edita `.toml` à mão — biblioteca de **perfis** por obra (salvos numa pasta do app, editáveis) +
+  **editor de canais** na tela e, depois, **discovery** dos canais do equipamento. Fatiado: **Parte A**
+  (perfis + editor) roda no **Mac** e é a **próxima frente de desenvolvimento**; **Parte B** (discovery)
+  espera o Windows/feedback. Remove o último passo manual entre "recebeu o `.exe`" e "está adquirindo".
 - **Robustez de longa duração:** ensaios de meses exigem recuperação de queda de rede e rotação de
   arquivo (hoje só anotado nos ADRs 007/012).
 - **Polimento:** mensagens de erro amigáveis, guia de uso para o tio.
@@ -108,8 +116,9 @@ não é software no Mac: é levar ao **hardware real** e empacotar para o tio us
 
 - **Concluído:** Fases 0–4 (todo o backend + o dashboard completo: monitor ao vivo, XY/multicanal,
   aferição, tara, exportar e metadata pela UI).
-- **Faltam 3 fases:** 5 (validação física), 6 (empacotamento & adoção) e 7 (paridade dinâmica —
-  FFT ao vivo, [ADR-021](adr/021-fft-ao-vivo-paridade-dinamica.md)).
+- **Faltam 3 fases:** 5 (validação física), 6 (empacotamento & adoção — inclui a **configuração de
+  canais na UI**, [ADR-023](adr/023-configuracao-de-canais-na-ui.md)) e 7 (paridade dinâmica — FFT ao
+  vivo, [ADR-021](adr/021-fft-ao-vivo-paridade-dinamica.md)).
 - **Onde o esforço está:** o dashboard (a maior fatia) está pronto e roda no Mac com o `fake`. O que
   separa o tio de usar é levar isso ao **hardware real** (Fase 5) e empacotar num `.exe` (Fase 6).
 - **Reavaliação de rota (01/07):** as últimas sessões foram features no Mac; a direção volta ao que o

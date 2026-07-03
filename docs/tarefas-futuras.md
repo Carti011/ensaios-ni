@@ -128,6 +128,11 @@ Como fechar (backend primeiro, frontend depois — commits separados):
 
 ## 4. Interface gráfica para configurar os canais (discovery de dispositivos)
 
+> **Planejado — virou [ADR-023](adr/023-configuracao-de-canais-na-ui.md) (Aceito, 02/07/2026).**
+> Design fechado: biblioteca de **perfis** `.toml` gerenciada pelo app + **editor** de canais na UI +
+> **discovery** atrás da porta, fatiado em Parte A (Mac) / Parte B (Windows). O texto abaixo é o
+> levantamento original que fundou o ADR.
+
 Hoje o `canais.toml` é editado à mão (ou preenchido pelo Weslley antes de enviar o `.exe`). Para um
 usuário leigo em TI, **abrir e editar um arquivo de configuração é atrito real** — o tio observou que
 no **FlexLogger não precisou disso**: "já reconhecia tudo". De fato, o FlexLogger/AqDados fazem
