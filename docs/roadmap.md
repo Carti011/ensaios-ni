@@ -31,7 +31,7 @@ do NI-MAX**: a aquisição empacotada, exercitada pela primeira vez, expôs um b
 PyInstaller (`nidaqmx`/`nitypes` leem a própria versão em runtime e o `.dist-info` não ia no bundle),
 corrigido com `copy_metadata` no `.spec` ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)); depois
 do fix o gráfico correu contra o driver simulado (fechar o NI-MAX derruba a leitura = aquisição real).
-**231 testes no Mac.**
+**235 testes no Mac.**
 
 Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do tio (não bloqueiam o
 "funciona"): a comparação numérica com o test panel do NI-MAX (na mesma unidade, por **variação**
