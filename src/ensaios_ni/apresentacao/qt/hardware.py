@@ -10,15 +10,19 @@ import argparse
 import tomllib
 from pathlib import Path
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFileDialog,
     QLabel,
+    QListWidget,
+    QListWidgetItem,
     QPushButton,
     QVBoxLayout,
     QWidget,
 )
 
 from ensaios_ni.apresentacao.monitor import MonitorAoVivo
+from ensaios_ni.apresentacao.perfis import BibliotecaDePerfis, pasta_padrao
 from ensaios_ni.apresentacao.qt.janela import JanelaMonitor
 from ensaios_ni.aquisicao.daqmx import AdaptadorDaqmx
 from ensaios_ni.dominio.canais import carregar_canais
@@ -56,21 +60,28 @@ class TelaInicial(QWidget):
         bloco: int = 256,
         saida: Path = Path("ensaio.csv"),
         capacidade_janela: int = 2000,
+        pasta_perfis: Path | None = None,
     ):
         super().__init__()
         self._taxa_hz = taxa_hz
         self._bloco = bloco
         self._saida = Path(saida)
         self._capacidade_janela = capacidade_janela
+        self._pasta_perfis = Path(pasta_perfis) if pasta_perfis is not None else pasta_padrao()
         self._janela: JanelaMonitor | None = None  # mantém a referência (evita fechar por GC)
         self.setWindowTitle("ensaios-ni")
+
+        self._lista_perfis = QListWidget()
+        self._lista_perfis.itemActivated.connect(self._abrir_perfil)
+        self._popular_perfis()
 
         self._btn_abrir = QPushButton("Abrir configuração…")
         self._btn_abrir.clicked.connect(self._escolher_e_abrir)
         self._lbl_erro = QLabel("")
 
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("Nenhuma configuração de canais carregada."))
+        layout.addWidget(QLabel("Escolha um ensaio salvo ou abra uma configuração:"))
+        layout.addWidget(self._lista_perfis)
         layout.addWidget(self._btn_abrir)
         layout.addWidget(self._lbl_erro)
 
@@ -96,6 +107,16 @@ class TelaInicial(QWidget):
         )
         if caminho:
             self.abrir_config(Path(caminho))
+
+    def _popular_perfis(self) -> None:
+        self._lista_perfis.clear()
+        for perfil in BibliotecaDePerfis(self._pasta_perfis).listar():
+            item = QListWidgetItem(perfil.nome)
+            item.setData(Qt.ItemDataRole.UserRole, str(perfil.caminho))  # endereço interno; a UI mostra o nome
+            self._lista_perfis.addItem(item)
+
+    def _abrir_perfil(self, item: QListWidgetItem) -> JanelaMonitor | None:
+        return self.abrir_config(Path(item.data(Qt.ItemDataRole.UserRole)))
 
 
 def _mensagem_erro(config: Path, erro: Exception) -> str:

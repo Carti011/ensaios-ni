@@ -76,6 +76,25 @@ def test_tela_inicial_abre_o_dashboard_a_partir_do_config(app, tmp_path):
     assert janela._tabela.item(0, 0).text() == "Carga"
 
 
+def test_tela_inicial_lista_os_perfis_salvos(app, tmp_path):
+    # a tela mostra os ensaios salvos na pasta de perfis, para o tio escolher sem abrir arquivo
+    (tmp_path / "ponte-x.toml").write_text("", encoding="utf-8")
+    (tmp_path / "laje-y.toml").write_text("", encoding="utf-8")
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert nomes == ["laje-y", "ponte-x"]  # ordenados por nome
+
+
+def test_tela_inicial_abre_o_perfil_escolhido(app, tmp_path):
+    # escolher um perfil da lista monta o dashboard, reusando o abrir_config
+    _config(tmp_path)  # cria canais.toml (válido) na pasta de perfis
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._lista_perfis.setCurrentRow(0)
+    janela = tela._abrir_perfil(tela._lista_perfis.currentItem())
+    assert isinstance(janela, JanelaMonitor)
+    assert janela._tabela.item(0, 0).text() == "Carga"  # abriu o config certo
+
+
 def test_tela_inicial_config_invalido_mostra_erro_sem_abrir(app, tmp_path):
     arq = tmp_path / "canais.toml"  # canal sem 'tipo'
     arq.write_text('[canais."Mod1/ai0"]\nunidade = "kgf"\n', encoding="utf-8")
