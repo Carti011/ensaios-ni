@@ -54,6 +54,7 @@ Termos físicos (hardware/extensometria) e termos de software (arquitetura).
 - **Adaptador DAQmx (`daqmx.py`)** — implementação real da porta (tensão pronta; strain pendente). **Único** arquivo que importa `nidaqmx`, lazy. Roda só no Windows.
 - **Adaptador Fake (`fake.py`)** — implementação sintética da porta. Roda em qualquer lugar (inclusive Mac). Habilita o TDD do domínio.
 - **Conversão** — transforma tensão/strain cru em unidade de engenharia. Linear por config (`config/canais.toml`) hoje; evoluindo para **calibração por pontos + tara** ([ADR-006](docs/adr/006-calibracao-por-pontos.md)). Nunca hardcode.
+- **Perfil** — uma **configuração de canais salva** (`.toml`), identificada por um nome de obra/ensaio. O app gerencia uma **biblioteca de perfis** numa pasta padrão (`~/ensaios-ni`); o tio escolhe por nome na tela inicial e monta/edita a tabela de canais pelo **editor de canais**, sem tocar no arquivo. Ver [ADR-023](docs/adr/023-configuracao-de-canais-na-ui.md).
 
 ## Conceitos centrais
 

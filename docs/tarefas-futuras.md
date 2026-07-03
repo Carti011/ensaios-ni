@@ -1,29 +1,22 @@
 # Tarefas futuras — ensaios-ni
 
 Backlog de coisas que **não bloqueiam** o trabalho atual, mas devem ser feitas quando houver
-oportunidade. Não esquecer. Marcar `[x]` quando concluída e mover o aprendizado para o ADR/handoff
-correspondente.
+oportunidade. Só o que está **pendente** fica aqui — o que foi concluído sai do arquivo e vive no
+`CHANGELOG.md`/handoff/ADR correspondente.
 
 ---
 
 ## Urgências para a adoção (Fase 5–6)
 
-> Consolidado de uma avaliação crítica de 28/06/2026. Estas pendências **decidem
-> se o tio larga o FlexLogger** — têm prioridade sobre o resto do backlog. Por gravidade:
+> Estas pendências **decidem se o tio larga o FlexLogger** — têm prioridade sobre o resto. Por gravidade:
 
 **🔴 Bloqueia a adoção (sem isto, o tio não usa):**
 
-- [~] **Validar no hardware real** — **validação FUNCIONAL feita (29/06/2026):** o software lê o NI
-      9235 real e responde à deformação aplicada (força na chapa → gráfico coerente com a direção).
-      **Falta** a comparação numérica fina com o test panel do NI-MAX (mesma unidade, por **variação**
-      carregado−repouso) e validar o TXT no AqDAnalysis. Guia:
-      [guia-teste-hardware.md](guia-teste-hardware.md). (Fase 5)
-- [~] **Empacotar em `.exe`** — **buildado e validado no Windows:** `pyinstaller
-      packaging/ensaios-ni.spec` gera `dist/ensaios-ni.exe` (one-file, sem console); abre a tela
-      inicial e monta o dashboard (01/07). Em **02/07** o **`Iniciar` foi validado no simulado do
-      NI-MAX** (aquisição empacotada exercitada pela 1ª vez) — precisou de `copy_metadata` no `.spec`
-      para `nidaqmx`/`nitypes` (bug de metadata do PyInstaller: `No package metadata was found for
-      nitypes`). **Falta** só o `Iniciar` no **hardware real do tio**.
+- [~] **Validar no hardware real** — validação **funcional** feita (29/06): o software lê o NI 9235
+      real e responde à deformação. **Falta** a comparação numérica com o test panel do NI-MAX (mesma
+      unidade, por **variação** carregado−repouso). Guia: [guia-teste-hardware.md](guia-teste-hardware.md). (Fase 5)
+- [~] **Empacotar em `.exe`** — builda e o **`Iniciar` foi validado no simulado do NI-MAX** (02/07,
+      após o fix do `copy_metadata`/`nitypes`). **Falta** o `Iniciar` no **hardware real do tio**.
       ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md), Fase 6)
 - [ ] **Validar o TXT no AqAnalysis** — ver §1 abaixo; é o elo da análise. Sem isto ele não fecha o
       trabalho.
@@ -33,33 +26,15 @@ correspondente.
 - [ ] **Sincronização tensão × strain (start-trigger)** — o XY carga × deformação precisa dos canais
       **simultâneos**; hoje há offset entre tasks. Só valida no Windows.
       ([ADR-007](adr/007-aquisicao-continua.md)/[ADR-009](adr/009-leitura-de-strain-9235.md))
-- [x] **Capturar a leitura ao vivo na aferição** — **feito (01/07/2026):** botão **"Capturar tensão"**
-      no painel de aferição lê a tensão crua do canal ao vivo (`MonitorAoVivo.ler_tensao_atual`) e a
-      insere na tabela; o operador só digita a carga conhecida — o "Leitura do A/D" do AqDados. Só em
-      canais de tensão (célula de carga, LVDT, acelerômetro). Atende o **pedido direto do tio
-      (30/06/2026):** *"falar pra ele [o software] que o valor de tensão que você está lendo é tal
-      valor de engenharia"*. ([ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
-- [x] **Alerta de correlação baixa na aferição** — **feito (01/07/2026):** correlação **abaixo de
-      95%** pinta o indicador e mostra um aviso no painel de aferição, mas **não bloqueia** o Aplicar
-      (o tio decide — como o resto do fluxo). Limiar = constante `Afericao.CORRELACAO_MINIMA`.
-      ([ADR-006](adr/006-calibracao-por-pontos.md)/[ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
-
-- [x] **Launcher do dashboard com hardware real** — **feito (30/06/2026):** novo entrypoint
-      `apresentacao/qt/hardware.py` (`python -m ensaios_ni.apresentacao.qt.hardware --config
-      canais.toml --taxa --bloco --saida --capacidade-janela`) abre o dashboard completo
-      (metadata/exportar/tara/aferir) ligado ao `AdaptadorDaqmx(canais=...)`, repassando canais +
-      config; config ausente/inválido/TOML quebrado vira mensagem amigável. O `...qt.janela` segue
-      como demo `fake`. (Fase 5)
 
 **🟡 Paridade total / robustez:**
 
-- [~] **FFT / frequência ao vivo** — **escopo decidido (01/07/2026):** vamos substituir o FlexLogger
-      também no dinâmico, com FFT ao vivo no dashboard ([ADR-021](adr/021-fft-ao-vivo-paridade-dinamica.md),
-      resolve o ADR-árbitro que faltava). Vira a **Fase 7** ([roadmap.md](roadmap.md)), **depois** do
-      `.exe`. A análise pesada segue no AqDAnalysis via TXT ([ADR-011](adr/011-estrategia-de-exportacao.md)).
+- [~] **FFT / frequência ao vivo** — escopo decidido ([ADR-021](adr/021-fft-ao-vivo-paridade-dinamica.md)):
+      FFT ao vivo no dashboard, substituindo o FlexLogger também no dinâmico. É a **Fase 7**
+      ([roadmap.md](roadmap.md)), **depois** do `.exe`. Análise pesada segue no AqDAnalysis via TXT.
 - [ ] **Robustez de longa duração** — rotação de arquivo + recuperação de queda de rede do chassi
-      Ethernet; um ensaio de meses num único CSV é inviável (volume + memória). Inclui o **exportar
-      ensaios gigantes pela entrada** (`carregar_csv` lê o CSV inteiro em memória).
+      Ethernet; um ensaio de meses num único CSV é inviável (volume + memória). Inclui exportar
+      ensaios gigantes (o `carregar_csv` lê o CSV inteiro em memória).
       [ADR-012](adr/012-serie-temporal-e-exportadores.md).
 
 ---
@@ -77,13 +52,12 @@ Como fechar (qualquer uma das vias valida):
       arquivo real em mãos, comparo o layout (separador, encoding, cabeçalho, nomes de unidade) e
       ajusto o exportador para casar. **O Weslley já pediu o arquivo a ele (25/06/2026) e aguarda.**
 - [ ] **Via B — testar na casa do tio.** Ir ao computador do tio (Fase 5, junto da calibração
-      física) e tentar **importar o nosso TXT** no AqDAnalysis dele. Ver se entra; ajustar separador/
-      decimal/cabeçalho no wizard de importação. É o teste definitivo (o critério de "funcionou").
+      física) e tentar **importar o nosso TXT** no AqDAnalysis dele. Ajustar separador/decimal/
+      cabeçalho no wizard de importação. É o teste definitivo (o critério de "funcionou").
 
 > Expectativa fundamentada: o "Importa Arquivo Texto" do AqDAnalysis é quase certamente um **wizard
-> configurável** (o usuário escolhe separador/decimal e aponta as colunas), padrão da indústria de
-> software de aquisição. Se for, não há "formato secreto": o nosso TXT limpo + a escolha do tio no
-> wizard bastam. A validação confirma isso.
+> configurável** (escolhe separador/decimal e aponta as colunas). Se for, não há "formato secreto":
+> o nosso TXT limpo + a escolha do tio no wizard bastam.
 
 ## 2. Plano B — parametrizar o exportador TXT
 
@@ -95,78 +69,43 @@ fixar um novo formato, **tornar o `txt-aqanalysis` parametrizável**:
 - [ ] opção de incluir a **taxa de amostragem no cabeçalho** (alguns importadores ASCII usam isso
       para reconstruir o eixo de tempo/frequência).
 
-Assim, "acertar o formato" vira "gerar a variante que o wizard pedir", sem reescrever código.
 Implementar **só quando a validação indicar necessidade** — não especular antes.
 
 ---
 
-## 3. Nome do sinal (rótulo humano) nos canais — UI e config
+## 3. Configuração de canais na UI ([ADR-023](adr/023-configuracao-de-canais-na-ui.md)) — em andamento
 
-Hoje a tabela de canais e os seletores X/Y do dashboard mostram o **endereço físico** do
-canal (`Mod1/ai0` = "Módulo 1, entrada analógica 0"), que vem do NI-MAX/DAQmx. **O tio não
-reconhece isso** — pra ele é como "tomada nº 1 da parede". Ele pensa no sensor pelo **que mede**:
-"Carga", "Sg1 bico", "Sg2 reforço". O AqDados dele tem uma coluna **"Nome do Sinal"** (apelido
-humano) **separada** do canal físico — ver [referencia-lynx.md](referencia-lynx.md) §1.1.
+O tio não deve editar o `canais.toml` à mão. Design fechado no ADR-023: biblioteca de **perfis**
+`.toml` gerenciada pelo app + **editor** de canais na tela + **discovery** dos dispositivos atrás da
+porta. Fatiado; estado atual:
 
-Causa raiz: o `Canal` (`dominio/canais.py`) só guarda o endereço físico (`nome`) + unidade; não
-existe campo de rótulo, então a UI não tem o que exibir além do endereço. (Levantado em
-26/06/2026, ao revisar o seletor XY da fatia 2 do dashboard.)
+**Parte A — no Mac:**
 
-Como fechar (backend primeiro, frontend depois — commits separados):
+- [x] **A1 — Biblioteca de perfis.** A tela inicial lista os ensaios salvos (`~/ensaios-ni/*.toml`) e
+      abre o escolhido. (`apresentacao/perfis.py` + `TelaInicial`.)
+- [x] **A2 — Editor de canais.** Tabela de canais na UI (Adicionar/Editar/Remover) + formulário por
+      canal, persistindo no `.toml`. (`apresentacao/editor_canais.py` + `qt/editor_canais.py`.)
+- [ ] **A3 — Gerência de perfis.** Criar/duplicar/renomear/remover perfil na pasta-padrão;
+      importar/exportar um `.toml` avulso.
 
-- [x] **Backend** — campo opcional `rotulo` (nome do sinal) no `Canal` e no carregamento do
-      TOML (`carregar_canais`), com **fallback** para o `nome` (endereço) via property `etiqueta`;
-      validado como string. Documentado em `config/canais.exemplo.toml` e no `CONTEXT.md`.
-- [x] **Frontend** — tabela (coluna "Sinal") e seletores X/Y exibem o **rótulo**, mantendo o
-      endereço físico como identidade interna (`UserRole`/`itemData`). Editar o rótulo na tabela
-      persiste no TOML (`salvar_rotulo`). Sem `rotulo`, cai no endereço.
+**Parte B — precisa do Windows (hardware/simulado):**
 
-> **Concluído na fatia 3 do dashboard (27/06/2026) — ver [ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md).**
-> Era critério de **adoção**: o tio só reconhece o que ele nomeou (o "Nome do Sinal" do AqDados).
+- [ ] **B — Discovery de dispositivos.** Porta de inventário (`daqmx` lista `System.local().devices`;
+      `fake` lista sintética) + botão "Detectar canais" que preenche a tabela do editor. Só depois do
+      feedback do tio ([ADR-019](adr/019-foco-em-validacao-fisica-e-adocao.md)).
+
+**Refinamentos menores da A2** (não bloqueiam):
+
+- [ ] Exibir os números do formulário do canal em **decimal vírgula (BR)** (hoje o parse aceita
+      vírgula e ponto, mas a exibição usa ponto).
+- [ ] Validação **inline** no diálogo (desabilitar Aplicar até tipo/unidade válidos, à la
+      `PainelAfericao`) — hoje avisa via popup ao aplicar.
 
 ---
 
-## 4. Interface gráfica para configurar os canais (discovery de dispositivos)
-
-> **Planejado — virou [ADR-023](adr/023-configuracao-de-canais-na-ui.md) (Aceito, 02/07/2026).**
-> Design fechado: biblioteca de **perfis** `.toml` gerenciada pelo app + **editor** de canais na UI +
-> **discovery** atrás da porta, fatiado em Parte A (Mac) / Parte B (Windows). O texto abaixo é o
-> levantamento original que fundou o ADR.
-
-Hoje o `canais.toml` é editado à mão (ou preenchido pelo Weslley antes de enviar o `.exe`). Para um
-usuário leigo em TI, **abrir e editar um arquivo de configuração é atrito real** — o tio observou que
-no **FlexLogger não precisou disso**: "já reconhecia tudo". De fato, o FlexLogger/AqDados fazem
-**discovery automático** dos dispositivos (via NI-MAX) e oferecem um **assistente** para montar a
-tabela de canais por tipo de sensor.
-
-É factível para nós — o `nidaqmx` lista os dispositivos e canais físicos presentes
-(`System.local().devices` e os canais de cada módulo). A ideia:
-
-- [ ] **Descobrir os canais** do chassi conectado e listá-los na UI (sem digitar endereço).
-- [ ] **Montar a tabela de canais pela tela** (nome do sinal, unidade, tipo, conversão) e **salvar o
-      `canais.toml`**, reusando o escritor `tomlkit` que já existe (`persistencia/config_canais.py`).
-- [ ] Assim o tio **cria o config sem editar arquivo** — liga o chassi, escolhe os canais e nomeia.
-
-Valor: remove o último passo manual entre "recebeu o `.exe`" e "está adquirindo" — puxa forte a
-**adoção**. Escopo: fatia de UI nova, **candidata a ADR** quando priorizada. **Prioridade:** depois do
-primeiro envio/feedback — se preencher o `canais.toml` pelo Weslley já resolver o primeiro contato,
-isso pode esperar; não construir especulativamente antes do feedback do tio. O discovery (listar
-dispositivos) só roda no Windows; a montagem/escrita do TOML é testável no Mac.
-
 ## Outras pendências conhecidas (menores — já nos ADRs)
 
-Não detalhadas aqui para não duplicar; o ADR é a fonte de verdade. As de maior impacto estão
-consolidadas em **Urgências** no topo.
-
-- [x] **Mensagens de erro amigáveis na aquisição** — **feito (02/07/2026):** `apresentacao/erros.py`
-      (`mensagem_de_erro_de_aquisicao`) traduz os erros do `MonitorAoVivo.passo()`: **driver NI-DAQmx
-      ausente** (orienta instalar), **erro do driver NI** em sub-casos — **chassi não encontrado**
-      (cabo/IP/NI-MAX) e **canal do config inexistente** (nomes no NI-MAX → `canais.toml`) — sempre
-      com o detalhe técnico, e **fallback** que mantém o texto original. Detecta o driver pela origem
-      da exceção; os sub-casos por palavras-chave do DAQmx (fundadas na doc da NI, **a confirmar no
-      Windows**). Sem importar `nidaqmx`. Polimento da Fase 6 (ver [roadmap.md](roadmap.md)).
 - [ ] **Excel "do jeito do tio"** — metadata no cabeçalho (obra, data, sensor, taxa), aba de resumo.
       Camada de entrega, a definir com o gosto dele. [ADR-011](adr/011-estrategia-de-exportacao.md).
 - [ ] **Calibração "Ganho e Ponto de Referência"** — segundo modo de aferição do AqDados; redutível
       ao linear, baixa prioridade. [ADR-006](adr/006-calibracao-por-pontos.md).
-- [x] ~~**Dashboard — decidir a stack**~~ → decidido: **PyQt6/pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md)); construído na **Fase 4** (ver [roadmap.md](roadmap.md)).

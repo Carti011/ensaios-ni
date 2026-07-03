@@ -75,8 +75,8 @@ São camadas distintas e **não conflitam**:
 
 ## 4. Pendências que dependem do dono (não do FlexLogger)
 
-A pesquisa fechou o **comportamento**; faltam **números reais** do dono (vão pra rodada 3 em
-[respostas-tio.md](respostas-tio.md)):
+A pesquisa fechou o **comportamento**; os **números reais** do dono estão consolidados em
+[contexto-hardware.md §6](contexto-hardware.md):
 
 - Sensibilidades/faixas dos sensores (semente das tabelas de calibração).
 - Confirmar que ele zera (tara) cada canal no início de todo ensaio.

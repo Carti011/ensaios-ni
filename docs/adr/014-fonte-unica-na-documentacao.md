@@ -18,8 +18,8 @@ arquivos, e duas mudanças recentes não foram propagadas para todas as cópias.
 - A **decisão de stack do dashboard** ([ADR-013](013-stack-do-dashboard.md): PyQt6/pyqtgraph) não
   chegou ao README, ao CLAUDE.md, ao `contexto-hardware.md` nem ao `tarefas-futuras.md` — que ainda
   diziam "decisão adiada" e listavam Plotly/React.
-- O **"estudo de mercado" (23/06)** estava duplicado quase igual em
-  [respostas-tio.md](../respostas-tio.md) e [referencia-flexlogger.md §5](../referencia-flexlogger.md).
+- O **"estudo de mercado" (23/06)** estava duplicado quase igual em `respostas-tio.md` (depois
+  removido) e [referencia-flexlogger.md §5](../referencia-flexlogger.md).
 
 Agravante específico deste projeto: o `CLAUDE.md` é carregado pelo agente (Claude Code) **a cada
 turno**. Se ele guarda estado volátil copiado e desatualizado, o agente recebe informação errada
@@ -47,8 +47,8 @@ Regras operacionais:
   copiada — referencia o dono (`ver ADR-013`, `ver roadmap.md`). É o documento mais lido pelo
   agente; tem que ser confiável.
 - **Documento secundário não recopia o conteúdo do dono** — resume em uma linha (quando a leitura
-  local exigir) e linka. Ex.: `respostas-tio.md` cita o estudo de mercado em uma frase e aponta para
-  `referencia-flexlogger.md §5`.
+  local exigir) e linka. Ex.: o `contexto-hardware.md §8` resume o estado do plano e aponta para o
+  `roadmap.md`, sem manter uma lista de fases própria.
 - **`contexto-hardware.md §8` não mantém lista de fases própria** — resume o estado e linka o roadmap.
 - **Handoffs e o CHANGELOG são append-only e datados** — registram o momento, não são fonte de
   verdade do estado atual (o roadmap é). Podem citar fases; não precisam ser reescritos quando o

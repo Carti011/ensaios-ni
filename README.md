@@ -50,7 +50,7 @@ flowchart LR
     PORTA{{"Porta<br/>FonteDeAquisicao"}}
     FAKE["Adaptador fake<br/>Mac · sintético · TDD"]
     DAQMX["Adaptador daqmx<br/>Windows · NI-DAQmx"]
-    HW["Hardware NI<br/>cDAQ-9184 · 9205 · 9242"]
+    HW["Hardware NI<br/>cDAQ-9184 · 9205 · 9235"]
 
     UI --> APP
     APP --> DOM
@@ -75,7 +75,7 @@ A decisão e o porquê estão no [ADR-001](docs/adr/001-arquitetura-porta-adapta
 - **Calibração como no laboratório.** A conversão volts → unidade usa regressão linear por mínimos
   quadrados, com a correlação de Pearson do ajuste — o método que o engenheiro já aplica, não uma
   constante chumbada no código.
-- **Um erro silencioso que o teste impede.** A leitura de strain do módulo 9242 precisa de
+- **Um erro silencioso que o teste impede.** A leitura de strain do módulo 9235 precisa de
   quarter-bridge, 120 Ω, 2,0 V. Os valores padrão da biblioteca são full-bridge, 350 Ω, 2,5 V, e
   devolveriam um número plausível e errado sem lançar exceção. Um teste trava a configuração certa.
 - **Tempo real sem travar a UI.** O dashboard separa um Presenter Python puro (testável no Mac, sem
@@ -131,8 +131,9 @@ Aquisição real no Windows, exportação para Excel/análise e configuração d
 Backend e dashboard completos e testados — leitura de tensão e strain (finita e contínua),
 calibração, gravação, exportadores e a interface ao vivo —, validados no Windows com dispositivos
 simulados e no Mac com o adaptador sintético (242 testes). Em campo, o software **já leu o
-extensômetro real** (NI 9242) e respondeu corretamente à deformação aplicada. O **executável de
-distribuição** já foi gerado no Windows: abre a tela inicial e monta o dashboard, sem console. Os
+extensômetro real** (NI 9235) e respondeu corretamente à deformação aplicada. O **executável de
+distribuição** já foi gerado no Windows e **adquire no simulado do NI-MAX** — a tela inicial lista os
+ensaios salvos, o dashboard monta e o Iniciar lê dados, sem console. Os
 próximos passos são de campo e integração, não de capacidade — fechar a **validação numérica** contra
 o test panel do NI-MAX, o elo de **exportação** com a ferramenta de análise do usuário e rodar o
 `.exe` **sobre o hardware do tio**. Plano completo no [roadmap](docs/roadmap.md).

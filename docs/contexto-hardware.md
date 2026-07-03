@@ -125,10 +125,10 @@ Decisão registrada em [adr/001-arquitetura-porta-adaptador.md](adr/001-arquitet
 
 ---
 
-## 6. Levantamento com o dono do hardware (majoritariamente respondido)
+## 6. Levantamento com o dono do hardware (respondido)
 
-> Detalhe completo, transcrições e o que ainda falta (rodada 3) em [respostas-tio.md](respostas-tio.md).
-> Resumo do que ficou definido (rodada 2, 22/06/2026):
+> Resumo do que o dono definiu (rodadas 2–3, 22–23/06/2026). As transcrições dos áudios ficam no
+> histórico do git; o essencial está consolidado aqui.
 
 **9235 (strain):** quarter-bridge **120 Ω**; **gage factor 2,14–2,16** (varia por lote →
 configurável); cabo longo usa **3 fios, 22 AWG** (compensação de lead wire); nº de canais varia
@@ -143,14 +143,16 @@ dono, 23/06). **Acelerômetro: Dytran 7523A1** (triaxial DC-response/capacitivo)
 **Conversão:** **não é fórmula fixa** — é **calibração empírica por pontos + tara**, como no
 AqDados/Lynx. Ver [ADR-006](adr/006-calibracao-por-pontos.md).
 
-**Ensaio:** vibração com **acelerômetro 2G a 1024 Hz**; carga × deformação a taxa baixa (não
-quantificada). Duração de **1 h a 1 ano contínuo** → exige aquisição contínua
+**Ensaio:** vibração com **acelerômetro 2G a 1024 Hz**; carga × deformação a **20 Hz** (estático,
+confirmado pelo dono). Duração de **1 h a 1 ano contínuo** → exige aquisição contínua
 ([ADR-007](adr/007-aquisicao-continua.md)).
 
 **Rede:** chassi **direto no PC, IP fixo** (número no cofre privado, fora do repo).
 
-**Ainda em aberto (rodada 3):** fiação do 9205, célula de carga, sensibilidades/faixas dos
-sensores, taxa dos ensaios lentos, formato de arquivo para compatibilidade com AqDados/AqDAnalysis.
+**Encerrado por boas práticas (rodada 3, 23/06):** fiação do 9205 = **diferencial**; taxa dos
+estáticos = **20 Hz**; célula de carga via **condicionador com saída em tensão**; formato de troca =
+**TXT** para o AqDAnalysis (ver [referencia-lynx.md](referencia-lynx.md)). Sensibilidades/faixas de
+cada sensor entram no `canais.toml` conforme aparecem no serviço.
 
 ---
 

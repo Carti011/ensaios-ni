@@ -14,7 +14,7 @@ O [ADR-005](005-contrato-multicanal-da-porta.md) entregou a leitura **finita**: 
 amostras (`sample_mode=FINITE`, `task.read`) e para. Foi o suficiente para a fatia de tensão e
 para validar o caminho.
 
-As respostas do dono (22/06/2026, [respostas-tio.md](../respostas-tio.md)) mostram que a
+As respostas do dono (22/06/2026, [contexto-hardware.md](../contexto-hardware.md)) mostram que a
 duração real dos ensaios vai de **uma hora a um mês contínuo, ou até um ano** (monitoramento de
 estruturas), além de provas de carga de 24 h. Ler N amostras e parar não cobre isso: precisamos
 de **aquisição contínua**, com gravação incremental, sem estourar memória nem perder amostras.

@@ -37,7 +37,7 @@ segundo no núcleo técnico e no fluxo; reserve a criatividade para a camada de 
 | **Produto / UX / terminologia / fluxo** (como o tio calibra, nomeia, organiza canais, analisa) | [referencia-lynx.md](referencia-lynx.md), [CONTEXT.md](../CONTEXT.md) | Lynx — manuais/datasheets do AqDados/AqDAnalysis: <https://www.lynxtec.com.br/softwares.htm> |
 | **Técnica do driver / aquisição** (NI-DAQmx: escala, timing, sample clock, strain/ponte, simulados) | [contexto-hardware.md](contexto-hardware.md) (**API pinada**), [referencia-flexlogger.md](referencia-flexlogger.md) | NI: <https://www.ni.com> (NI-DAQmx, FlexLogger). **NI-MAX test panel** = critério objetivo de "funcionou" (a leitura tem que bater com ele) |
 | **Padrão de mercado / metrologia** (como calibrar, curva de calibração, formato de dado, rastreabilidade) | [referencia-flexlogger.md](referencia-flexlogger.md) (Custom Scales), [adr/006](adr/006-calibracao-por-pontos.md) | Normas que o tio cita: **NBR 6118, 7188, 8800, 14931, 14762, AWS D1.1, ISO 6892-1**; metrologia (regressão linear, linearidade, INMETRO/RBC) |
-| **Domínio / engenharia** (que ensaios o tio faz, grandezas, sensores) | [respostas-tio.md](respostas-tio.md), memória `dominio-do-tio-ofm` | **Site da OFM**: <https://ofmengenharia.com.br> — código no cofre em `codigo/ofm-engenharia/` (ver `components/AcervoTecnico.tsx` e `data/servicos-detalhados.tsx`) |
+| **Domínio / engenharia** (que ensaios o tio faz, grandezas, sensores) | [contexto-hardware.md](contexto-hardware.md), memória `dominio-do-tio-ofm` | **Site da OFM**: <https://ofmengenharia.com.br> — código no cofre em `codigo/ofm-engenharia/` (ver `components/AcervoTecnico.tsx` e `data/servicos-detalhados.tsx`) |
 | **Decisões já tomadas** (por que algo é como é) | [docs/adr/](adr/) | — |
 | **Qualquer dúvida sem fonte clara** | — | **Pesquisa no Google** é fonte legítima — use sempre que ajudar (o Weslley autorizou), registrando o que achou |
 
@@ -54,7 +54,7 @@ segundo no núcleo técnico e no fluxo; reserve a criatividade para a camada de 
 4. **Aplique a camada certa:** núcleo técnico/fluxo → siga o padrão (não invente); entrega → melhore
    e adapte ao tio.
 5. **Registre o que descobriu** na referência interna certa (`referencia-lynx.md`,
-   `referencia-flexlogger.md`, `respostas-tio.md`). Se virar decisão de arquitetura, abra um **ADR**.
+   `referencia-flexlogger.md`, `contexto-hardware.md`). Se virar decisão de arquitetura, abra um **ADR**.
 6. **Só leve ao Weslley** o que as fontes não resolvem **ou** o que é decisão de produto/escopo dele
    (prioridade, o que entra em cada fase, gosto de UX/exportação). Dúvida técnica ou de padrão,
    **resolva pela fonte**.
@@ -63,5 +63,5 @@ segundo no núcleo técnico e no fluxo; reserve a criatividade para a camada de 
 
 - Os prints têm dados de clientes → **não versionar** (ficam em `docs/img/`, ignorada). Só a análise
   textual entra no repo.
-- Extraia o aprendizado para `referencia-lynx.md` (produto) ou `respostas-tio.md` (domínio) e
+- Extraia o aprendizado para `referencia-lynx.md` (produto) ou `contexto-hardware.md` (domínio) e
   atualize o `CONTEXT.md` se surgir vocabulário novo.

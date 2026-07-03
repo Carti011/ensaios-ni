@@ -120,6 +120,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ### Removido
 
+- **`docs/respostas-tio.md`** — o registro das respostas do dono foi **consolidado** no dono único do inventário de hardware ([contexto-hardware.md §6](docs/contexto-hardware.md), [ADR-014](docs/adr/014-fonte-unica-na-documentacao.md)): a taxa dos estáticos (**20 Hz**) e a decisão de encerramento da rodada 3 migraram para lá; o essencial (gage factor, Dytran, fiação diferencial) já estava. Ponteiros vivos (ADR-006/007/021, onde-pesquisar, referencia-flexlogger) reapontados; menções em handoffs/CHANGELOG são históricas.
 - **`docs/avaliacao-critica.md`** — documento de trabalho temporário (28/06/2026) que já cumpriu o papel: metade das urgências fechou nesta sessão (`.exe`, captura ao vivo, alerta de correlação) e o registro permanente das pendências vive no [tarefas-futuras.md](docs/tarefas-futuras.md) (como o [ADR-019](docs/adr/019-foco-em-validacao-fisica-e-adocao.md) já previa). Ponteiros vivos (guia de teste, ADR-019/022, tarefas-futuras) reapontados; menções em handoffs/CHANGELOG são históricas.
 
 ### Alterado

@@ -13,7 +13,7 @@ Decisão de **escopo/direção**; a implementação fica para uma fase própria 
 
 O critério de sucesso do projeto é **o tio largar o FlexLogger** ([roadmap.md](../roadmap.md)).
 Metade do trabalho dele é **vibração**: acelerômetro (Dytran 7523A1) a 1024 Hz para extrair
-frequências naturais via **FFT** — ver [respostas-tio.md](../respostas-tio.md) e
+frequências naturais via **FFT** — ver [contexto-hardware.md](../contexto-hardware.md) e
 [CONTEXT.md](../../CONTEXT.md).
 
 O [ADR-011](011-estrategia-de-exportacao.md) decidiu **não reescrever a análise**: exportar TXT e
