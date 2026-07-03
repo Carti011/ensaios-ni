@@ -95,6 +95,18 @@ def test_tela_inicial_abre_o_perfil_escolhido(app, tmp_path):
     assert janela._tabela.item(0, 0).text() == "Carga"  # abriu o config certo
 
 
+def test_tela_inicial_edita_os_canais_do_perfil_selecionado(app, tmp_path):
+    # o tio seleciona um ensaio e edita a tabela de canais sem abrir arquivo (ADR-023 A2)
+    from ensaios_ni.apresentacao.qt.editor_canais import PainelEditorCanais
+
+    _config(tmp_path)  # perfil com 2 canais
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._lista_perfis.setCurrentRow(0)
+    painel = tela._editar_canais_do_selecionado()
+    assert isinstance(painel, PainelEditorCanais)
+    assert painel._tabela.rowCount() == 2
+
+
 def test_tela_inicial_config_invalido_mostra_erro_sem_abrir(app, tmp_path):
     arq = tmp_path / "canais.toml"  # canal sem 'tipo'
     arq.write_text('[canais."Mod1/ai0"]\nunidade = "kgf"\n', encoding="utf-8")

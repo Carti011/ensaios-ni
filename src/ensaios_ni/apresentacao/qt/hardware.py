@@ -13,6 +13,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFileDialog,
+    QHBoxLayout,
     QLabel,
     QListWidget,
     QListWidgetItem,
@@ -21,8 +22,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ensaios_ni.apresentacao.editor_canais import EditorDeCanais
 from ensaios_ni.apresentacao.monitor import MonitorAoVivo
 from ensaios_ni.apresentacao.perfis import BibliotecaDePerfis, pasta_padrao
+from ensaios_ni.apresentacao.qt.editor_canais import PainelEditorCanais
 from ensaios_ni.apresentacao.qt.janela import JanelaMonitor
 from ensaios_ni.aquisicao.daqmx import AdaptadorDaqmx
 from ensaios_ni.dominio.canais import carregar_canais
@@ -75,14 +78,20 @@ class TelaInicial(QWidget):
         self._lista_perfis.itemActivated.connect(self._abrir_perfil)
         self._popular_perfis()
 
+        self._btn_editar = QPushButton("Editar canais…")
+        self._btn_editar.clicked.connect(self._editar_canais)
         self._btn_abrir = QPushButton("Abrir configuração…")
         self._btn_abrir.clicked.connect(self._escolher_e_abrir)
         self._lbl_erro = QLabel("")
 
+        acoes = QHBoxLayout()
+        acoes.addWidget(self._btn_editar)
+        acoes.addWidget(self._btn_abrir)
+
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("Escolha um ensaio salvo ou abra uma configuração:"))
         layout.addWidget(self._lista_perfis)
-        layout.addWidget(self._btn_abrir)
+        layout.addLayout(acoes)
         layout.addWidget(self._lbl_erro)
 
     def abrir_config(self, caminho: Path) -> JanelaMonitor | None:
@@ -117,6 +126,18 @@ class TelaInicial(QWidget):
 
     def _abrir_perfil(self, item: QListWidgetItem) -> JanelaMonitor | None:
         return self.abrir_config(Path(item.data(Qt.ItemDataRole.UserRole)))
+
+    def _editar_canais_do_selecionado(self) -> PainelEditorCanais | None:
+        item = self._lista_perfis.currentItem()
+        if item is None:
+            return None
+        caminho = Path(item.data(Qt.ItemDataRole.UserRole))
+        return PainelEditorCanais(EditorDeCanais(caminho), parent=self)
+
+    def _editar_canais(self) -> None:  # pragma: no cover — abre diálogo modal
+        painel = self._editar_canais_do_selecionado()
+        if painel is not None:
+            painel.exec()
 
 
 def _mensagem_erro(config: Path, erro: Exception) -> str:
