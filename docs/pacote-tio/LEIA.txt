@@ -1,0 +1,57 @@
+===========================================================
+  ensaios-ni  —  aquisição de dados (NI cDAQ-9184 / 9205 / 9235)
+===========================================================
+
+O que é
+--------
+Um programa para ler os sensores ligados ao chassi da National Instruments,
+mostrar o sinal ao vivo, calibrar (aferir) e gravar o ensaio — no lugar do
+FlexLogger. Ele usa o mesmo driver gratuito da NI (o NI-DAQmx) que o NI-MAX
+já usa; não precisa pagar assinatura.
+
+
+Antes de abrir (uma vez só)
+---------------------------
+- É preciso ter o driver NI-DAQmx instalado (o mesmo que faz o NI-MAX
+  funcionar). Se o NI-MAX abre e enxerga o chassi, o driver já está ok.
+- Windows. Não precisa instalar Python nem nada — é só o arquivo do programa.
+
+
+Como abrir
+----------
+1. Dê um duplo-clique em  ensaios-ni.exe
+   OBS: a PRIMEIRA abertura pode demorar alguns segundos (o programa se
+   descompacta). Não é travamento — espere um pouco.
+
+2. Vai aparecer uma tela com o botão "Abrir configuração...".
+   Clique nele e escolha o arquivo  canais.toml  (vem junto neste pacote).
+
+3. O painel abre: à esquerda os canais, no centro os gráficos, embaixo os
+   controles (Iniciar / Parar / Zerar).
+
+
+Usando
+------
+- INICIAR começa a leitura; o gráfico corre em tempo real.
+- ZERAR (tara): com a peça em repouso, zera os canais.
+- PARAR encerra e grava o ensaio.
+- AFERIR: calibra um canal aplicando cargas conhecidas (como no AqDados).
+
+
+Se aparecer uma mensagem de erro
+--------------------------------
+O programa foi feito para explicar o problema em português (ex.: "o chassi
+não foi encontrado — confira o cabo de rede e o IP no NI-MAX"). Leia a
+mensagem: ela diz o que conferir.
+
+Se não resolver, tire uma foto/print da mensagem e mande para o Weslley.
+Isso ajuda a corrigir rápido, mesmo à distância.
+
+
+Este pacote contém
+-------------------
+- ensaios-ni.exe   -> o programa
+- canais.toml      -> a configuração dos seus canais/sensores
+- LEIA.txt         -> este arquivo
+
+===========================================================

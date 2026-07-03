@@ -83,7 +83,31 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - ADR-022 (Aceito) — empacotamento em `.exe` (PyInstaller), o bloqueador nº 1 da adoção (Fase 6).
 - ADR-021 (Aceito) — **FFT ao vivo (paridade dinâmica)**: decisão de escopo de substituir o FlexLogger também no ensaio dinâmico, com espectro de frequência ao vivo no dashboard (o "Frequency Graph"). Resolve o "ADR-árbitro" pendente nos ADR-011/015/019. A análise pesada (fadiga, Rainflow, relatórios) segue no AqDAnalysis via TXT. Vira a **Fase 7** do roadmap, depois do `.exe`.
 
+- **Mensagens de erro amigáveis na aquisição (Fase 6).** Módulo puro `apresentacao/erros.py`
+  (`mensagem_de_erro_de_aquisicao`) traduz os erros crus do `MonitorAoVivo.passo()` para texto que o
+  operador entende, cobrindo os cenários prováveis quando o tio clica **Iniciar** sozinho: **driver
+  NI-DAQmx ausente** (orienta instalar o driver gratuito da NI); **erro do driver NI** (DaqError)
+  refinado em sub-casos — **chassi/equipamento não encontrado** (confira cabo de rede, IP e o NI-MAX)
+  e **canal do config inexistente no equipamento** (confira os nomes no NI-MAX e ajuste o
+  `canais.toml`), com o detalhe técnico preservado; e um **fallback** que mantém a mensagem original
+  (ex.: o `ValueError` do `fake`). Reconhece o erro do driver pela **origem da exceção**
+  (`type(erro).__module__`) e os sub-casos por **palavras-chave** do texto do DAQmx — sem importar
+  `nidaqmx`, roda no Mac (as palavras-chave são fundadas na doc da NI, a confirmar no Windows). O
+  widget PySide exibe a mensagem já traduzida, sem mudança de código (só lê `monitor.erro`). Presenter
+  puro + módulo puro, testável no Mac.
+- **Pasta de distribuição `docs/pacote-tio/`** — tudo num lugar para gerar o `.exe` e montar o `.zip`
+  do tio: `instrucoes-weslley.md` (gerar o `.exe` no Windows, testar o Iniciar no simulado do NI-MAX,
+  montar a pasta no Desktop com `.exe` + `canais.toml` + `LEIA.txt`, e zipar), `LEIA.txt` (instruções
+  em linguagem leiga para o tio), `canais-exemplo.toml` (modelo comentado do `canais.toml`) e um
+  `README.md` de índice. Reduz o atrito do primeiro contato do tio com o programa.
+- **Config de teste `config/canais-simulado.toml`** (versionado): espelha o cenário do tio (1 canal de
+  strain, gage factor 2,14) com nomes de **dispositivo simulado** do NI-MAX (`cDAQ1Mod3/ai0`), para
+  exercitar o `Iniciar` do `.exe` no Windows do dev sem o hardware. O `config/canais.toml` **real**
+  (com o nome/serial do chassi do tio) segue fora do git.
+
 ### Corrigido
+
+- **Aquisição no `.exe` empacotado falhava com `No package metadata was found for nitypes` (Fase 6, [ADR-022](docs/adr/022-empacotamento-exe-pyinstaller.md)).** O `nidaqmx` e sua dependência transitiva `nitypes` leem a própria versão em runtime via `importlib.metadata.version(__name__)`, que exige o `.dist-info` do pacote — e o PyInstaller **não** empacota metadata de distribuição por padrão. Como o `import nidaqmx` é lazy (só dispara no **Iniciar**), o erro aparecia apenas ao **adquirir** no binário: a tela inicial e o dashboard montavam normal. Correção no `packaging/ensaios-ni.spec`: nova função defensiva `_metadados` (espelha o `_submodulos` — `try/except → []`) que usa `copy_metadata` (`PyInstaller.utils.hooks`) para `nidaqmx` e `nitypes`, alimentando o `datas=` do `Analysis` (antes `[]`). **Validado no Windows do dev (02/07/2026):** rebuild limpo e `Iniciar` no `.exe` sobre **dispositivo simulado** do NI-MAX (`cDAQ1Mod3/ai0`, strain, `gage_factor = 2.14`) — o gráfico correu; fechar o NI-MAX derrubou a aquisição, confirmando leitura **real** do driver simulado (não cache). Primeira vez que a **aquisição empacotada** foi exercitada — fecha o coelho perigoso da Fase 6 no simulado (falta só o hardware real do tio). Só o `.spec` mudou; os 220 testes seguem verdes (o `.spec` não é importado por `src/` nem `tests/`).
 
 - **Aferição não persiste mais calibração sem reta válida.** `Afericao.aplicar()` só checava se havia ≥ 2 pontos; com pontos de **tensão igual** (que não formam reta) gravava mesmo assim, deixando o `canais.toml` com uma calibração que o `carregar_canais` depois recusava. Passou a exigir uma **reta válida** (`reta() is not None`) antes de escrever — a regra de negócio saiu de só a UI (botão desabilitado) para o Presenter. Descoberto exercitando o fluxo de captura ao vivo.
 

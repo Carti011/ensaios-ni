@@ -1,0 +1,23 @@
+# =====================================================================
+#  canais-simulado.toml  —  para TESTAR o programa/.exe no seu Windows
+#  sem o hardware do tio, usando dispositivos SIMULADOS do NI-MAX.
+# =====================================================================
+#
+# Espelha o cenário do tio (1 canal de strain no 9235), só que com o nome
+# de um dispositivo SIMULADO. Serve para exercitar o Passo 3 do guia
+# (clicar Iniciar no .exe e ver o gráfico correr com sinal sintético).
+#
+# Pré-requisito: no NI-MAX, criar um chassi cDAQ-9184 simulado + um módulo
+# 9235 (strain). Os nomes default costumam ser cDAQ1 / cDAQ1Mod3 — mas
+# CONFIRME em "Devices and Interfaces" e ajuste o nome abaixo se for outro
+# (ex.: cDAQ2Mod3, se já existir um cDAQ1 na máquina).
+#
+# Este arquivo PODE ser versionado (nomes de simulado, sem dado de cliente).
+
+[canais."cDAQ1Mod3/ai0"]
+tipo = "strain"
+unidade = "µε"
+rotulo = "Strain canal 0"
+gage_factor = 2.14
+ganho = 1000000.0
+offset = 0.0

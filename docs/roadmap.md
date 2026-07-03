@@ -4,7 +4,7 @@ Plano do início ao fim. O **critério de sucesso** não é "o código funciona"
 FlexLogger (pago) e usar o nosso software no trabalho real dele** (provas de carga e vibração em
 estruturas), com confiança profissional. Toda fase é medida contra isso.
 
-> Atualizado em 28/06/2026. As fases ganham detalhe conforme chegamos nelas — coisas novas vão
+> Atualizado em 02/07/2026. As fases ganham detalhe conforme chegamos nelas — coisas novas vão
 > aparecer durante a implementação (é esperado).
 
 ---
@@ -22,13 +22,23 @@ inicial** de abertura sem CLI (o "Abrir configuração…", pré-requisito do `.
 leitura de tensão ao vivo na aferição** (o "Leitura do A/D", pedido direto do tio). Ainda em 01/07, a
 aferição ganhou **robustez e feedback** (alerta de correlação baixa) e a **Fase 6 arrancou**: o
 **`.exe` foi buildado e validado no Windows do dev** — abre a tela inicial e monta o dashboard, sem
-console ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)). **214 testes no Mac.**
+console ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)). Em **02/07**, a aquisição ganhou
+**mensagens de erro amigáveis** (driver ausente, chassi/rede fora, canal inexistente — o tio entende o
+que fazer, sem traceback) e montou-se o **pacote de distribuição** ([docs/pacote-tio/](pacote-tio/README.md)):
+guia de build, `LEIA.txt` para o tio e o `canais.toml` pronto (1 canal de strain — o cenário da ida).
+Ainda em **02/07**, o `.exe` foi buildado no Windows do dev e o **`Iniciar` foi validado no simulado
+do NI-MAX**: a aquisição empacotada, exercitada pela primeira vez, expôs um bug de metadata do
+PyInstaller (`nidaqmx`/`nitypes` leem a própria versão em runtime e o `.dist-info` não ia no bundle),
+corrigido com `copy_metadata` no `.spec` ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)); depois
+do fix o gráfico correu contra o driver simulado (fechar o NI-MAX derruba a leitura = aquisição real).
+**220 testes no Mac.**
 
 Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do tio (não bloqueiam o
 "funciona"): a comparação numérica com o test panel do NI-MAX (na mesma unidade, por **variação**
-carregado−repouso) e validar o **TXT** no AqDAnalysis do tio. Na Fase 6, o `.exe` já **abre**; falta o
-**Iniciar no hardware do tio** (driver + chassi) e o polimento (mensagens de erro, robustez de longa
-duração). Depois, a Fase 7 (FFT ao vivo).
+carregado−repouso) e validar o **TXT** no AqDAnalysis do tio. Na Fase 6, o `.exe` já **abre e adquire
+no simulado** (02/07); falta o **Iniciar no hardware real do tio** (driver + chassi) e o polimento
+restante (robustez de longa duração;
+as **mensagens de erro amigáveis já foram feitas** em 02/07). Depois, a Fase 7 (FFT ao vivo).
 
 ```text
 [0]──[1]──[2]──[3]──[4]──[5]──[6]──[7]

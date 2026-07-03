@@ -5,12 +5,23 @@
 Aceito (01/07/2026). Implementa a **distribuição** da [Fase 6](../roadmap.md) (empacotamento &
 adoção). O `.spec` e o guia são preparados no Mac; **o binário só se gera e valida no Windows**.
 
-> **Validado no Windows (01/07/2026).** `pyinstaller packaging/ensaios-ni.spec` gerou
+> **Validado no Windows — abertura (01/07/2026).** `pyinstaller packaging/ensaios-ni.spec` gerou
 > `dist/ensaios-ni.exe` (65,9 MB, one-file, sem console) **sem ajuste** no `.spec`. A tela inicial
 > abre e o dashboard monta com o `canais.exemplo.toml` (5 canais, sub-plots, XY, controles); 214
 > testes verdes no Windows. Startup rápido nas aberturas normais (o cold-start da 1ª descompressão
 > pode demorar). Único aviso: `pyqtgraph.opengl` sem `PyOpenGL` — inofensivo (só usamos 2D; entra em
-> cena se a Fase 7/FFT precisar de 3D). Falta o **Iniciar** no hardware do tio (driver + chassi).
+> cena se a Fase 7/FFT precisar de 3D).
+>
+> **Validado no Windows — aquisição/Iniciar no simulado (02/07/2026).** O `Iniciar` empacotado (nunca
+> exercitado antes) quebrava com `No package metadata was found for nitypes`: o `nidaqmx` e sua
+> dependência transitiva `nitypes` leem a própria versão via `importlib.metadata.version(__name__)` em
+> runtime, e o PyInstaller não empacota o `.dist-info` por padrão. Como o `import nidaqmx` é lazy, só
+> aparecia ao **adquirir**, não ao abrir. Corrigido no `.spec` com `copy_metadata("nidaqmx")` e
+> `("nitypes")` alimentando o `datas=` (função defensiva `_metadados`). Depois do fix, o `Iniciar`
+> sobre dispositivo simulado do NI-MAX (`cDAQ1Mod3/ai0`, strain) rodou — o gráfico correu e **fechar o
+> NI-MAX derrubou a leitura**, prova de aquisição real do driver simulado. **A afirmação "sem ajuste"
+> acima vale só para abrir/montar; a aquisição empacotada exigiu o `copy_metadata`.** Falta o
+> **Iniciar no hardware real do tio** (driver + chassi).
 
 ## Contexto
 

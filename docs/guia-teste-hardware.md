@@ -39,7 +39,7 @@ calibrado e exportado**, na máquina dele.
 2. **Driver NI-DAQmx** — baixar em ni.com (gratuito), instalar (traz o NI-MAX). Abrir o NI-MAX.
 3. **Baixar o projeto** — `git clone <repo>` e `cd ensaios-ni`. (Sem git: git-scm.com/download/win.)
 4. **Instalar** — `pip install -e .[hardware,gui]` (hardware = `nidaqmx`; gui = dashboard).
-5. **Conferir a base** — `pytest` → deve dar **214 passed** (confirma que o software está saudável
+5. **Conferir a base** — `pytest` → deve dar **220 passed** (confirma que o software está saudável
    nessa máquina, mesmo antes de tocar no hardware).
 
 🧪 **Simulado (Windows do dev, sem hardware):** idem, mas no NI-MAX crie **dispositivos simulados**
@@ -220,21 +220,11 @@ Com o número físico batendo e o TXT importando, a Fase 5 está validada. O que
 
 ## Empacotar o `.exe` (Fase 6) — no Windows
 
-Para o tio abrir por um **ícone**, sem Python nem linha de comando. O binário é específico da
-plataforma: **gera-se no Windows** (ver [ADR-022](adr/022-empacotamento-exe-pyinstaller.md)).
-
-Pré-requisitos na máquina de build (uma vez):
-
-- Python 3.12 + driver NI-DAQmx (os mesmos do Passo 0).
-- `pip install -e .[hardware,gui,excel,build]` — o extra `build` traz o PyInstaller.
-
-Gerar, a partir da **raiz do projeto**:
-
-```text
-pyinstaller packaging/ensaios-ni.spec
-```
-
-Saída: **`dist/ensaios-ni.exe`** (arquivo único). Copiar para a máquina do tio.
+Para o tio abrir por um **ícone**, sem Python nem linha de comando. O passo a passo completo — gerar o
+`.exe`, testar o Iniciar no simulado do NI-MAX, montar a pasta no Desktop e zipar para o tio — é o
+**[pacote-tio/instrucoes-weslley.md](pacote-tio/instrucoes-weslley.md)**, dono dessa rotina. Em resumo: na raiz do projeto no
+Windows, `pip install -e .[hardware,gui,excel,build]` e `pyinstaller packaging/ensaios-ni.spec` geram
+**`dist/ensaios-ni.exe`** (arquivo único; ver [ADR-022](adr/022-empacotamento-exe-pyinstaller.md)).
 
 **Aprovação:**
 

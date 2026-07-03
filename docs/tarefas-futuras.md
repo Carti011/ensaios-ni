@@ -18,9 +18,12 @@ correspondente.
       **Falta** a comparação numérica fina com o test panel do NI-MAX (mesma unidade, por **variação**
       carregado−repouso) e validar o TXT no AqDAnalysis. Guia:
       [guia-teste-hardware.md](guia-teste-hardware.md). (Fase 5)
-- [~] **Empacotar em `.exe`** — **buildado e validado no Windows (01/07/2026):** `pyinstaller
+- [~] **Empacotar em `.exe`** — **buildado e validado no Windows:** `pyinstaller
       packaging/ensaios-ni.spec` gera `dist/ensaios-ni.exe` (one-file, sem console); abre a tela
-      inicial e monta o dashboard. **Falta** o `Iniciar` (aquisição) no hardware do tio.
+      inicial e monta o dashboard (01/07). Em **02/07** o **`Iniciar` foi validado no simulado do
+      NI-MAX** (aquisição empacotada exercitada pela 1ª vez) — precisou de `copy_metadata` no `.spec`
+      para `nidaqmx`/`nitypes` (bug de metadata do PyInstaller: `No package metadata was found for
+      nitypes`). **Falta** só o `Iniciar` no **hardware real do tio**.
       ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md), Fase 6)
 - [ ] **Validar o TXT no AqAnalysis** — ver §1 abaixo; é o elo da análise. Sem isto ele não fecha o
       trabalho.
@@ -123,15 +126,40 @@ Como fechar (backend primeiro, frontend depois — commits separados):
 
 ---
 
+## 4. Interface gráfica para configurar os canais (discovery de dispositivos)
+
+Hoje o `canais.toml` é editado à mão (ou preenchido pelo Weslley antes de enviar o `.exe`). Para um
+usuário leigo em TI, **abrir e editar um arquivo de configuração é atrito real** — o tio observou que
+no **FlexLogger não precisou disso**: "já reconhecia tudo". De fato, o FlexLogger/AqDados fazem
+**discovery automático** dos dispositivos (via NI-MAX) e oferecem um **assistente** para montar a
+tabela de canais por tipo de sensor.
+
+É factível para nós — o `nidaqmx` lista os dispositivos e canais físicos presentes
+(`System.local().devices` e os canais de cada módulo). A ideia:
+
+- [ ] **Descobrir os canais** do chassi conectado e listá-los na UI (sem digitar endereço).
+- [ ] **Montar a tabela de canais pela tela** (nome do sinal, unidade, tipo, conversão) e **salvar o
+      `canais.toml`**, reusando o escritor `tomlkit` que já existe (`persistencia/config_canais.py`).
+- [ ] Assim o tio **cria o config sem editar arquivo** — liga o chassi, escolhe os canais e nomeia.
+
+Valor: remove o último passo manual entre "recebeu o `.exe`" e "está adquirindo" — puxa forte a
+**adoção**. Escopo: fatia de UI nova, **candidata a ADR** quando priorizada. **Prioridade:** depois do
+primeiro envio/feedback — se preencher o `canais.toml` pelo Weslley já resolver o primeiro contato,
+isso pode esperar; não construir especulativamente antes do feedback do tio. O discovery (listar
+dispositivos) só roda no Windows; a montagem/escrita do TOML é testável no Mac.
+
 ## Outras pendências conhecidas (menores — já nos ADRs)
 
 Não detalhadas aqui para não duplicar; o ADR é a fonte de verdade. As de maior impacto estão
 consolidadas em **Urgências** no topo.
 
-- [ ] **Mensagens de erro amigáveis na aquisição** — o `MonitorAoVivo.passo()` mostra o `str(erro)`
-      cru no rótulo de estado (ex.: `No module named 'nidaqmx'` no Mac; falha de chassi/rede no
-      Windows do tio). Traduzir para texto que o tio entenda (driver NI-DAQmx ausente, hardware não
-      encontrado, canal inexistente). Polimento previsto na Fase 6 (ver [roadmap.md](roadmap.md)).
+- [x] **Mensagens de erro amigáveis na aquisição** — **feito (02/07/2026):** `apresentacao/erros.py`
+      (`mensagem_de_erro_de_aquisicao`) traduz os erros do `MonitorAoVivo.passo()`: **driver NI-DAQmx
+      ausente** (orienta instalar), **erro do driver NI** em sub-casos — **chassi não encontrado**
+      (cabo/IP/NI-MAX) e **canal do config inexistente** (nomes no NI-MAX → `canais.toml`) — sempre
+      com o detalhe técnico, e **fallback** que mantém o texto original. Detecta o driver pela origem
+      da exceção; os sub-casos por palavras-chave do DAQmx (fundadas na doc da NI, **a confirmar no
+      Windows**). Sem importar `nidaqmx`. Polimento da Fase 6 (ver [roadmap.md](roadmap.md)).
 - [ ] **Excel "do jeito do tio"** — metadata no cabeçalho (obra, data, sensor, taxa), aba de resumo.
       Camada de entrega, a definir com o gosto dele. [ADR-011](adr/011-estrategia-de-exportacao.md).
 - [ ] **Calibração "Ganho e Ponto de Referência"** — segundo modo de aferição do AqDados; redutível
