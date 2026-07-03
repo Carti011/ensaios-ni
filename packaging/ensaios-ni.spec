@@ -9,7 +9,7 @@
 # O driver NI-DAQmx nativo NÃO vai no bundle — é gratuito da NI e instalado à parte na máquina;
 # aqui embutimos só o wrapper Python `nidaqmx`.
 
-from PyInstaller.utils.hooks import collect_submodules
+from PyInstaller.utils.hooks import collect_submodules, copy_metadata
 
 
 def _submodulos(pacote):
@@ -21,13 +21,24 @@ def _submodulos(pacote):
         return []
 
 
+def _metadados(pacote):
+    # nidaqmx e nitypes leem a própria versão via importlib.metadata em tempo de execução
+    # (`version(__name__)`); sem o .dist-info empacotado, isso vira "No package metadata was
+    # found for ..." só quando o Iniciar dispara o import lazy do nidaqmx.
+    try:
+        return copy_metadata(pacote)
+    except Exception:
+        return []
+
+
 ocultos = _submodulos("pyqtgraph") + _submodulos("nidaqmx") + _submodulos("openpyxl")
+metadados = _metadados("nidaqmx") + _metadados("nitypes")
 
 analise = Analysis(
     ["../src/ensaios_ni/apresentacao/qt/hardware.py"],  # entrypoint: tela inicial sem CLI
     pathex=["../src"],
     binaries=[],
-    datas=[],
+    datas=metadados,
     hiddenimports=ocultos,
     hookspath=[],
     hooksconfig={},
