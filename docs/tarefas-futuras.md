@@ -133,14 +133,15 @@ porta. Fatiado; estado atual:
       abre o escolhido. (`apresentacao/perfis.py` + `TelaInicial`.)
 - [x] **A2 — Editor de canais.** Tabela de canais na UI (Adicionar/Editar/Remover) + formulário por
       canal, persistindo no `.toml`. (`apresentacao/editor_canais.py` + `qt/editor_canais.py`.)
-- [ ] **A3 — Gerência de perfis.** Criar/duplicar/renomear/remover perfil na pasta-padrão;
-      importar/exportar um `.toml` avulso.
-      > **Prioridade elevada (descoberto no teste do Windows, 03/07):** sem a A3 e sem a pasta
-      > `~/ensaios-ni` já existir, a **biblioteca de perfis nasce vazia** numa máquina nova — o tio
-      > nunca vê um perfil na lista, logo **nunca chega ao editor** (A2). O único caminho que funciona
-      > ("Abrir configuração…") abre o `.toml` mas **não** entra na biblioteca nem fica editável. A A3
-      > (importar/criar perfil) é o que **destrava** a A1/A2 na prática — não é "refinamento". Paliativo
-      > até lá: pré-criar `~/ensaios-ni` com um `.toml` dentro.
+- [~] **A3 — Gerência de perfis.** **Criar ✅** (04/07): botão "Novo ensaio…" cria o perfil na
+      pasta-padrão (criando a pasta na 1ª vez), com nome validado (não-vazio, sem sobrescrever, sem
+      `/ \ ..`), e abre o editor A2. **Faltam:** duplicar/renomear/remover perfil e importar/exportar
+      um `.toml` avulso.
+      > **Por que foi priorizada (teste do Windows, 03/07):** sem um jeito de criar/importar perfil e
+      > sem a pasta `~/ensaios-ni` já existir, a **biblioteca nascia vazia** numa máquina nova — o tio
+      > nunca via um perfil na lista, logo **nunca chegava ao editor** (A2). O "Novo ensaio…" (04/07)
+      > destrava isso: a biblioteca deixa de nascer vazia. **Importar um `.toml` avulso** para a
+      > biblioteca ainda falta (hoje o "Abrir configuração…" abre o arquivo mas não o adota).
 
 **Parte B — precisa do Windows (hardware/simulado):**
 
@@ -150,11 +151,9 @@ porta. Fatiado; estado atual:
 
 **Refinamentos menores da A2** (não bloqueiam):
 
-- [ ] **Botão "Editar canais…" não dá feedback quando não há perfil selecionado** (descoberto no
-      Windows, 03/07). Em [hardware.py](../src/ensaios_ni/apresentacao/qt/hardware.py) o clique cai em
-      `_editar_canais_do_selecionado()` → `currentItem() is None` → `return None` **em silêncio**: o
-      botão parece morto. Corrigir: **desabilitar** o botão sem seleção (como o "Aferir" durante a
-      aquisição) ou avisar "selecione um ensaio da lista". Barato; independe da A3.
+- [x] **Botão "Editar canais…" não dava feedback sem perfil selecionado** (descoberto no Windows,
+      03/07; **corrigido em 04/07**). O botão nasce **desabilitado** e habilita ao selecionar um
+      ensaio (`currentItemChanged` → `_sincronizar_botoes`), como o "Aferir".
 - [ ] Exibir os números do formulário do canal em **decimal vírgula (BR)** (hoje o parse aceita
       vírgula e ponto, mas a exibição usa ponto).
 - [ ] Validação **inline** no diálogo (desabilitar Aplicar até tipo/unidade válidos, à la
