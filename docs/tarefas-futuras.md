@@ -133,11 +133,12 @@ porta. Fatiado; estado atual:
       abre o escolhido. (`apresentacao/perfis.py` + `TelaInicial`.)
 - [x] **A2 — Editor de canais.** Tabela de canais na UI (Adicionar/Editar/Remover) + formulário por
       canal, persistindo no `.toml`. (`apresentacao/editor_canais.py` + `qt/editor_canais.py`.)
-- [~] **A3 — Gerência de perfis.** **Criar ✅** e **Importar ✅** (04/07): "Novo ensaio…" cria o perfil
-      na pasta-padrão (criando a pasta na 1ª vez) e abre o editor A2; "Importar…" adota um `.toml`
-      avulso na biblioteca (reusando `carregar_canais` como rede de segurança — não entra config
-      quebrado). Ambos validam o nome (não-vazio, sem sobrescrever, sem `/ \ ..`). **Faltam:**
-      duplicar/renomear/remover perfil e **exportar** um `.toml`.
+- [~] **A3 — Gerência de perfis.** **Criar ✅**, **Importar ✅**, **Renomear ✅**, **Remover ✅** (04/07):
+      "Novo ensaio…" cria o perfil e abre o editor A2; "Importar…" adota um `.toml` avulso (reusando
+      `carregar_canais` como rede de segurança); "Renomear…" move o `.toml` preservando o conteúdo;
+      "Remover" apaga (com confirmação). Todos validam o nome e usam erros de domínio
+      (`PerfilJaExiste`/`PerfilNaoExiste`/`NomeDePerfilInvalido`/`ImportacaoInvalida`). **Faltam:**
+      **duplicar** perfil e **exportar** um `.toml`.
       > **Por que foi priorizada (teste do Windows, 03/07):** sem um jeito de criar/importar perfil e
       > sem a pasta `~/ensaios-ni` já existir, a **biblioteca nascia vazia** numa máquina nova — o tio
       > nunca via um perfil na lista, logo **nunca chegava ao editor** (A2). Criar + Importar (04/07)
@@ -154,11 +155,10 @@ porta. Fatiado; estado atual:
 - [x] **Botão "Editar canais…" não dava feedback sem perfil selecionado** (descoberto no Windows,
       03/07; **corrigido em 04/07**). O botão nasce **desabilitado** e habilita ao selecionar um
       ensaio (`currentItemChanged` → `_sincronizar_botoes`), como o "Aferir".
-- [ ] **UX da tela inicial com 4 botões** (Novo ensaio… / Editar canais… / Importar… / Abrir
-      configuração…). "Importar…" (adota o `.toml` na biblioteca) e "Abrir configuração…" (abre avulso,
-      o escape do [ADR-023](adr/023-configuracao-de-canais-na-ui.md)) são verbos próximos e podem
-      confundir o tio. Avaliar: **agrupar** (biblioteca × avulso) ou **fundir** num fluxo só ("Abrir…"
-      pergunta se quer salvar na biblioteca). Decisão de UX do Weslley; não bloqueia.
+- [x] **UX da tela inicial com muitos botões** — **resolvido (04/07):** a tela foi reorganizada em
+      **dois grupos** (ações do ensaio selecionado × ações da biblioteca/avulso), em vez de uma fileira
+      única. Resta a ambiguidade menor entre "Importar…" (adota na biblioteca) e "Abrir configuração…"
+      (abre avulso) — aceitável por ora; fundir num fluxo só é opção futura, não bloqueia.
 - [ ] Exibir os números do formulário do canal em **decimal vírgula (BR)** (hoje o parse aceita
       vírgula e ponto, mas a exibição usa ponto).
 - [ ] Validação **inline** no diálogo (desabilitar Aplicar até tipo/unidade válidos, à la
