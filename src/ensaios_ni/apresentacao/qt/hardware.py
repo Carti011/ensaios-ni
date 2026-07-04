@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QListWidget,
     QListWidgetItem,
@@ -24,7 +25,7 @@ from PySide6.QtWidgets import (
 
 from ensaios_ni.apresentacao.editor_canais import EditorDeCanais
 from ensaios_ni.apresentacao.monitor import MonitorAoVivo
-from ensaios_ni.apresentacao.perfis import BibliotecaDePerfis, pasta_padrao
+from ensaios_ni.apresentacao.perfis import BibliotecaDePerfis, ErroDePerfil, pasta_padrao
 from ensaios_ni.apresentacao.qt.editor_canais import PainelEditorCanais
 from ensaios_ni.apresentacao.qt.janela import JanelaMonitor
 from ensaios_ni.aquisicao.daqmx import AdaptadorDaqmx
@@ -76,15 +77,20 @@ class TelaInicial(QWidget):
 
         self._lista_perfis = QListWidget()
         self._lista_perfis.itemActivated.connect(self._abrir_perfil)
+        self._lista_perfis.currentItemChanged.connect(self._sincronizar_botoes)
         self._popular_perfis()
 
+        self._btn_novo = QPushButton("Novo ensaio…")
+        self._btn_novo.clicked.connect(self._novo_ensaio)
         self._btn_editar = QPushButton("Editar canais…")
+        self._btn_editar.setEnabled(False)  # habilita só com um perfil selecionado (sem clique inerte)
         self._btn_editar.clicked.connect(self._editar_canais)
         self._btn_abrir = QPushButton("Abrir configuração…")
         self._btn_abrir.clicked.connect(self._escolher_e_abrir)
         self._lbl_erro = QLabel("")
 
         acoes = QHBoxLayout()
+        acoes.addWidget(self._btn_novo)
         acoes.addWidget(self._btn_editar)
         acoes.addWidget(self._btn_abrir)
 
@@ -124,6 +130,9 @@ class TelaInicial(QWidget):
             item.setData(Qt.ItemDataRole.UserRole, str(perfil.caminho))  # endereço interno; a UI mostra o nome
             self._lista_perfis.addItem(item)
 
+    def _sincronizar_botoes(self, *_) -> None:
+        self._btn_editar.setEnabled(self._lista_perfis.currentItem() is not None)
+
     def _abrir_perfil(self, item: QListWidgetItem) -> JanelaMonitor | None:
         return self.abrir_config(Path(item.data(Qt.ItemDataRole.UserRole)))
 
@@ -138,6 +147,31 @@ class TelaInicial(QWidget):
         painel = self._editar_canais_do_selecionado()
         if painel is not None:
             painel.exec()
+
+    def _criar_perfil(self, nome: str) -> PainelEditorCanais | None:
+        # cria o perfil, atualiza a lista e abre o editor A2 nele; nome inválido/duplicado vira aviso
+        try:
+            perfil = BibliotecaDePerfis(self._pasta_perfis).criar(nome)
+        except ErroDePerfil as erro:
+            self._lbl_erro.setText(str(erro))
+            return None
+        self._lbl_erro.setText("")
+        self._popular_perfis()
+        self._selecionar_perfil(perfil.nome)
+        return PainelEditorCanais(EditorDeCanais(perfil.caminho), parent=self)
+
+    def _selecionar_perfil(self, nome: str) -> None:
+        for i in range(self._lista_perfis.count()):
+            if self._lista_perfis.item(i).text() == nome:
+                self._lista_perfis.setCurrentRow(i)
+                return
+
+    def _novo_ensaio(self) -> None:  # pragma: no cover — abre diálogo modal
+        nome, ok = QInputDialog.getText(self, "Novo ensaio", "Nome do ensaio (obra):")
+        if ok:
+            painel = self._criar_perfil(nome)
+            if painel is not None:
+                painel.exec()
 
 
 def _mensagem_erro(config: Path, erro: Exception) -> str:

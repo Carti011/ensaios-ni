@@ -107,6 +107,37 @@ def test_tela_inicial_edita_os_canais_do_perfil_selecionado(app, tmp_path):
     assert painel._tabela.rowCount() == 2
 
 
+def test_editar_canais_desabilitado_sem_selecao(app, tmp_path):
+    # o botão não pode ficar clicável-mas-inerte (bug de UX visto no Windows): sem perfil
+    # selecionado, fica desabilitado; ao selecionar, habilita
+    _config(tmp_path)  # 1 perfil na pasta
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    assert tela._btn_editar.isEnabled() is False
+    tela._lista_perfis.setCurrentRow(0)
+    assert tela._btn_editar.isEnabled() is True
+
+
+def test_tela_inicial_cria_ensaio_novo_e_abre_o_editor(app, tmp_path):
+    # o tio cria um ensaio pela tela (sem tocar em arquivo) e cai direto no editor de canais
+    from ensaios_ni.apresentacao.qt.editor_canais import PainelEditorCanais
+
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    painel = tela._criar_perfil("obra-nova")
+    assert isinstance(painel, PainelEditorCanais)  # abre o editor A2 no perfil novo
+    assert (tmp_path / "obra-nova.toml").exists()  # persistiu o perfil
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert nomes == ["obra-nova"]  # apareceu na lista
+
+
+def test_tela_inicial_ensaio_duplicado_avisa_na_tela_sem_abrir(app, tmp_path):
+    # criar com nome que já existe não pode dar traceback: vira aviso na própria tela
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._criar_perfil("obra")
+    painel = tela._criar_perfil("obra")  # nome repetido
+    assert painel is None
+    assert "já existe" in tela._lbl_erro.text()
+
+
 def test_tela_inicial_config_invalido_mostra_erro_sem_abrir(app, tmp_path):
     arq = tmp_path / "canais.toml"  # canal sem 'tipo'
     arq.write_text('[canais."Mod1/ai0"]\nunidade = "kgf"\n', encoding="utf-8")
