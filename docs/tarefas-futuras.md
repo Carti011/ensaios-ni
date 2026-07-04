@@ -154,6 +154,11 @@ porta. Fatiado; estado atual:
 - [x] **Botão "Editar canais…" não dava feedback sem perfil selecionado** (descoberto no Windows,
       03/07; **corrigido em 04/07**). O botão nasce **desabilitado** e habilita ao selecionar um
       ensaio (`currentItemChanged` → `_sincronizar_botoes`), como o "Aferir".
+- [ ] **UX da tela inicial com 4 botões** (Novo ensaio… / Editar canais… / Importar… / Abrir
+      configuração…). "Importar…" (adota o `.toml` na biblioteca) e "Abrir configuração…" (abre avulso,
+      o escape do [ADR-023](adr/023-configuracao-de-canais-na-ui.md)) são verbos próximos e podem
+      confundir o tio. Avaliar: **agrupar** (biblioteca × avulso) ou **fundir** num fluxo só ("Abrir…"
+      pergunta se quer salvar na biblioteca). Decisão de UX do Weslley; não bloqueia.
 - [ ] Exibir os números do formulário do canal em **decimal vírgula (BR)** (hoje o parse aceita
       vírgula e ponto, mas a exibição usa ponto).
 - [ ] Validação **inline** no diálogo (desabilitar Aplicar até tipo/unidade válidos, à la
@@ -161,8 +166,13 @@ porta. Fatiado; estado atual:
 
 ---
 
-## Outras pendências conhecidas (menores — já nos ADRs)
+## Outras pendências conhecidas (menores)
 
+- [ ] **Guia de uso dentro do app para o tio (README/tutorial)** — instruções em linguagem leiga de
+      como operar o programa (criar/importar ensaio, editar canais, aferir, tarar, iniciar, exportar),
+      acessível **de dentro do app** (ex.: botão "Ajuda"/"Como usar") ou junto do `.exe`. Complementa o
+      `LEIA.txt` do [pacote-tio](pacote-tio/README.md), que hoje só cobre abrir o programa. **Para mais
+      pra frente** (pedido do Weslley, 04/07) — não agora.
 - [ ] **Excel "do jeito do tio"** — metadata no cabeçalho (obra, data, sensor, taxa), aba de resumo.
       Camada de entrega, a definir com o gosto dele. [ADR-011](adr/011-estrategia-de-exportacao.md).
 - [ ] **Calibração "Ganho e Ponto de Referência"** — segundo modo de aferição do AqDados; redutível
