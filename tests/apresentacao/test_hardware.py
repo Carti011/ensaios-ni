@@ -138,6 +138,28 @@ def test_tela_inicial_ensaio_duplicado_avisa_na_tela_sem_abrir(app, tmp_path):
     assert "já existe" in tela._lbl_erro.text()
 
 
+def test_tela_inicial_importa_toml_avulso_para_a_biblioteca(app, tmp_path):
+    # o tio traz um .toml de fora; importar o adota na biblioteca e ele passa a aparecer na lista
+    origem = _config(tmp_path)  # canais.toml válido, fora da biblioteca
+    pasta = tmp_path / "biblioteca"
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=pasta)
+    perfil = tela._importar_perfil(origem)
+    assert perfil is not None
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert "canais" in nomes  # adotado na biblioteca
+    assert (pasta / "canais.toml").exists()
+
+
+def test_tela_inicial_importar_invalido_avisa_na_tela(app, tmp_path):
+    # importar config quebrado não pode dar traceback nem sujar a biblioteca
+    origem = tmp_path / "quebrado.toml"
+    origem.write_text('[canais."Mod1/ai0"]\nunidade = "kgf"\n', encoding="utf-8")  # sem 'tipo'
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path / "biblioteca")
+    perfil = tela._importar_perfil(origem)
+    assert perfil is None
+    assert "inválido" in tela._lbl_erro.text()
+
+
 def test_tela_inicial_config_invalido_mostra_erro_sem_abrir(app, tmp_path):
     arq = tmp_path / "canais.toml"  # canal sem 'tipo'
     arq.write_text('[canais."Mod1/ai0"]\nunidade = "kgf"\n', encoding="utf-8")

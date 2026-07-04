@@ -85,6 +85,8 @@ class TelaInicial(QWidget):
         self._btn_editar = QPushButton("Editar canais…")
         self._btn_editar.setEnabled(False)  # habilita só com um perfil selecionado (sem clique inerte)
         self._btn_editar.clicked.connect(self._editar_canais)
+        self._btn_importar = QPushButton("Importar…")
+        self._btn_importar.clicked.connect(self._importar)
         self._btn_abrir = QPushButton("Abrir configuração…")
         self._btn_abrir.clicked.connect(self._escolher_e_abrir)
         self._lbl_erro = QLabel("")
@@ -92,6 +94,7 @@ class TelaInicial(QWidget):
         acoes = QHBoxLayout()
         acoes.addWidget(self._btn_novo)
         acoes.addWidget(self._btn_editar)
+        acoes.addWidget(self._btn_importar)
         acoes.addWidget(self._btn_abrir)
 
         layout = QVBoxLayout(self)
@@ -172,6 +175,25 @@ class TelaInicial(QWidget):
             painel = self._criar_perfil(nome)
             if painel is not None:
                 painel.exec()
+
+    def _importar_perfil(self, origem: Path):
+        # adota um .toml de fora na biblioteca (config inválido/duplicado vira aviso na tela)
+        try:
+            perfil = BibliotecaDePerfis(self._pasta_perfis).importar(origem)
+        except ErroDePerfil as erro:
+            self._lbl_erro.setText(str(erro))
+            return None
+        self._lbl_erro.setText("")
+        self._popular_perfis()
+        self._selecionar_perfil(perfil.nome)
+        return perfil
+
+    def _importar(self) -> None:  # pragma: no cover — abre diálogo modal
+        caminho, _ = QFileDialog.getOpenFileName(
+            self, "Importar configuração de canais", "", "Config de canais (*.toml)"
+        )
+        if caminho:
+            self._importar_perfil(Path(caminho))
 
 
 def _mensagem_erro(config: Path, erro: Exception) -> str:
