@@ -82,18 +82,32 @@ class BibliotecaDePerfis:
         return Perfil(nome=nome, caminho=destino)
 
     def remover(self, nome: str) -> None:
-        caminho = self._pasta / f"{nome}.toml"
-        if not caminho.is_file():
-            raise PerfilNaoExiste(nome)
-        caminho.unlink()
+        self._origem_existente(nome).unlink()
 
     def renomear(self, atual: str, novo: str) -> Perfil:
-        origem = self._pasta / f"{atual}.toml"
-        if not origem.is_file():
-            raise PerfilNaoExiste(atual)
+        origem = self._origem_existente(atual)
         novo, destino = self._destino_novo(novo)  # valida o novo nome e recusa sobrescrever
         origem.rename(destino)
         return Perfil(nome=novo, caminho=destino)
+
+    def duplicar(self, nome: str, novo: str) -> Perfil:
+        origem = self._origem_existente(nome)
+        novo, destino = self._destino_novo(novo)  # valida o novo nome e recusa sobrescrever
+        shutil.copyfile(origem, destino)
+        return Perfil(nome=novo, caminho=destino)
+
+    def exportar(self, nome: str, destino: Path) -> Path:
+        # copia o perfil para um arquivo fora da biblioteca (o tio envia "o config da obra")
+        destino = Path(destino)
+        shutil.copyfile(self._origem_existente(nome), destino)
+        return destino
+
+    def _origem_existente(self, nome: str) -> Path:
+        # o perfil de nome dado tem de existir na biblioteca (remover/renomear/duplicar/exportar)
+        caminho = self._pasta / f"{nome}.toml"
+        if not caminho.is_file():
+            raise PerfilNaoExiste(nome)
+        return caminho
 
     def _destino_novo(self, nome: str) -> tuple[str, Path]:
         # comum a criar/importar: valida o nome, garante a pasta e recusa sobrescrever

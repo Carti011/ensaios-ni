@@ -179,3 +179,42 @@ def test_renomear_valida_o_novo_nome(tmp_path, novo):
 def test_renomear_recusa_atual_inexistente(tmp_path):
     with pytest.raises(PerfilNaoExiste):
         BibliotecaDePerfis(tmp_path).renomear("fantasma", "novo-nome")
+
+
+def test_duplicar_copia_o_perfil_com_novo_nome(tmp_path):
+    _toml_de_um_canal(tmp_path / "ponte-x.toml")  # perfil com 1 canal
+    biblioteca = BibliotecaDePerfis(tmp_path)
+    perfil = biblioteca.duplicar("ponte-x", "ponte-x-copia")
+    assert [p.nome for p in biblioteca.listar()] == ["ponte-x", "ponte-x-copia"]
+    assert len(carregar_canais(perfil.caminho)) == 1  # conteúdo preservado
+    assert (tmp_path / "ponte-x.toml").exists()  # o original fica intacto
+
+
+def test_duplicar_recusa_origem_inexistente(tmp_path):
+    with pytest.raises(PerfilNaoExiste):
+        BibliotecaDePerfis(tmp_path).duplicar("fantasma", "copia")
+
+
+def test_duplicar_recusa_novo_nome_ja_existente(tmp_path):
+    biblioteca = BibliotecaDePerfis(tmp_path)
+    biblioteca.criar("ponte-x")
+    biblioteca.criar("laje-y")
+    with pytest.raises(PerfilJaExiste):
+        biblioteca.duplicar("ponte-x", "laje-y")
+
+
+def test_exportar_copia_o_perfil_para_caminho_externo(tmp_path):
+    # o tio "envia o config da Ponte X": exporta o perfil para um arquivo fora da biblioteca
+    pasta = tmp_path / "biblioteca"
+    pasta.mkdir()
+    _toml_de_um_canal(pasta / "ponte-x.toml")
+    destino = tmp_path / "config-para-enviar.toml"
+    resultado = BibliotecaDePerfis(pasta).exportar("ponte-x", destino)
+    assert resultado == destino
+    assert len(carregar_canais(destino)) == 1  # conteúdo copiado
+    assert (pasta / "ponte-x.toml").exists()  # o perfil na biblioteca fica intacto
+
+
+def test_exportar_recusa_perfil_inexistente(tmp_path):
+    with pytest.raises(PerfilNaoExiste):
+        BibliotecaDePerfis(tmp_path).exportar("fantasma", tmp_path / "saida.toml")
