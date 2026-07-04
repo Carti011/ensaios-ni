@@ -86,9 +86,16 @@ class TelaInicial(QWidget):
         self._btn_editar.clicked.connect(self._editar_canais)
         self._btn_renomear = QPushButton("Renomear…")
         self._btn_renomear.clicked.connect(self._renomear)
+        self._btn_duplicar = QPushButton("Duplicar")
+        self._btn_duplicar.clicked.connect(self._duplicar)
+        self._btn_exportar = QPushButton("Exportar…")
+        self._btn_exportar.clicked.connect(self._exportar)
         self._btn_remover = QPushButton("Remover")
         self._btn_remover.clicked.connect(self._remover)
-        self._acoes_do_selecionado = (self._btn_editar, self._btn_renomear, self._btn_remover)
+        self._acoes_do_selecionado = (
+            self._btn_editar, self._btn_renomear, self._btn_duplicar,
+            self._btn_exportar, self._btn_remover,
+        )
         for botao in self._acoes_do_selecionado:
             botao.setEnabled(False)
 
@@ -254,6 +261,44 @@ class TelaInicial(QWidget):
         )
         if confirma == QMessageBox.StandardButton.Yes:
             self._remover_perfil(nome)
+
+    def _duplicar_perfil(self, nome: str, novo: str):
+        try:
+            perfil = BibliotecaDePerfis(self._pasta_perfis).duplicar(nome, novo)
+        except ErroDePerfil as erro:
+            self._lbl_erro.setText(str(erro))
+            return None
+        self._lbl_erro.setText("")
+        self._popular_perfis()
+        self._selecionar_perfil(perfil.nome)
+        return perfil
+
+    def _duplicar(self) -> None:  # pragma: no cover — abre diálogo modal
+        nome = self._nome_selecionado()
+        if nome is None:
+            return
+        novo, ok = QInputDialog.getText(self, "Duplicar ensaio", "Nome da cópia:", text=f"{nome} cópia")
+        if ok:
+            self._duplicar_perfil(nome, novo)
+
+    def _exportar_perfil(self, nome: str, destino: Path):
+        try:
+            caminho = BibliotecaDePerfis(self._pasta_perfis).exportar(nome, destino)
+        except ErroDePerfil as erro:
+            self._lbl_erro.setText(str(erro))
+            return None
+        self._lbl_erro.setText("")
+        return caminho
+
+    def _exportar(self) -> None:  # pragma: no cover — abre diálogo modal
+        nome = self._nome_selecionado()
+        if nome is None:
+            return
+        caminho, _ = QFileDialog.getSaveFileName(
+            self, "Exportar configuração", f"{nome}.toml", "Config de canais (*.toml)"
+        )
+        if caminho:
+            self._exportar_perfil(nome, Path(caminho))
 
 
 def _mensagem_erro(config: Path, erro: Exception) -> str:

@@ -166,9 +166,32 @@ def test_acoes_do_ensaio_selecionado_desabilitadas_sem_selecao(app, tmp_path):
     tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
     assert tela._btn_renomear.isEnabled() is False
     assert tela._btn_remover.isEnabled() is False
+    assert tela._btn_duplicar.isEnabled() is False
+    assert tela._btn_exportar.isEnabled() is False
     tela._lista_perfis.setCurrentRow(0)
     assert tela._btn_renomear.isEnabled() is True
     assert tela._btn_remover.isEnabled() is True
+    assert tela._btn_duplicar.isEnabled() is True
+    assert tela._btn_exportar.isEnabled() is True
+
+
+def test_tela_inicial_duplica_o_perfil_selecionado(app, tmp_path):
+    _config(tmp_path)  # perfil "canais"
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    perfil = tela._duplicar_perfil("canais", "canais-copia")
+    assert perfil is not None
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert nomes == ["canais", "canais-copia"]
+
+
+def test_tela_inicial_exporta_o_perfil_selecionado(app, tmp_path):
+    _config(tmp_path)  # perfil "canais"
+    destino = tmp_path / "fora" / "enviar.toml"
+    destino.parent.mkdir()
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    resultado = tela._exportar_perfil("canais", destino)
+    assert resultado == destino
+    assert destino.exists()
 
 
 def test_tela_inicial_renomeia_o_perfil_selecionado(app, tmp_path):
