@@ -6,6 +6,41 @@ oportunidade. Só o que está **pendente** fica aqui — o que foi concluído sa
 
 ---
 
+## Panorama — 14 pendências (04/07/2026)
+
+Visão rápida do que falta, agrupada por **quem/o que desbloqueia**. O detalhe de cada item está nas
+seções abaixo.
+
+### Dependem do tio / hardware — 4 (decidem a adoção)
+
+- **1. Validar o número físico** — NI-MAX × software, por variação carregado−repouso.
+- **2. Iniciar do `.exe`** no hardware real do tio.
+- **3. TXT no AqAnalysis** — importar de verdade no AqDAnalysis dele.
+- **4. Erro recorrente ao gravar** (03/07) — travado esperando o **texto/print do erro**.
+
+### Dependem de decisão + Windows — 2
+
+- **5. Ver/capturar V/V do strain** — pedido do tio; decisão de produto (a/b/c) + confirmar a API no Windows.
+- **6. Sincronização tensão × strain** (start-trigger).
+
+### Dá pra fazer no Mac agora — 5
+
+- **7. Decimal vírgula-BR** no formulário do canal *(rápido)*.
+- **8. Validação inline** no diálogo do canal *(rápido)*.
+- **9. Excel "do jeito do tio"** — metadata no cabeçalho, aba de resumo.
+- **10. Calibração "Ganho e Ponto de Referência"** *(baixa prioridade)*.
+- **11. Guia de uso pro tio** (README/tutorial) — deixar **pra frente** (pedido do Weslley).
+
+### Windows / fases futuras — 3
+
+- **12. Parte B — discovery** de dispositivos (monta com `fake` no Mac, valida no Windows).
+- **13. FFT ao vivo** (Fase 7 — a maior).
+- **14. Robustez de longa duração** (rotação de arquivo, recuperação de queda de rede).
+
+*(+1 condicional: parametrizar o exportador TXT — só se a validação do #3 pedir; ver §2.)*
+
+---
+
 ## Urgências para a adoção (Fase 5–6)
 
 > Estas pendências **decidem se o tio larga o FlexLogger** — têm prioridade sobre o resto. Por gravidade:

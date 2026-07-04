@@ -4,7 +4,7 @@ Plano do início ao fim. O **critério de sucesso** não é "o código funciona"
 FlexLogger (pago) e usar o nosso software no trabalho real dele** (provas de carga e vibração em
 estruturas), com confiança profissional. Toda fase é medida contra isso.
 
-> Atualizado em 02/07/2026. As fases ganham detalhe conforme chegamos nelas — coisas novas vão
+> Atualizado em 04/07/2026. As fases ganham detalhe conforme chegamos nelas — coisas novas vão
 > aparecer durante a implementação (é esperado).
 
 ---
@@ -33,17 +33,22 @@ corrigido com `copy_metadata` no `.spec` ([ADR-022](adr/022-empacotamento-exe-py
 do fix o gráfico correu contra o driver simulado (aquisição real pela arquitetura). **Correção de
 03/07:** o simulado roda mesmo com o **NI-MAX fechado** — a antiga nota do "fechar o NI-MAX derruba a
 leitura" era enganosa (ver [ADR-022](adr/022-empacotamento-exe-pyinstaller.md)).
-**242 testes no Mac.**
+Em **04/07** o tio fez um **teste de campo** (leu a deformação, funciona) e reportou por áudio um
+**erro recorrente ao gravar** (a diagnosticar — falta o texto) e o pedido de **ver a tensão V/V do
+strain** (ver [tarefas-futuras.md](tarefas-futuras.md)). **281 testes no Mac.**
 
 Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do tio (não bloqueiam o
 "funciona"): a comparação numérica com o test panel do NI-MAX (na mesma unidade, por **variação**
 carregado−repouso) e validar o **TXT** no AqDAnalysis do tio. Na Fase 6, o `.exe` já **abre e adquire
 no simulado** (02/07); falta o **Iniciar no hardware real do tio** (driver + chassi) e o polimento
 restante (robustez de longa duração;
-as **mensagens de erro amigáveis já foram feitas** em 02/07). Enquanto o tio testa o zip, a **próxima
-frente de desenvolvimento no Mac** é a **configuração de canais na UI**
-([ADR-023](adr/023-configuracao-de-canais-na-ui.md), Parte A — biblioteca de perfis + editor), que
-tira do tio a edição manual do `.toml`. Depois vem a Fase 7 (FFT ao vivo).
+as **mensagens de erro amigáveis já foram feitas** em 02/07). Em **04/07** a **Parte A do
+[ADR-023](adr/023-configuracao-de-canais-na-ui.md) (configuração de canais na UI) foi concluída**:
+biblioteca de perfis, editor de canais e gerência completa (criar/importar/renomear/remover/duplicar/
+exportar), tudo pela tela — tira do tio a edição manual do `.toml`. Restam dela a **Parte B**
+(discovery de dispositivos, só no Windows) e refinamentos menores. A **próxima frente é o levantamento
+de requisitos do tio** (imagens + áudios que ele enviou: o que gostou, o que não gostou, o que falta);
+depois, a Fase 7 (FFT ao vivo) e as pendências de [tarefas-futuras.md](tarefas-futuras.md).
 
 ```text
 [0]──[1]──[2]──[3]──[4]──[5]──[6]──[7]
