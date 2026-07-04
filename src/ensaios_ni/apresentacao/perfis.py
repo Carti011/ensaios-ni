@@ -1,5 +1,10 @@
+import shutil
+import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+
+from ensaios_ni.dominio.canais import carregar_canais
+from ensaios_ni.dominio.erros import ErroDeDominio
 
 
 class ErroDePerfil(Exception):
@@ -14,6 +19,10 @@ class PerfilJaExiste(ErroDePerfil):
 
 class NomeDePerfilInvalido(ErroDePerfil):
     """Nome de perfil vazio ou com caractere de caminho (`/`, `\\`, `..`)."""
+
+
+class ImportacaoInvalida(ErroDePerfil):
+    """Arquivo de origem inexistente ou com config de canais inválida."""
 
 
 def pasta_padrao() -> Path:
@@ -50,13 +59,30 @@ class BibliotecaDePerfis:
         return [Perfil(nome=a.stem, caminho=a) for a in sorted(arquivos, key=lambda a: a.stem)]
 
     def criar(self, nome: str) -> Perfil:
+        nome, caminho = self._destino_novo(nome)
+        caminho.write_text("", encoding="utf-8")  # nasce vazio: o editor A2 adiciona os canais
+        return Perfil(nome=nome, caminho=caminho)
+
+    def importar(self, origem: Path, nome: str | None = None) -> Perfil:
+        origem = Path(origem)
+        if not origem.is_file():
+            raise ImportacaoInvalida(f"arquivo não encontrado: {origem}")
+        try:
+            carregar_canais(origem)  # rede de segurança (ADR-023): não adota config quebrado
+        except (ErroDeDominio, tomllib.TOMLDecodeError) as erro:
+            raise ImportacaoInvalida(f"config inválido em {origem.name}: {erro}") from erro
+        nome, destino = self._destino_novo(nome if nome is not None else origem.stem)
+        shutil.copyfile(origem, destino)
+        return Perfil(nome=nome, caminho=destino)
+
+    def _destino_novo(self, nome: str) -> tuple[str, Path]:
+        # comum a criar/importar: valida o nome, garante a pasta e recusa sobrescrever
         nome = _validar_nome(nome)
         self._pasta.mkdir(parents=True, exist_ok=True)  # máquina nova: a pasta pode não existir
         caminho = self._pasta / f"{nome}.toml"
         if caminho.exists():
             raise PerfilJaExiste(nome)
-        caminho.write_text("", encoding="utf-8")
-        return Perfil(nome=nome, caminho=caminho)
+        return nome, caminho
 
 
 _CARACTERES_DE_CAMINHO = ("/", "\\", "..")

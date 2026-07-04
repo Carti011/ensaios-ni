@@ -4,6 +4,7 @@ import pytest
 
 from ensaios_ni.apresentacao.perfis import (
     BibliotecaDePerfis,
+    ImportacaoInvalida,
     NomeDePerfilInvalido,
     Perfil,
     PerfilJaExiste,
@@ -82,3 +83,54 @@ def test_criar_recusa_nome_com_caractere_de_caminho(tmp_path, nome):
     # segurança: o nome vira nome de arquivo — não pode escapar da pasta de perfis
     with pytest.raises(NomeDePerfilInvalido):
         BibliotecaDePerfis(tmp_path).criar(nome)
+
+
+def _toml_de_um_canal(caminho: Path) -> Path:
+    caminho.write_text(
+        '[canais."Mod1/ai0"]\ntipo = "tensao"\nunidade = "kgf"\nganho = 1.0\noffset = 0.0\n',
+        encoding="utf-8",
+    )
+    return caminho
+
+
+def test_importar_copia_o_toml_avulso_para_a_biblioteca(tmp_path):
+    # o tio recebeu um .toml de fora e quer geri-lo pela tela: importar o adota na biblioteca
+    origem = _toml_de_um_canal(tmp_path / "ponte-x.toml")
+    biblioteca = BibliotecaDePerfis(tmp_path / "biblioteca")
+    perfil = biblioteca.importar(origem)
+    assert perfil == Perfil(nome="ponte-x", caminho=tmp_path / "biblioteca" / "ponte-x.toml")
+    assert biblioteca.listar() == [perfil]
+    assert len(carregar_canais(perfil.caminho)) == 1  # conteúdo preservado
+
+
+def test_importar_recusa_nome_ja_existente(tmp_path):
+    # não sobrescrever um perfil já na biblioteca
+    origem = _toml_de_um_canal(tmp_path / "ponte-x.toml")
+    biblioteca = BibliotecaDePerfis(tmp_path / "biblioteca")
+    biblioteca.importar(origem)
+    with pytest.raises(PerfilJaExiste):
+        biblioteca.importar(origem)
+
+
+def test_importar_recusa_origem_inexistente(tmp_path):
+    biblioteca = BibliotecaDePerfis(tmp_path / "biblioteca")
+    with pytest.raises(ImportacaoInvalida):
+        biblioteca.importar(tmp_path / "nao-existe.toml")
+
+
+def test_importar_recusa_toml_invalido_sem_deixar_lixo(tmp_path):
+    # canal sem 'tipo' -> ConfiguracaoInvalida; a biblioteca não pode adotar config quebrado
+    origem = tmp_path / "quebrado.toml"
+    origem.write_text('[canais."Mod1/ai0"]\nunidade = "kgf"\n', encoding="utf-8")
+    biblioteca = BibliotecaDePerfis(tmp_path / "biblioteca")
+    with pytest.raises(ImportacaoInvalida):
+        biblioteca.importar(origem)
+    assert biblioteca.listar() == []  # nada entrou na biblioteca
+
+
+def test_importar_com_nome_customizado_valida_o_nome(tmp_path):
+    # o nome de destino (quando informado) passa pela mesma validação do criar
+    origem = _toml_de_um_canal(tmp_path / "ponte-x.toml")
+    biblioteca = BibliotecaDePerfis(tmp_path / "biblioteca")
+    with pytest.raises(NomeDePerfilInvalido):
+        biblioteca.importar(origem, nome="../evil")
