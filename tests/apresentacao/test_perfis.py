@@ -8,6 +8,7 @@ from ensaios_ni.apresentacao.perfis import (
     NomeDePerfilInvalido,
     Perfil,
     PerfilJaExiste,
+    PerfilNaoExiste,
     pasta_padrao,
 )
 from ensaios_ni.dominio.canais import carregar_canais
@@ -134,3 +135,47 @@ def test_importar_com_nome_customizado_valida_o_nome(tmp_path):
     biblioteca = BibliotecaDePerfis(tmp_path / "biblioteca")
     with pytest.raises(NomeDePerfilInvalido):
         biblioteca.importar(origem, nome="../evil")
+
+
+def test_remover_apaga_o_perfil_e_ele_some_da_lista(tmp_path):
+    biblioteca = BibliotecaDePerfis(tmp_path)
+    biblioteca.criar("ponte-x")
+    biblioteca.criar("laje-y")
+    biblioteca.remover("ponte-x")
+    assert [p.nome for p in biblioteca.listar()] == ["laje-y"]
+    assert not (tmp_path / "ponte-x.toml").exists()
+
+
+def test_remover_recusa_perfil_inexistente(tmp_path):
+    with pytest.raises(PerfilNaoExiste):
+        BibliotecaDePerfis(tmp_path).remover("fantasma")
+
+
+def test_renomear_move_o_perfil_preservando_o_conteudo(tmp_path):
+    _toml_de_um_canal(tmp_path / "ponte-x.toml")  # perfil com 1 canal
+    biblioteca = BibliotecaDePerfis(tmp_path)
+    perfil = biblioteca.renomear("ponte-x", "ponte-rio-niteroi")
+    assert perfil == Perfil(nome="ponte-rio-niteroi", caminho=tmp_path / "ponte-rio-niteroi.toml")
+    assert [p.nome for p in biblioteca.listar()] == ["ponte-rio-niteroi"]
+    assert not (tmp_path / "ponte-x.toml").exists()
+    assert len(carregar_canais(perfil.caminho)) == 1  # conteúdo preservado
+
+
+def test_renomear_recusa_novo_nome_ja_existente(tmp_path):
+    biblioteca = BibliotecaDePerfis(tmp_path)
+    biblioteca.criar("ponte-x")
+    biblioteca.criar("laje-y")
+    with pytest.raises(PerfilJaExiste):
+        biblioteca.renomear("ponte-x", "laje-y")
+
+
+@pytest.mark.parametrize("novo", ["", "../evil", "sub/dir"])
+def test_renomear_valida_o_novo_nome(tmp_path, novo):
+    BibliotecaDePerfis(tmp_path).criar("ponte-x")
+    with pytest.raises(NomeDePerfilInvalido):
+        BibliotecaDePerfis(tmp_path).renomear("ponte-x", novo)
+
+
+def test_renomear_recusa_atual_inexistente(tmp_path):
+    with pytest.raises(PerfilNaoExiste):
+        BibliotecaDePerfis(tmp_path).renomear("fantasma", "novo-nome")

@@ -21,6 +21,12 @@ class NomeDePerfilInvalido(ErroDePerfil):
     """Nome de perfil vazio ou com caractere de caminho (`/`, `\\`, `..`)."""
 
 
+class PerfilNaoExiste(ErroDePerfil):
+    def __init__(self, nome: str):
+        super().__init__(f"não existe um ensaio salvo com o nome '{nome}'")
+        self.nome = nome
+
+
 class ImportacaoInvalida(ErroDePerfil):
     """Arquivo de origem inexistente ou com config de canais inválida."""
 
@@ -74,6 +80,20 @@ class BibliotecaDePerfis:
         nome, destino = self._destino_novo(nome if nome is not None else origem.stem)
         shutil.copyfile(origem, destino)
         return Perfil(nome=nome, caminho=destino)
+
+    def remover(self, nome: str) -> None:
+        caminho = self._pasta / f"{nome}.toml"
+        if not caminho.is_file():
+            raise PerfilNaoExiste(nome)
+        caminho.unlink()
+
+    def renomear(self, atual: str, novo: str) -> Perfil:
+        origem = self._pasta / f"{atual}.toml"
+        if not origem.is_file():
+            raise PerfilNaoExiste(atual)
+        novo, destino = self._destino_novo(novo)  # valida o novo nome e recusa sobrescrever
+        origem.rename(destino)
+        return Perfil(nome=novo, caminho=destino)
 
     def _destino_novo(self, nome: str) -> tuple[str, Path]:
         # comum a criar/importar: valida o nome, garante a pasta e recusa sobrescrever
