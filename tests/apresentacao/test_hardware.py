@@ -160,6 +160,47 @@ def test_tela_inicial_importar_invalido_avisa_na_tela(app, tmp_path):
     assert "inválido" in tela._lbl_erro.text()
 
 
+def test_acoes_do_ensaio_selecionado_desabilitadas_sem_selecao(app, tmp_path):
+    # Editar/Renomear/Remover agem sobre o ensaio selecionado: sem seleção, ficam desabilitados
+    _config(tmp_path)  # 1 perfil na pasta
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    assert tela._btn_renomear.isEnabled() is False
+    assert tela._btn_remover.isEnabled() is False
+    tela._lista_perfis.setCurrentRow(0)
+    assert tela._btn_renomear.isEnabled() is True
+    assert tela._btn_remover.isEnabled() is True
+
+
+def test_tela_inicial_renomeia_o_perfil_selecionado(app, tmp_path):
+    _config(tmp_path)  # perfil "canais"
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    perfil = tela._renomear_perfil("canais", "ponte-nova")
+    assert perfil is not None
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert nomes == ["ponte-nova"]
+    assert (tmp_path / "ponte-nova.toml").exists()
+    assert not (tmp_path / "canais.toml").exists()
+
+
+def test_tela_inicial_renomear_para_nome_existente_avisa_na_tela(app, tmp_path):
+    (tmp_path / "a.toml").write_text("", encoding="utf-8")
+    (tmp_path / "b.toml").write_text("", encoding="utf-8")
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    perfil = tela._renomear_perfil("a", "b")  # "b" já existe
+    assert perfil is None
+    assert "já existe" in tela._lbl_erro.text()
+
+
+def test_tela_inicial_remove_o_perfil_selecionado(app, tmp_path):
+    (tmp_path / "ponte-x.toml").write_text("", encoding="utf-8")
+    (tmp_path / "laje-y.toml").write_text("", encoding="utf-8")
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._remover_perfil("ponte-x")
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert nomes == ["laje-y"]
+    assert not (tmp_path / "ponte-x.toml").exists()
+
+
 def test_tela_inicial_config_invalido_mostra_erro_sem_abrir(app, tmp_path):
     arq = tmp_path / "canais.toml"  # canal sem 'tipo'
     arq.write_text('[canais."Mod1/ai0"]\nunidade = "kgf"\n', encoding="utf-8")

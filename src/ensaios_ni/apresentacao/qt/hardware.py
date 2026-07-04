@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QListWidget,
     QListWidgetItem,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -80,27 +81,41 @@ class TelaInicial(QWidget):
         self._lista_perfis.currentItemChanged.connect(self._sincronizar_botoes)
         self._popular_perfis()
 
+        # ações sobre o ensaio selecionado (habilitam só quando há um perfil escolhido)
+        self._btn_editar = QPushButton("Editar canais…")
+        self._btn_editar.clicked.connect(self._editar_canais)
+        self._btn_renomear = QPushButton("Renomear…")
+        self._btn_renomear.clicked.connect(self._renomear)
+        self._btn_remover = QPushButton("Remover")
+        self._btn_remover.clicked.connect(self._remover)
+        self._acoes_do_selecionado = (self._btn_editar, self._btn_renomear, self._btn_remover)
+        for botao in self._acoes_do_selecionado:
+            botao.setEnabled(False)
+
+        # ações da biblioteca e abertura de arquivo avulso
         self._btn_novo = QPushButton("Novo ensaio…")
         self._btn_novo.clicked.connect(self._novo_ensaio)
-        self._btn_editar = QPushButton("Editar canais…")
-        self._btn_editar.setEnabled(False)  # habilita só com um perfil selecionado (sem clique inerte)
-        self._btn_editar.clicked.connect(self._editar_canais)
         self._btn_importar = QPushButton("Importar…")
         self._btn_importar.clicked.connect(self._importar)
         self._btn_abrir = QPushButton("Abrir configuração…")
         self._btn_abrir.clicked.connect(self._escolher_e_abrir)
         self._lbl_erro = QLabel("")
 
-        acoes = QHBoxLayout()
-        acoes.addWidget(self._btn_novo)
-        acoes.addWidget(self._btn_editar)
-        acoes.addWidget(self._btn_importar)
-        acoes.addWidget(self._btn_abrir)
+        do_ensaio = QHBoxLayout()
+        for botao in self._acoes_do_selecionado:
+            do_ensaio.addWidget(botao)
+        do_ensaio.addStretch(1)
+
+        biblioteca = QHBoxLayout()
+        for botao in (self._btn_novo, self._btn_importar, self._btn_abrir):
+            biblioteca.addWidget(botao)
+        biblioteca.addStretch(1)
 
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("Escolha um ensaio salvo ou abra uma configuração:"))
+        layout.addWidget(QLabel("Escolha um ensaio salvo:"))
         layout.addWidget(self._lista_perfis)
-        layout.addLayout(acoes)
+        layout.addLayout(do_ensaio)
+        layout.addLayout(biblioteca)
         layout.addWidget(self._lbl_erro)
 
     def abrir_config(self, caminho: Path) -> JanelaMonitor | None:
@@ -134,7 +149,13 @@ class TelaInicial(QWidget):
             self._lista_perfis.addItem(item)
 
     def _sincronizar_botoes(self, *_) -> None:
-        self._btn_editar.setEnabled(self._lista_perfis.currentItem() is not None)
+        habilitado = self._lista_perfis.currentItem() is not None
+        for botao in self._acoes_do_selecionado:
+            botao.setEnabled(habilitado)
+
+    def _nome_selecionado(self) -> str | None:
+        item = self._lista_perfis.currentItem()
+        return item.text() if item is not None else None
 
     def _abrir_perfil(self, item: QListWidgetItem) -> JanelaMonitor | None:
         return self.abrir_config(Path(item.data(Qt.ItemDataRole.UserRole)))
@@ -194,6 +215,45 @@ class TelaInicial(QWidget):
         )
         if caminho:
             self._importar_perfil(Path(caminho))
+
+    def _renomear_perfil(self, atual: str, novo: str):
+        try:
+            perfil = BibliotecaDePerfis(self._pasta_perfis).renomear(atual, novo)
+        except ErroDePerfil as erro:
+            self._lbl_erro.setText(str(erro))
+            return None
+        self._lbl_erro.setText("")
+        self._popular_perfis()
+        self._selecionar_perfil(perfil.nome)
+        return perfil
+
+    def _renomear(self) -> None:  # pragma: no cover — abre diálogo modal
+        atual = self._nome_selecionado()
+        if atual is None:
+            return
+        novo, ok = QInputDialog.getText(self, "Renomear ensaio", "Novo nome:", text=atual)
+        if ok and novo != atual:
+            self._renomear_perfil(atual, novo)
+
+    def _remover_perfil(self, nome: str) -> bool:
+        try:
+            BibliotecaDePerfis(self._pasta_perfis).remover(nome)
+        except ErroDePerfil as erro:
+            self._lbl_erro.setText(str(erro))
+            return False
+        self._lbl_erro.setText("")
+        self._popular_perfis()
+        return True
+
+    def _remover(self) -> None:  # pragma: no cover — abre diálogo modal
+        nome = self._nome_selecionado()
+        if nome is None:
+            return
+        confirma = QMessageBox.question(
+            self, "Remover ensaio", f"Remover o ensaio '{nome}'? Esta ação não pode ser desfeita."
+        )
+        if confirma == QMessageBox.StandardButton.Yes:
+            self._remover_perfil(nome)
 
 
 def _mensagem_erro(config: Path, erro: Exception) -> str:
