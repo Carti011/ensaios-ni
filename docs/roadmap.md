@@ -30,7 +30,9 @@ Ainda em **02/07**, o `.exe` foi buildado no Windows do dev e o **`Iniciar` foi 
 do NI-MAX**: a aquisição empacotada, exercitada pela primeira vez, expôs um bug de metadata do
 PyInstaller (`nidaqmx`/`nitypes` leem a própria versão em runtime e o `.dist-info` não ia no bundle),
 corrigido com `copy_metadata` no `.spec` ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md)); depois
-do fix o gráfico correu contra o driver simulado (fechar o NI-MAX derruba a leitura = aquisição real).
+do fix o gráfico correu contra o driver simulado (aquisição real pela arquitetura). **Correção de
+03/07:** o simulado roda mesmo com o **NI-MAX fechado** — a antiga nota do "fechar o NI-MAX derruba a
+leitura" era enganosa (ver [ADR-022](adr/022-empacotamento-exe-pyinstaller.md)).
 **242 testes no Mac.**
 
 Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do tio (não bloqueiam o
