@@ -133,15 +133,15 @@ porta. Fatiado; estado atual:
       abre o escolhido. (`apresentacao/perfis.py` + `TelaInicial`.)
 - [x] **A2 — Editor de canais.** Tabela de canais na UI (Adicionar/Editar/Remover) + formulário por
       canal, persistindo no `.toml`. (`apresentacao/editor_canais.py` + `qt/editor_canais.py`.)
-- [~] **A3 — Gerência de perfis.** **Criar ✅** (04/07): botão "Novo ensaio…" cria o perfil na
-      pasta-padrão (criando a pasta na 1ª vez), com nome validado (não-vazio, sem sobrescrever, sem
-      `/ \ ..`), e abre o editor A2. **Faltam:** duplicar/renomear/remover perfil e importar/exportar
-      um `.toml` avulso.
+- [~] **A3 — Gerência de perfis.** **Criar ✅** e **Importar ✅** (04/07): "Novo ensaio…" cria o perfil
+      na pasta-padrão (criando a pasta na 1ª vez) e abre o editor A2; "Importar…" adota um `.toml`
+      avulso na biblioteca (reusando `carregar_canais` como rede de segurança — não entra config
+      quebrado). Ambos validam o nome (não-vazio, sem sobrescrever, sem `/ \ ..`). **Faltam:**
+      duplicar/renomear/remover perfil e **exportar** um `.toml`.
       > **Por que foi priorizada (teste do Windows, 03/07):** sem um jeito de criar/importar perfil e
       > sem a pasta `~/ensaios-ni` já existir, a **biblioteca nascia vazia** numa máquina nova — o tio
-      > nunca via um perfil na lista, logo **nunca chegava ao editor** (A2). O "Novo ensaio…" (04/07)
-      > destrava isso: a biblioteca deixa de nascer vazia. **Importar um `.toml` avulso** para a
-      > biblioteca ainda falta (hoje o "Abrir configuração…" abre o arquivo mas não o adota).
+      > nunca via um perfil na lista, logo **nunca chegava ao editor** (A2). Criar + Importar (04/07)
+      > destravam isso.
 
 **Parte B — precisa do Windows (hardware/simulado):**
 
