@@ -133,16 +133,11 @@ porta. Fatiado; estado atual:
       abre o escolhido. (`apresentacao/perfis.py` + `TelaInicial`.)
 - [x] **A2 — Editor de canais.** Tabela de canais na UI (Adicionar/Editar/Remover) + formulário por
       canal, persistindo no `.toml`. (`apresentacao/editor_canais.py` + `qt/editor_canais.py`.)
-- [~] **A3 — Gerência de perfis.** **Criar ✅**, **Importar ✅**, **Renomear ✅**, **Remover ✅** (04/07):
-      "Novo ensaio…" cria o perfil e abre o editor A2; "Importar…" adota um `.toml` avulso (reusando
-      `carregar_canais` como rede de segurança); "Renomear…" move o `.toml` preservando o conteúdo;
-      "Remover" apaga (com confirmação). Todos validam o nome e usam erros de domínio
-      (`PerfilJaExiste`/`PerfilNaoExiste`/`NomeDePerfilInvalido`/`ImportacaoInvalida`). **Faltam:**
-      **duplicar** perfil e **exportar** um `.toml`.
-      > **Por que foi priorizada (teste do Windows, 03/07):** sem um jeito de criar/importar perfil e
-      > sem a pasta `~/ensaios-ni` já existir, a **biblioteca nascia vazia** numa máquina nova — o tio
-      > nunca via um perfil na lista, logo **nunca chegava ao editor** (A2). Criar + Importar (04/07)
-      > destravam isso.
+- [x] **A3 — Gerência de perfis (completa, 04/07).** Criar, Importar, Renomear, Remover, Duplicar e
+      Exportar — todos pela tela, com validação de nome e erros de domínio
+      (`PerfilJaExiste`/`PerfilNaoExiste`/`NomeDePerfilInvalido`/`ImportacaoInvalida`). **Fecha a
+      Parte A do [ADR-023](adr/023-configuracao-de-canais-na-ui.md)** (biblioteca + editor + gerência);
+      a biblioteca não nasce mais vazia numa máquina nova.
 
 **Parte B — precisa do Windows (hardware/simulado):**
 
