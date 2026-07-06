@@ -207,3 +207,34 @@ def test_transmitir_strain_usa_parametros_do_9235_em_modo_continuous(monkeypatch
     assert kwargs["nominal_gage_resistance"] == 120.0
     assert kwargs["voltage_excit_val"] == 2.0
     fluxo.close()
+
+
+def test_transmitir_tensao_dimensiona_buffer_com_folga_sobre_o_bloco(monkeypatch):
+    # -200279 (buffer overrun): em CONTINUOUS o samps_per_chan do cfg_samp_clk_timing
+    # dimensiona o BUFFER de entrada. Buffer = tamanho do bloco não dá folga para o jitter
+    # do consumo (rede Ethernet + gravar CSV + repintar) e o driver sobrescreve amostras não
+    # lidas. O read segue lendo um bloco por vez; o buffer é que precisa de folga.
+    registro = _instalar_nidaqmx_fake(monkeypatch, dados=[1.0, 2.0])
+    bloco = 256
+    fluxo = AdaptadorDaqmx().transmitir_tensao(
+        ["cDAQ1Mod1/ai0"], taxa_hz=1024.0, amostras_por_bloco=bloco
+    )
+    next(fluxo)
+    fluxo.close()
+    assert registro["read"][0] == bloco  # lê um bloco por vez (não "todas as disponíveis")
+    buffer = registro["timing"][0]["samps_per_chan"]
+    assert buffer >= bloco * 5  # buffer com folga generosa, nunca o bloco cru
+
+
+def test_transmitir_strain_dimensiona_buffer_com_folga_sobre_o_bloco(monkeypatch):
+    # o -200279 apareceu no teste de campo do tio, que rodou justamente o 9235 (strain):
+    # o buffer com folga vale igual aqui.
+    registro = _instalar_nidaqmx_fake(monkeypatch, dados=[1e-4, 2e-4])
+    bloco = 256
+    fluxo = AdaptadorDaqmx().transmitir_strain(
+        ["cDAQ1Mod3/ai0"], taxa_hz=1024.0, amostras_por_bloco=bloco
+    )
+    next(fluxo)
+    fluxo.close()
+    assert registro["read"][0] == bloco
+    assert registro["timing"][0]["samps_per_chan"] >= bloco * 5
