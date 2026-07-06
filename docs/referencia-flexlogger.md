@@ -120,6 +120,38 @@ falar com o dono. Confiança indicada em cada item.
   ensaio, e (versão completa) triggers/eventos/estatística. É o conjunto que nosso software precisa
   cobrir aos poucos.
 
+## 6. Como o tio adquire e visualiza o 9235 no FlexLogger (evidência de 04/07/2026)
+
+O tio enviou telas do **FlexLogger dele** configurando e rodando o 9235 (as imagens **não** são
+versionadas — material do tio, [onde-pesquisar.md](onde-pesquisar.md); só esta análise fica no repo).
+Servem como **evidência de requisito e de núcleo técnico**, **não** como mandato de copiar a UX: o
+espelho de **produto** segue o Lynx/AqDados ([ADR-010](adr/010-paridade-com-o-lynx.md)); o FlexLogger é
+justamente a peça que estamos substituindo.
+
+**Configuração do canal de strain — bate 1:1 com a nossa (validação de graça):**
+
+- Physical measurement **Strain**; Sensor class **Bridge**; Physical unit **Strain (ε)**.
+- Scaling: **Gage factor 2,14**; Gage type **Single element**.
+- Electrical: **Quarter bridge**, **120 Ω**, Excitation **Internal 2 V**, Hardware range **Auto
+  (−29,4 / 29,4 mV/V)**, **Bridge offset (Null) calculado** (a tara/balanço de ponte).
+- Confirma os parâmetros do [ADR-020](adr/020-parametros-de-strain-por-canal.md) /
+  [contexto-hardware.md §4](contexto-hardware.md) — inclusive que **não** se usam os defaults
+  perigosos da API.
+
+**Fundamenta o pedido de V/V (item 🟠 do backlog):** o FlexLogger exibe, no mesmo canal, **Live value
+(ε)** *e* **Raw value (mV/V)** — a razão de ponte crua. É exatamente o que o tio quer ver e
+correlacionar ("prefere ler em voltagem"). O 9235 é ratiométrico (±29,4 mV/V); expor essa razão
+resolve a correlação NI-MAX × software. Ver [tarefas-futuras.md](tarefas-futuras.md) (🟠).
+
+**Dashboard do FlexLogger (referência de widgets, não de estética):** paletas de **Graphs** (Long
+History, High Speed, **Frequency/FFT**, XY) e **Numerics** (Numeric Indicator, **Gauge**, **Meter**,
+Knob, Tank…). O tio montou e rodou um dashboard com **indicador numérico + Gauge + High Speed Graph
+(ε×tempo) + Frequency Spectrum Graph (FFT, dB × Hz)**. Confirma a Fase 7 (FFT ao vivo,
+[ADR-021](adr/021-fft-ao-vivo-paridade-dinamica.md)) e sugere um **valor grande/indicador** (o número
+ao vivo que ele acompanha) como conveniência de UI.
+
+---
+
 ## Fontes
 
 - [NI-DAQmx Custom Scales and Usage Explained](https://www.ni.com/en/support/documentation/supplemental/18/ni-daqmx-custom-scales-and-usage-explained.html)

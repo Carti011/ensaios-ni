@@ -33,9 +33,13 @@ corrigido com `copy_metadata` no `.spec` ([ADR-022](adr/022-empacotamento-exe-py
 do fix o gráfico correu contra o driver simulado (aquisição real pela arquitetura). **Correção de
 03/07:** o simulado roda mesmo com o **NI-MAX fechado** — a antiga nota do "fechar o NI-MAX derruba a
 leitura" era enganosa (ver [ADR-022](adr/022-empacotamento-exe-pyinstaller.md)).
-Em **04/07** o tio fez um **teste de campo** (leu a deformação, funciona) e reportou por áudio um
-**erro recorrente ao gravar** (a diagnosticar — falta o texto) e o pedido de **ver a tensão V/V do
-strain** (ver [tarefas-futuras.md](tarefas-futuras.md)). **281 testes no Mac.**
+Em **04/07** o tio fez um **teste de campo** (leu a deformação, funciona) e, no **levantamento de
+requisitos** (imagens + áudios), destravou duas frentes: o **erro recorrente ao gravar** ganhou causa —
+**DAQmx `-200279` (buffer overrun** na aquisição contínua), com a tradução amigável a corrigir — e o
+pedido de **ler em voltagem/V/V e correlacionar** foi reforçado (evidenciado pelo FlexLogger dele, que
+mostra ε + mV/V). Pediu também **filtro de ruído** no sinal ao vivo (**feito**: média móvel de visualização no gráfico,
+sem afetar o CSV). Detalhe e demais requisitos em [tarefas-futuras.md](tarefas-futuras.md).
+**289 testes no Mac.**
 
 Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do tio (não bloqueiam o
 "funciona"): a comparação numérica com o test panel do NI-MAX (na mesma unidade, por **variação**

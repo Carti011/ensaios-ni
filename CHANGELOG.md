@@ -118,8 +118,32 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 - **Dashboard — duplicar e exportar perfil, fecha a fatia A3 e a Parte A ([ADR-023](docs/adr/023-configuracao-de-canais-na-ui.md)).** `BibliotecaDePerfis.duplicar(nome, novo)` copia um perfil da biblioteca sob novo nome (o original fica intacto) e `exportar(nome, destino)` copia o `.toml` para um arquivo **fora** da biblioteca (o tio "envia o config da obra" — rastreabilidade do laudo), ambos recusando perfil inexistente (`PerfilNaoExiste`); duplicar valida/não sobrescreve o novo nome (reusa `_destino_novo`). Refactor: `remover`/`renomear`/`duplicar`/`exportar` compartilham o helper `_origem_existente`. Na `TelaInicial`, os botões **Duplicar** e **Exportar…** entram no grupo de ações do ensaio selecionado. **Fecha a Parte A do [ADR-023](docs/adr/023-configuracao-de-canais-na-ui.md)** (biblioteca de perfis + editor de canais + gerência, tudo pela tela); resta a **Parte B** (discovery de dispositivos, só no Windows).
 
+- **Filtro de ruído no sinal ao vivo (pedido do tio, 04/07).** Módulo puro `dominio/filtro.py`
+  (`media_movel`): suaviza a série por **média móvel centrada**, preservando o tamanho (alinha com o
+  eixo de tempo); `janela <= 1` = filtro desligado. `QuadroAoVivo.suavizar(janela)`
+  (`apresentacao/monitor.py`) aplica por canal, mantendo tempos e unidades. No widget
+  (`apresentacao/qt/janela.py`), um **"Suavizar ruído"** + campo de janela (pts) no rodapé liga o
+  filtro no gráfico sinal×tempo. É **só visualização** — a gravação do CSV e o laudo seguem com o dado
+  cru (rastreabilidade), como a seleção de canais. Espelha o "Filtro Passa Banda" do AqDados.
+- **Formulário do canal — decimal vírgula-BR e validação inline (04/07).** No `DialogoCanal`
+  (`apresentacao/qt/editor_canais.py`): os números passam a ser **exibidos em decimal vírgula** (`2,14`,
+  não `2.14` — o parse já aceitava os dois), e o botão **Aplicar** só habilita com **endereço + unidade**
+  preenchidos (validação inline à la `PainelAfericao`, no lugar do aviso pós-clique). Fecha as
+  pendências 7 e 8 do Panorama de `docs/tarefas-futuras.md`.
+
 ### Corrigido
 
+- **Aquisição contínua estourava `-200279` (buffer overrun) no hardware real do tio.** No teste de
+  campo (03–04/07) a gravação disparava o **DAQmx `-200279`** ("attempted to read samples that are no
+  longer available… overwritten") "depois de um tempinho" — só no hardware/rede real, nunca no
+  simulado. Causa: em `transmitir_tensao`/`transmitir_strain` (modo CONTINUOUS) o `samps_per_chan` do
+  `cfg_samp_clk_timing` **dimensionava o buffer de entrada pelo tamanho do bloco lido** — zero folga
+  para o jitter do consumo (rede Ethernet + gravar CSV + repintar), e o driver sobrescrevia amostras
+  não lidas. Correção (`aquisicao/daqmx.py`): novo `_tamanho_buffer_continuo` dá **folga** ao buffer (o
+  maior entre 10× o bloco e 5 s de amostras), mantendo o `read` por bloco fixo — a mitigação que a
+  própria NI recomenda. Testado por mock no Mac (buffer com folga + read por bloco); **validação real
+  no Windows/hardware** (o `-200279` não reproduz no simulado nem no Mac). Ver
+  `docs/tarefas-futuras.md` (item 4).
 - **Botão "Editar canais…" ficava clicável mas inerte sem perfil selecionado** (bug de UX visto no teste do Windows, 03/07): a `TelaInicial` chamava `_editar_canais_do_selecionado()` → `currentItem() is None` → `return None` **em silêncio** — o botão parecia morto (o tio clicaria e nada aconteceria). Agora o botão **nasce desabilitado** e habilita só quando há um ensaio selecionado na lista (`currentItemChanged` → `_sincronizar_botoes`), como o "Aferir" faz durante a aquisição.
 
 - **Aquisição no `.exe` empacotado falhava com `No package metadata was found for nitypes` (Fase 6, [ADR-022](docs/adr/022-empacotamento-exe-pyinstaller.md)).** O `nidaqmx` e sua dependência transitiva `nitypes` leem a própria versão em runtime via `importlib.metadata.version(__name__)`, que exige o `.dist-info` do pacote — e o PyInstaller **não** empacota metadata de distribuição por padrão. Como o `import nidaqmx` é lazy (só dispara no **Iniciar**), o erro aparecia apenas ao **adquirir** no binário: a tela inicial e o dashboard montavam normal. Correção no `packaging/ensaios-ni.spec`: nova função defensiva `_metadados` (espelha o `_submodulos` — `try/except → []`) que usa `copy_metadata` (`PyInstaller.utils.hooks`) para `nidaqmx` e `nitypes`, alimentando o `datas=` do `Analysis` (antes `[]`). **Validado no Windows do dev (02/07/2026):** rebuild limpo e `Iniciar` no `.exe` sobre **dispositivo simulado** do NI-MAX (`cDAQ1Mod3/ai0`, strain, `gage_factor = 2.14`) — o gráfico correu com os dados sintéticos do driver simulado, leitura **real** pela arquitetura (o `AdaptadorDaqmx` chama o `nidaqmx`, sem cache no nosso código; o bug do `nitypes` confirmou o carregamento). **Correção (03/07):** a nota antiga do "fechar o NI-MAX derruba a leitura" era enganosa — o simulado vive no driver e roda com o NI-MAX fechado (ver [ADR-022](docs/adr/022-empacotamento-exe-pyinstaller.md)). Primeira vez que a **aquisição empacotada** foi exercitada — fecha o coelho perigoso da Fase 6 no simulado (falta só o hardware real do tio). Só o `.spec` mudou; os 220 testes seguem verdes (o `.spec` não é importado por `src/` nem `tests/`).
