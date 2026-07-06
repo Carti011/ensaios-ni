@@ -394,6 +394,34 @@ def test_janela_oculta_e_revela_canal_pela_selecao(app, tmp_path):
     janela.parar()
 
 
+def test_filtro_de_ruido_suaviza_o_grafico_sem_afetar_a_gravacao(app, tmp_path):
+    import statistics
+
+    # sinal alternado (ruído ±1 em torno de 1) para o filtro ter o que suavizar
+    fonte = AquisicaoFake(tensoes={"Mod1/ai0": [0.0, 2.0, 0.0, 2.0, 0.0, 2.0]})
+    canais = Canais(
+        {"Mod1/ai0": Canal(nome="Mod1/ai0", tipo="tensao", unidade="kgf", ganho=1.0, offset=0.0)}
+    )
+    monitor = MonitorAoVivo(
+        fonte, canais, taxa_hz=6.0, amostras_por_bloco=6, caminho=tmp_path / "e.csv"
+    )
+    janela = JanelaMonitor(monitor)
+    janela.iniciar()
+    janela._ao_passo()
+
+    _, cru = janela._curvas["Mod1/ai0"].getData()  # filtro desligado: dado cru na tela
+    janela._spin_janela.setValue(3)
+    janela._chk_filtro.setChecked(True)  # liga o filtro -> redesenha suavizado
+    _, suave = janela._curvas["Mod1/ai0"].getData()
+
+    assert len(suave) == len(cru)  # o filtro preserva o alinhamento com o tempo
+    assert statistics.pvariance(list(suave)) < statistics.pvariance(list(cru))  # suavizou na tela
+    # o monitor (origem da gravação/CSV) segue com o dado cru: filtro é só visualização
+    bruto = janela._monitor.quadro().dados["Mod1/ai0"]
+    assert statistics.pvariance(bruto) > statistics.pvariance(list(suave))
+    janela.parar()
+
+
 def test_janela_recolhe_subplot_quando_unidade_fica_sem_canais(app, tmp_path):
     janela = JanelaMonitor(_monitor_multiunidade(tmp_path))
     # multiunidade: Mod1/ai0 e Mod1/ai1 em kgf, Mod3/ai0 em µε

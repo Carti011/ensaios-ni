@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 import pyqtgraph as pg
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
@@ -23,6 +24,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QPushButton,
+    QSpinBox,
     QSplitter,
     QTableWidget,
     QTableWidgetItem,
@@ -90,6 +92,14 @@ class JanelaMonitor(QWidget):
         self._btn_zerar.setEnabled(False)
         self._btn_exportar = QPushButton("Exportar…")  # reusa os exportadores sobre o CSV gravado
         self._btn_exportar.setEnabled(False)
+        # filtro de ruído (só visualização, não afeta o CSV): média móvel no gráfico sinal×tempo
+        self._chk_filtro = QCheckBox("Suavizar ruído")
+        self._spin_janela = QSpinBox()
+        self._spin_janela.setRange(1, 999)
+        self._spin_janela.setValue(11)
+        self._spin_janela.setSuffix(" pts")
+        self._chk_filtro.stateChanged.connect(self._redesenhar_sinais)
+        self._spin_janela.valueChanged.connect(self._redesenhar_sinais)
         # metadata do ensaio (rastreabilidade do laudo) — salva no .meta.toml ao gravar
         self._campo_obra = QLineEdit()
         self._campo_operador = QLineEdit()
@@ -139,12 +149,19 @@ class JanelaMonitor(QWidget):
         self._atualizar_estado()
 
     def _desenhar_sinais(self, quadro) -> None:
+        # filtro de ruído do tio: suaviza só para exibir (o CSV segue com o dado cru)
+        if self._chk_filtro.isChecked():
+            quadro = quadro.suavizar(self._spin_janela.value())
         # canal oculto pela seleção fica sem traço; gravação e XY não são afetados
         for nome in self._nomes:
             if nome in self._visiveis:
                 self._curvas[nome].setData(quadro.tempos, quadro.dados[nome])
             else:
                 self._curvas[nome].setData([], [])
+
+    def _redesenhar_sinais(self) -> None:
+        # o filtro mudou (ligar/desligar ou janela): redesenha o gráfico com o quadro atual
+        self._desenhar_sinais(self._monitor.quadro())
 
     def _esta_visivel(self, nome: str) -> bool:
         return nome in self._visiveis
@@ -398,6 +415,8 @@ class JanelaMonitor(QWidget):
         rodape.addWidget(self._btn_parar)
         rodape.addWidget(self._btn_zerar)
         rodape.addWidget(self._btn_exportar)
+        rodape.addWidget(self._chk_filtro)
+        rodape.addWidget(self._spin_janela)
         rodape.addStretch(1)
         rodape.addWidget(self._lbl_estado)
 
