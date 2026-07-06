@@ -94,6 +94,24 @@ def test_aplicar_canal_adiciona_e_atualiza_a_tabela(app, tmp_path):
     assert painel._tabela.item(0, 0).text() == "Carga"
 
 
+def test_dialogo_exibe_numeros_em_decimal_virgula_br(app):
+    # o tio lê em BR: o campo mostra 2,14 (não 2.14); o parse segue aceitando vírgula e ponto
+    dialogo = DialogoCanal("Mod3/ai0", {"tipo": "strain", "unidade": "µε", "gage_factor": 2.14})
+    assert dialogo._gage_factor.text() == "2,14"
+    _nome, campos = dialogo.campos()
+    assert campos["gage_factor"] == 2.14  # exibição BR não quebra o parse
+
+
+def test_dialogo_desabilita_aplicar_ate_endereco_e_unidade(app):
+    # validação inline (à la PainelAfericao): sem popup pós-clique — o Aplicar só habilita quando válido
+    dialogo = DialogoCanal()
+    assert dialogo._aplicar.isEnabled() is False  # vazio: não aplica
+    dialogo._endereco.setText("Mod1/ai0")
+    assert dialogo._aplicar.isEnabled() is False  # falta a unidade
+    dialogo._unidade.setText("kgf")
+    assert dialogo._aplicar.isEnabled() is True  # essencial preenchido
+
+
 def test_campos_do_canal_reflete_o_canal_para_reeditar(app, tmp_path):
     painel = PainelEditorCanais(EditorDeCanais(_perfil(tmp_path)))
     canal = painel._editor.canais()["Mod1/ai0"]

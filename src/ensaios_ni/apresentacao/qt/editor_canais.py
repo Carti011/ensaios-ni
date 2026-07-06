@@ -20,7 +20,8 @@ from ensaios_ni.dominio.erros import ConfiguracaoInvalida
 
 
 def _texto_num(valor: float | None) -> str:
-    return "" if valor is None else str(valor)
+    # exibição em decimal vírgula (BR) — o que o tio lê; o parse (_num) aceita vírgula e ponto
+    return "" if valor is None else str(valor).replace(".", ",")
 
 
 def _num(texto: str) -> float | None:
@@ -170,14 +171,22 @@ class DialogoCanal(QDialog):
         form.addRow("Gage factor (strain)", self._gage_factor)
 
         botoes = QDialogButtonBox()
-        aplicar = botoes.addButton("Aplicar", QDialogButtonBox.ButtonRole.AcceptRole)
+        self._aplicar = botoes.addButton("Aplicar", QDialogButtonBox.ButtonRole.AcceptRole)
         cancelar = botoes.addButton("Cancelar", QDialogButtonBox.ButtonRole.RejectRole)
-        aplicar.clicked.connect(self.accept)
+        self._aplicar.clicked.connect(self.accept)
         cancelar.clicked.connect(self.reject)
+        # validação inline: Aplicar só habilita com endereço + unidade (sem aviso pós-clique)
+        self._endereco.textChanged.connect(self._sincronizar)
+        self._unidade.textChanged.connect(self._sincronizar)
 
         raiz = QVBoxLayout(self)
         raiz.addLayout(form)
         raiz.addWidget(botoes)
+        self._sincronizar()
+
+    def _sincronizar(self) -> None:
+        valido = bool(self._endereco.text().strip()) and bool(self._unidade.text().strip())
+        self._aplicar.setEnabled(valido)
 
     def campos(self) -> tuple[str, dict]:
         nome = self._endereco.text().strip()
