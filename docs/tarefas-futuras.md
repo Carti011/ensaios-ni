@@ -6,11 +6,15 @@ oportunidade. Só o que está **pendente** fica aqui — o que foi concluído sa
 
 ---
 
-## Panorama — 15 pendências (04/07/2026 · atualizado pós-levantamento de requisitos do tio)
+## Panorama — pendências (atualizado 07/07/2026)
 
 Visão rápida do que falta, agrupada por **quem/o que desbloqueia**. O detalhe de cada item está nas
 seções abaixo. O **levantamento de requisitos de 04/07** (imagens + áudios do tio) está resumido na
 subseção *Levantamento de requisitos* logo adiante.
+
+> **Fechados em 07/07 (saíram do backlog; ver CHANGELOG):** o **crash do editor de canais** (canal
+> incompleto era gravado e derrubava o app — agora recusa antes de gravar e abre tolerante), o **botão
+> "Abrir ensaio"** na tela inicial e a **exportação com duração legível + `hh:mm:ss` + trecho opcional**.
 
 ### Dependem do tio / hardware — 4 (decidem a adoção)
 
@@ -44,7 +48,10 @@ subseção *Levantamento de requisitos* logo adiante.
 
 - **13. Parte B — discovery** de dispositivos (monta com `fake` no Mac, valida no Windows).
 - **14. FFT ao vivo** (Fase 7 — a maior; **o tio confirmou o Frequency Graph do FlexLogger em 04/07**).
-- **15. Robustez de longa duração** (rotação de arquivo, recuperação de queda de rede).
+- **15. Robustez de longa duração** (rotação de arquivo, recuperação de queda de rede) — **estratégia
+  discutida (07/07):** rotação de arquivo na gravação + concatenação no AqDAnalysis (o tio já tem) +
+  Excel só por trecho; TDMS só se o volume exigir. **Aguarda o tio** dizer se faz ensaios de dias/meses
+  e como resolve hoje → vira ADR. Ver 🟡 abaixo.
 
 *(+1 condicional: parametrizar o exportador TXT — só se a validação do #3 pedir; ver §2.)*
 
@@ -177,7 +184,14 @@ leitura de tensão do canal; prefere voltagem + correlação. (3) *NI-MAX* — m
 - [ ] **Robustez de longa duração** — rotação de arquivo + recuperação de queda de rede do chassi
       Ethernet; um ensaio de meses num único CSV é inviável (volume + memória). Inclui exportar
       ensaios gigantes (o `carregar_csv` lê o CSV inteiro em memória).
-      [ADR-012](adr/012-serie-temporal-e-exportadores.md).
+      [ADR-012](adr/012-serie-temporal-e-exportadores.md). **Estratégia discutida (07/07, aguarda o
+      tio → ADR):** (1) **rotação de arquivo** na gravação (segmentar por tempo/tamanho, numerado/datado
+      — cada pedaço é recuperável e cabe no Excel, que trava em ~1 M linhas ≈ 14,5 h a 20 Hz); (2)
+      **juntar no AqDAnalysis** do tio, que já tem "Concatenação de Séries Temporais"
+      ([referencia-lynx §2.3](referencia-lynx.md)); (3) **Excel só por trecho/resumo**, nunca o ensaio
+      inteiro. **TDMS** (formato nativo NI, o que o FlexLogger usa) entra só se a taxa/volume exigir
+      ([ADR-003](adr/003-persistencia-csv-do-ensaio.md) já o reservou). Perguntas enviadas ao tio (04–07/07):
+      ele faz ensaios de dias/meses? como resolve hoje? que formato/extensão usa?
 
 ---
 

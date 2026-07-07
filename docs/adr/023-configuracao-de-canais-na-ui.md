@@ -137,3 +137,14 @@ Definidas com o Weslley — as recomendações do rascunho foram aceitas:
    {`tensao`, `strain`}, número válido em ganho/offset/gage factor) para dar feedback imediato; o
    `carregar_canais` segue como a **rede de segurança final** (fonte única da regra — a UI só
    antecipa o aviso, não duplica a lógica).
+
+   > **Refino (07/07/2026, do teste no Windows):** a "rede de segurança final" pegava **tarde demais**.
+   > O editor **gravava** um canal incompleto (validação de escrita só do essencial: tipo + unidade) e o
+   > `carregar_canais` só o rejeitava ao **reabrir** o perfil — o que **derrubava o app** (crash). Além
+   > disso, um perfil com um canal inválido **travava a abertura** do editor. Correções: (a) o editor
+   > **valida pela regra completa do domínio** (novo `validar_canal`, que reusa `_construir_canal`)
+   > **antes** de gravar — recusa e **avisa**, sem gravar um canal que a releitura rejeitaria (decisão do
+   > Weslley: **avisar e não gravar**, não dar default silencioso, pela mesma razão da armadilha do strain);
+   > (b) a listagem e a reabertura do editor leem o TOML de forma **tolerante** (`EditorDeCanais.linhas`/
+   > `campos`), para o editor **abrir mesmo com um canal inválido** no perfil, deixando o tio corrigir/
+   > removê-lo; (c) TOML corrompido ao abrir o editor vira **aviso**, não traceback. Ver CHANGELOG (07/07).

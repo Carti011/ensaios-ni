@@ -39,6 +39,8 @@ Substituir o **FlexLogger** (única peça paga da pilha NI) por software própri
 
 **Memória criada:** `windows-dev-ambiente-python-m` (usar `python -m` no Windows; contagem real 315, doc antiga diz 242).
 
+**Documentação atualizada (donos, [ADR-014](../adr/014-fonte-unica-na-documentacao.md)):** `CHANGELOG.md` (3 entradas: fix do editor, botão "Abrir ensaio", exportação); [roadmap.md](../roadmap.md) (parágrafo 07/07 + **315 testes** + próximas frentes = ADR-024 e ADR de arquivo); [tarefas-futuras.md](../tarefas-futuras.md) (Panorama marca os fechados de 07/07 + a **estratégia de ensaios longos** no item de robustez); [ADR-023](../adr/023-configuracao-de-canais-na-ui.md) (nota de refino da decisão 4 — validar antes de gravar). Nenhum ADR novo foi "batido o martelo" nesta sessão (o do V/V e o de arquivo estão pendentes de decisão).
+
 ## 4. Estado atual
 
 - **315 testes verdes no Mac** (`uv run pytest`), guardas de AST verdes. Working tree **limpo**.
@@ -97,7 +99,7 @@ formatar_duracao(183300) -> "2 d 2 h 55 min"
 - Testes (Mac): `uv run pytest -q` → **315 passed**.
 - Dashboard hardware (Mac; Iniciar exige Windows): `PYTHONPATH=src uv run python -m ensaios_ni.apresentacao.qt.hardware`
 - Build (Windows): apagar `build\`/`dist\`, depois `python -m PyInstaller packaging\ensaios-ni.spec`.
-- **PR:** https://github.com/Carti011/ensaios-ni/pull/12
+- **PR:** <https://github.com/Carti011/ensaios-ni/pull/12>
 
 ## 8. Como iniciar a próxima sessão
 
@@ -106,4 +108,3 @@ formatar_duracao(183300) -> "2 d 2 h 55 min"
 3. `uv run pytest -q` → **315 passed** (confirma a base).
 4. **Decidir a frente:** ADR-024 (V/V do strain) é a próxima estrutural; ou o ADR de arquivo para ensaios longos, se o tio respondeu; ou reenviar o `.exe` ao tio.
 5. Regras de sempre: `import nidaqmx` só em `daqmx.py` (lazy); `import PySide6` só em `apresentacao/qt/`; Presenter puro + widget fino; strain nunca usa os defaults da API; filtro/seleção de canais são **só visualização** (o CSV grava o cru); português em tudo (UI também); commits backend/frontend separados; **nunca commitar mídia do tio**; **nada de merge autônomo na `main`** nem commit/push sem o Weslley pedir; ao mexer na contagem de testes, usar strings específicas, nunca `replace_all` de número cru.
-```

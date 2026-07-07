@@ -39,7 +39,18 @@ requisitos** (imagens + áudios), destravou duas frentes: o **erro recorrente ao
 pedido de **ler em voltagem/V/V e correlacionar** foi reforçado (evidenciado pelo FlexLogger dele, que
 mostra ε + mV/V). Pediu também **filtro de ruído** no sinal ao vivo (**feito**: média móvel de visualização no gráfico,
 sem afetar o CSV). Detalhe e demais requisitos em [tarefas-futuras.md](tarefas-futuras.md).
-**289 testes no Mac.**
+
+Em **07/07** o Weslley **validou o Windows** (dispositivos simulados no NI-MAX): git sincronizado,
+suíte verde, `.exe` builda, aquisição finita/contínua e export `xlsx` via CLI sem erro (o fix do
+`-200279` não regrediu o streaming — `tempo_s` contínuo através das fronteiras de bloco). Testando o
+**editor de canais** no Windows, apareceu um **crash**: adicionar um canal sem a conversão (ganho/offset
+nem pontos) **gravava mesmo assim** e derrubava o app ao reabrir o perfil — **corrigido por TDD** (o
+editor valida pela regra do domínio **antes** de gravar e lê o perfil de forma **tolerante**; refina a
+decisão 4 do [ADR-023](adr/023-configuracao-de-canais-na-ui.md)). Ainda em 07/07: **botão "Abrir
+ensaio"** na tela inicial (abre o dashboard do selecionado sem duplo-clique) e a **janela de exportação**
+ganhou **duração legível + trecho opcional + `hh:mm:ss`** (o tio não pensa em segundos; módulo puro
+`apresentacao/tempo.py`). Tudo na `develop`; **PR #12** aberta (`develop → main`, aguardando o merge do
+Weslley). **315 testes no Mac.**
 
 Faltam os **ajustes finos** da Fase 5, todos dependentes do hardware/Windows do tio (não bloqueiam o
 "funciona"): a comparação numérica com o test panel do NI-MAX (na mesma unidade, por **variação**
@@ -50,9 +61,11 @@ as **mensagens de erro amigáveis já foram feitas** em 02/07). Em **04/07** a *
 [ADR-023](adr/023-configuracao-de-canais-na-ui.md) (configuração de canais na UI) foi concluída**:
 biblioteca de perfis, editor de canais e gerência completa (criar/importar/renomear/remover/duplicar/
 exportar), tudo pela tela — tira do tio a edição manual do `.toml`. Restam dela a **Parte B**
-(discovery de dispositivos, só no Windows) e refinamentos menores. A **próxima frente é o levantamento
-de requisitos do tio** (imagens + áudios que ele enviou: o que gostou, o que não gostou, o que falta);
-depois, a Fase 7 (FFT ao vivo) e as pendências de [tarefas-futuras.md](tarefas-futuras.md).
+(discovery de dispositivos, só no Windows) e refinamentos menores. O **levantamento de requisitos do
+tio** (04/07) já foi feito e destravou o fix do editor, o botão e a exportação (07/07). As **próximas
+frentes estruturais** são o **ADR-024 (ler o V/V do strain)** e, quando o tio responder sobre ensaios
+de dias/meses, um **ADR de estratégia de arquivo** (rotação/TDMS + concatenação no AqDAnalysis); depois,
+a Fase 7 (FFT ao vivo) e as pendências de [tarefas-futuras.md](tarefas-futuras.md).
 
 ```text
 [0]──[1]──[2]──[3]──[4]──[5]──[6]──[7]
