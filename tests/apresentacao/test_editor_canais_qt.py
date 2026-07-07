@@ -60,6 +60,20 @@ def test_painel_lista_os_canais_do_perfil(app, tmp_path):
     assert painel._tabela.item(0, 0).text() == "Carga"  # exibe a etiqueta (Nome do Sinal)
 
 
+def test_painel_abre_e_lista_mesmo_com_canal_invalido(app, tmp_path):
+    # antes: abrir o editor de um perfil com canal inválido crashava (carregar_canais no __init__).
+    # agora: abre e lista os dois canais, pra o tio poder remover o problemático.
+    arq = tmp_path / "perfil.toml"
+    arq.write_text(
+        '[canais."Mod1/ai0"]\ntipo = "tensao"\nunidade = "kgf"\nrotulo = "Carga"\nganho = 100.0\noffset = 0.0\n'
+        '[canais."fre"]\ntipo = "tensao"\nunidade = "kgf"\n',  # inválido: sem ganho/offset
+        encoding="utf-8",
+    )
+    painel = PainelEditorCanais(EditorDeCanais(arq))  # não pode levantar
+    assert painel._tabela.rowCount() == 2
+    assert painel._tabela.item(1, 0).text() == "fre"  # o canal quebrado aparece, pra ser removido
+
+
 def test_remover_o_canal_selecionado_atualiza_a_tabela(app, tmp_path):
     painel = PainelEditorCanais(EditorDeCanais(_perfil_dois(tmp_path)))
     painel._tabela.setCurrentCell(0, 0)  # seleciona "Carga"
@@ -112,10 +126,10 @@ def test_dialogo_desabilita_aplicar_ate_endereco_e_unidade(app):
     assert dialogo._aplicar.isEnabled() is True  # essencial preenchido
 
 
-def test_campos_do_canal_reflete_o_canal_para_reeditar(app, tmp_path):
+def test_editor_reabre_os_campos_de_um_canal_para_reeditar(app, tmp_path):
+    # reabrir para editar mostra os campos crus do canal (o presenter os lê tolerante ao perfil)
     painel = PainelEditorCanais(EditorDeCanais(_perfil(tmp_path)))
-    canal = painel._editor.canais()["Mod1/ai0"]
-    assert painel._campos_do_canal(canal) == {
+    assert painel._editor.campos("Mod1/ai0") == {
         "tipo": "tensao",
         "unidade": "kgf",
         "rotulo": "Carga",

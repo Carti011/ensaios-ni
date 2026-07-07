@@ -172,7 +172,13 @@ class TelaInicial(QWidget):
         if item is None:
             return None
         caminho = Path(item.data(Qt.ItemDataRole.UserRole))
-        return PainelEditorCanais(EditorDeCanais(caminho), parent=self)
+        try:
+            painel = PainelEditorCanais(EditorDeCanais(caminho), parent=self)
+        except _ERROS_CONFIG as erro:  # perfil ilegível (TOML corrompido/ausente): avisa, não derruba
+            self._lbl_erro.setText(_mensagem_erro(caminho, erro))
+            return None
+        self._lbl_erro.setText("")
+        return painel
 
     def _editar_canais(self) -> None:  # pragma: no cover — abre diálogo modal
         painel = self._editar_canais_do_selecionado()

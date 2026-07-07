@@ -71,14 +71,14 @@ class PainelEditorCanais(QDialog):
         raiz.addLayout(acoes)
 
     def _recarregar(self) -> None:
-        canais = self._editor.canais()
+        # listagem TOLERANTE (linhas, não canais): o editor abre mesmo com um canal inválido no
+        # perfil, pra o tio poder removê-lo — antes, um canal incompleto derrubava o app ao abrir.
         self._tabela.setRowCount(0)
-        for nome in canais:
-            canal = canais[nome]
+        for canal in self._editor.linhas():
             linha = self._tabela.rowCount()
             self._tabela.insertRow(linha)
             sinal = QTableWidgetItem(canal.etiqueta)
-            sinal.setData(Qt.ItemDataRole.UserRole, nome)  # endereço interno; a UI mostra a etiqueta
+            sinal.setData(Qt.ItemDataRole.UserRole, canal.nome)  # endereço interno; a UI mostra a etiqueta
             self._tabela.setItem(linha, 0, sinal)
             self._tabela.setItem(linha, 1, QTableWidgetItem(canal.tipo))
             self._tabela.setItem(linha, 2, QTableWidgetItem(canal.unidade))
@@ -102,19 +102,6 @@ class PainelEditorCanais(QDialog):
         except ConfiguracaoInvalida as erro:
             QMessageBox.warning(self, "Canal inválido", str(erro))
 
-    @staticmethod
-    def _campos_do_canal(canal) -> dict:
-        campos: dict = {"tipo": canal.tipo, "unidade": canal.unidade}
-        if canal.rotulo:
-            campos["rotulo"] = canal.rotulo
-        if canal.ganho is not None:
-            campos["ganho"] = canal.ganho
-        if canal.offset is not None:
-            campos["offset"] = canal.offset
-        if canal.strain is not None:
-            campos["gage_factor"] = canal.strain.gage_factor
-        return campos
-
     def _adicionar(self) -> None:  # pragma: no cover — abre diálogo modal
         dialogo = DialogoCanal(parent=self)
         if dialogo.exec():
@@ -127,7 +114,7 @@ class PainelEditorCanais(QDialog):
         if linha < 0:
             return
         nome = self._tabela.item(linha, 0).data(Qt.ItemDataRole.UserRole)
-        dialogo = DialogoCanal(nome, self._campos_do_canal(self._editor.canais()[nome]), parent=self)
+        dialogo = DialogoCanal(nome, self._editor.campos(nome), parent=self)  # campos crus: reabre até canal inválido
         if dialogo.exec():
             novo_nome, campos = dialogo.campos()
             if not novo_nome:

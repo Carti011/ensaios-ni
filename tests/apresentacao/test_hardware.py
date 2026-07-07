@@ -107,6 +107,17 @@ def test_tela_inicial_edita_os_canais_do_perfil_selecionado(app, tmp_path):
     assert painel._tabela.rowCount() == 2
 
 
+def test_editar_canais_de_perfil_corrompido_avisa_sem_crashar(app, tmp_path):
+    # perfil com TOML sintaticamente quebrado (ex.: editado à mão): abrir o editor não pode
+    # derrubar o app — vira aviso na tela, como o dashboard (abrir_config) já faz
+    (tmp_path / "quebrado.toml").write_text('[canais."Mod1/ai0"\ntipo = "tensao"\n', encoding="utf-8")
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._lista_perfis.setCurrentRow(0)
+    painel = tela._editar_canais_do_selecionado()
+    assert painel is None  # não abriu o editor
+    assert "inválido" in tela._lbl_erro.text()  # avisou na própria tela
+
+
 def test_editar_canais_desabilitado_sem_selecao(app, tmp_path):
     # o botão não pode ficar clicável-mas-inerte (bug de UX visto no Windows): sem perfil
     # selecionado, fica desabilitado; ao selecionar, habilita
