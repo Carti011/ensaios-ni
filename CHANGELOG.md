@@ -133,6 +133,19 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ### Corrigido
 
+- **Editor de canais na UI travava o app ao gravar/reabrir um canal incompleto ([ADR-023](docs/adr/023-configuracao-de-canais-na-ui.md)).**
+  No teste no Windows (07/07), adicionar um canal sem a conversão (tensão sem ganho/offset nem
+  pontos) **gravava mesmo assim** — a validação de **escrita** (`_validar_essencial`: só tipo +
+  unidade) era mais frouxa que a de **leitura** (`carregar_canais` exige ganho/offset **ou** pontos).
+  Ao reabrir o editor daquele perfil, o `carregar_canais` rejeitava o canal e a exceção, **não
+  tratada na abertura**, derrubava o app — e continuava derrubando a cada tentativa. Correções:
+  (1) `EditorDeCanais.adicionar_canal` valida pela **mesma regra do domínio** (novo `validar_canal`)
+  **antes** de gravar — canal sem conversão é recusado com aviso e **não grava** (decisão: avisar,
+  não dar default silencioso, pela mesma razão da armadilha do strain — número plausível e errado);
+  (2) o editor **lista** (`linhas`) e **reabre** (`campos`) os canais lendo o TOML de forma
+  **tolerante**, então abre e permite corrigir/remover mesmo com um canal inválido no perfil;
+  (3) a `TelaInicial` trata perfil **ilegível** (TOML corrompido/ausente) ao abrir o editor, virando
+  aviso na tela — como o dashboard (`abrir_config`) já fazia. 294 testes no Mac.
 - **Aquisição contínua estourava `-200279` (buffer overrun) no hardware real do tio.** No teste de
   campo (03–04/07) a gravação disparava o **DAQmx `-200279`** ("attempted to read samples that are no
   longer available… overwritten") "depois de um tempinho" — só no hardware/rede real, nunca no
