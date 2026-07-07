@@ -38,6 +38,15 @@ def test_sinais_lista_os_canais_do_ensaio(tmp_path):
     assert Exportacao(origem).sinais() == ["Mod1/ai0", "Mod3/ai0"]
 
 
+def test_duracao_s_reflete_o_tempo_do_ensaio(tmp_path):
+    # referência para a janela de exportação: quanto o ensaio durou (instante da última amostra)
+    origem = tmp_path / "ensaio.csv"
+    gravar_ensaio(  # 5 amostras a 2 Hz -> tempos 0, 0.5, 1.0, 1.5, 2.0
+        origem, {"Mod1/ai0": [1.0, 2.0, 3.0, 4.0, 5.0]}, taxa_hz=2.0, unidades={"Mod1/ai0": "kgf"}
+    )
+    assert Exportacao(origem).duracao_s() == 2.0
+
+
 def test_exporta_so_os_sinais_e_a_janela_escolhidos(tmp_path):
     origem = tmp_path / "ensaio.csv"
     gravar_ensaio(
