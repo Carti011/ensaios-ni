@@ -130,6 +130,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
   não `2.14` — o parse já aceitava os dois), e o botão **Aplicar** só habilita com **endereço + unidade**
   preenchidos (validação inline à la `PainelAfericao`, no lugar do aviso pós-clique). Fecha as
   pendências 7 e 8 do Panorama de `docs/tarefas-futuras.md`.
+- **Botão "Abrir ensaio" na tela inicial ([ADR-023](docs/adr/023-configuracao-de-canais-na-ui.md)).**
+  A tela inicial abre o dashboard do ensaio selecionado por **um clique + botão** (no grupo de ações
+  do selecionado, ao lado de Editar/Renomear), em vez de exigir **duplo-clique** no item — pedido no
+  teste do Windows (07/07). Nome **"Abrir ensaio"** de propósito (não "Iniciar", que já é o botão de
+  começar a aquisição dentro do dashboard).
 
 ### Corrigido
 
