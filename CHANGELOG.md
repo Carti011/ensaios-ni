@@ -135,6 +135,15 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
   do selecionado, ao lado de Editar/Renomear), em vez de exigir **duplo-clique** no item — pedido no
   teste do Windows (07/07). Nome **"Abrir ensaio"** de propósito (não "Iniciar", que já é o botão de
   começar a aquisição dentro do dashboard).
+- **Exportação: duração do ensaio na tela e janela em `hh:mm:ss` ([ADR-012](docs/adr/012-serie-temporal-e-exportadores.md)).**
+  O diálogo de exportar passa a **mostrar quanto o ensaio durou** ("Ensaio: 2 d 3 h 15 min") e a deixar
+  **explícito que o trecho é opcional** (vazio = ensaio inteiro), no lugar dos campos crus "início (s)
+  a fim (s)" — que faziam parecer obrigatório adivinhar segundos. Os campos aceitam agora
+  **segundos ou `hh:mm:ss`/`dd:hh:mm:ss`** (novo módulo puro `apresentacao/tempo.py`, com
+  `parsear_tempo` e `formatar_duracao`). Pedido no teste do Windows (07/07): ensaios do tio vão de horas a meses,
+  ninguém pensa em segundos. A janela de tempo continua existindo porque o Excel trava em ~1 M linhas
+  (~14,5 h a 20 Hz); a robustez de ensaios muito longos (rotação de arquivo/TDMS) segue no backlog,
+  aguardando o uso real do tio.
 
 ### Corrigido
 
