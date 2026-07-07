@@ -82,6 +82,8 @@ class TelaInicial(QWidget):
         self._popular_perfis()
 
         # ações sobre o ensaio selecionado (habilitam só quando há um perfil escolhido)
+        self._btn_abrir_ensaio = QPushButton("Abrir ensaio")  # ação primária: entra no dashboard
+        self._btn_abrir_ensaio.clicked.connect(self._abrir_selecionado)
         self._btn_editar = QPushButton("Editar canais…")
         self._btn_editar.clicked.connect(self._editar_canais)
         self._btn_renomear = QPushButton("Renomear…")
@@ -93,8 +95,8 @@ class TelaInicial(QWidget):
         self._btn_remover = QPushButton("Remover")
         self._btn_remover.clicked.connect(self._remover)
         self._acoes_do_selecionado = (
-            self._btn_editar, self._btn_renomear, self._btn_duplicar,
-            self._btn_exportar, self._btn_remover,
+            self._btn_abrir_ensaio, self._btn_editar, self._btn_renomear,
+            self._btn_duplicar, self._btn_exportar, self._btn_remover,
         )
         for botao in self._acoes_do_selecionado:
             botao.setEnabled(False)
@@ -166,6 +168,13 @@ class TelaInicial(QWidget):
 
     def _abrir_perfil(self, item: QListWidgetItem) -> JanelaMonitor | None:
         return self.abrir_config(Path(item.data(Qt.ItemDataRole.UserRole)))
+
+    def _abrir_selecionado(self) -> JanelaMonitor | None:
+        # botão "Abrir ensaio": entra no dashboard do perfil selecionado (sem exigir duplo-clique)
+        item = self._lista_perfis.currentItem()
+        if item is None:
+            return None
+        return self._abrir_perfil(item)
 
     def _editar_canais_do_selecionado(self) -> PainelEditorCanais | None:
         item = self._lista_perfis.currentItem()

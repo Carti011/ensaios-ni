@@ -118,6 +118,16 @@ def test_editar_canais_de_perfil_corrompido_avisa_sem_crashar(app, tmp_path):
     assert "inválido" in tela._lbl_erro.text()  # avisou na própria tela
 
 
+def test_tela_inicial_abre_o_ensaio_selecionado_pelo_botao(app, tmp_path):
+    # botão "Abrir ensaio": abre o dashboard do perfil selecionado sem precisar de duplo-clique
+    _config(tmp_path)
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._lista_perfis.setCurrentRow(0)
+    janela = tela._abrir_selecionado()
+    assert isinstance(janela, JanelaMonitor)
+    assert janela._tabela.item(0, 0).text() == "Carga"  # abriu o dashboard do ensaio certo
+
+
 def test_editar_canais_desabilitado_sem_selecao(app, tmp_path):
     # o botão não pode ficar clicável-mas-inerte (bug de UX visto no Windows): sem perfil
     # selecionado, fica desabilitado; ao selecionar, habilita
@@ -175,11 +185,13 @@ def test_acoes_do_ensaio_selecionado_desabilitadas_sem_selecao(app, tmp_path):
     # Editar/Renomear/Remover agem sobre o ensaio selecionado: sem seleção, ficam desabilitados
     _config(tmp_path)  # 1 perfil na pasta
     tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    assert tela._btn_abrir_ensaio.isEnabled() is False
     assert tela._btn_renomear.isEnabled() is False
     assert tela._btn_remover.isEnabled() is False
     assert tela._btn_duplicar.isEnabled() is False
     assert tela._btn_exportar.isEnabled() is False
     tela._lista_perfis.setCurrentRow(0)
+    assert tela._btn_abrir_ensaio.isEnabled() is True
     assert tela._btn_renomear.isEnabled() is True
     assert tela._btn_remover.isEnabled() is True
     assert tela._btn_duplicar.isEnabled() is True
