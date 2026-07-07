@@ -34,6 +34,7 @@ from PySide6.QtWidgets import (
 
 from ensaios_ni.apresentacao.afericao import Afericao
 from ensaios_ni.apresentacao.exportacao import Exportacao
+from ensaios_ni.apresentacao.tempo import formatar_duracao, parsear_tempo
 from ensaios_ni.apresentacao.monitor import AquisicaoEmAndamento, EstadoMonitor, MonitorAoVivo
 from ensaios_ni.dominio.canais import carregar_canais
 from ensaios_ni.dominio.metadata import Metadata
@@ -617,10 +618,11 @@ class PainelExportacao(QDialog):
             item.setCheckState(Qt.CheckState.Checked)
             self._lista_sinais.addItem(item)
 
+        self._lbl_duracao = QLabel(f"Ensaio: {formatar_duracao(exportacao.duracao_s())}")
         self._inicio = QLineEdit()
-        self._inicio.setPlaceholderText("início (s)")
+        self._inicio.setPlaceholderText("início")  # s ou hh:mm:ss
         self._fim = QLineEdit()
-        self._fim.setPlaceholderText("fim (s)")
+        self._fim.setPlaceholderText("fim")
 
         self._botoes = QDialogButtonBox()  # texto próprio: português total
         btn_exportar = self._botoes.addButton("Exportar", QDialogButtonBox.ButtonRole.AcceptRole)
@@ -651,13 +653,12 @@ class PainelExportacao(QDialog):
             self._combo_formato.currentText(),
             destino,
             sinais=self._sinais_escolhidos(),
-            inicio_s=_parse_br(self._inicio),
-            fim_s=_parse_br(self._fim),
+            inicio_s=parsear_tempo(self._inicio.text()),
+            fim_s=parsear_tempo(self._fim.text()),
         )
 
     def _montar_layout(self) -> None:
         janela = QHBoxLayout()
-        janela.addWidget(QLabel("Janela:"))
         janela.addWidget(self._inicio)
         janela.addWidget(QLabel("a"))
         janela.addWidget(self._fim)
@@ -666,6 +667,9 @@ class PainelExportacao(QDialog):
         raiz.addWidget(self._combo_formato)
         raiz.addWidget(QLabel("Sinais"))
         raiz.addWidget(self._lista_sinais)
+        raiz.addWidget(self._lbl_duracao)
+        # trecho a exportar é opcional: vazio = ensaio inteiro; aceita segundos ou hh:mm:ss
+        raiz.addWidget(QLabel("Trecho a exportar (opcional — vazio = ensaio inteiro; s ou hh:mm:ss):"))
         raiz.addLayout(janela)
         raiz.addWidget(self._botoes)
 

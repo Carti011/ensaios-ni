@@ -304,6 +304,31 @@ def test_painel_exportacao_exporta_no_formato_escolhido(app, tmp_path):
     assert ";" in destino.read_text(encoding="utf-8-sig")
 
 
+def test_painel_exportacao_mostra_a_duracao_do_ensaio(app, tmp_path):
+    # referência p/ o usuário: em vez de adivinhar segundos, ele vê quanto o ensaio durou
+    origem = tmp_path / "ensaio.csv"
+    gravar_ensaio(  # 5 amostras a 1 Hz -> tempos 0..4 -> duração 4 s
+        origem, {"Mod1/ai0": [1.0, 2.0, 3.0, 4.0, 5.0]}, taxa_hz=1.0, unidades={"Mod1/ai0": "kgf"}
+    )
+    painel = PainelExportacao(Exportacao(origem))
+    assert "4 s" in painel._lbl_duracao.text()
+
+
+def test_painel_exportacao_janela_aceita_hh_mm_ss(app, tmp_path):
+    # o tio não pensa em segundos: a janela aceita hh:mm:ss, não só o número cru
+    origem = tmp_path / "ensaio.csv"
+    gravar_ensaio(  # 5 amostras a 1 Hz -> tempos 0,1,2,3,4
+        origem, {"Mod1/ai0": [10.0, 11.0, 12.0, 13.0, 14.0]}, taxa_hz=1.0, unidades={"Mod1/ai0": "kgf"}
+    )
+    painel = PainelExportacao(Exportacao(origem))
+    painel._combo_formato.setCurrentText("csv-excel-br")
+    painel._fim.setText("0:00:02")  # 2 s -> só as amostras em t=0,1,2
+    destino = tmp_path / "saida.csv"
+    painel.exportar_para(destino)
+    linhas = destino.read_text(encoding="utf-8-sig").strip().splitlines()
+    assert len(linhas) == 1 + 3  # cabeçalho + amostras t=0,1,2 (as de t=3,4 ficam fora da janela)
+
+
 def test_botao_exportar_habilita_apos_ensaio_e_abre_painel(app, tmp_path):
     janela = JanelaMonitor(_monitor(tmp_path))
     assert janela._btn_exportar.isEnabled() is False  # nenhum ensaio gravado ainda
