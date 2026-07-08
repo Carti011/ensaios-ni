@@ -29,6 +29,14 @@ def _carregar_nidaqmx_strain():
     return nidaqmx, AcquisitionType, ExcitationSource, StrainGageBridgeType, StrainUnits
 
 
+# folga do buffer de entrada na aquisição contínua: em CONTINUOUS o samps_per_chan do
+# cfg_samp_clk_timing dimensiona o buffer. Sem folga sobre o bloco lido, o jitter do
+# consumo (rede Ethernet + gravar CSV + repintar) faz o driver sobrescrever amostras não
+# lidas e estourar -200279. Validação real só no Windows.
+_FATOR_BUFFER_CONTINUO = 10
+_SEGUNDOS_BUFFER_MINIMO = 5.0
+
+
 class AdaptadorDaqmx(FonteDeAquisicao):
     """Adaptador real sobre o NI-DAQmx. Lê tensão (9205) e strain (9235). Roda só no Windows.
 
@@ -64,7 +72,8 @@ class AdaptadorDaqmx(FonteDeAquisicao):
         nidaqmx, AcquisitionType, TerminalConfiguration = _carregar_nidaqmx()
         with nidaqmx.Task() as task:
             self._adicionar_canais_tensao(task, canais, TerminalConfiguration)
-            self._configurar_timing(task, AcquisitionType.CONTINUOUS, taxa_hz, amostras_por_bloco)
+            buffer = self._tamanho_buffer_continuo(taxa_hz, amostras_por_bloco)
+            self._configurar_timing(task, AcquisitionType.CONTINUOUS, taxa_hz, buffer)
             while True:
                 dados = task.read(number_of_samples_per_channel=amostras_por_bloco)
                 yield self._normalizar(canais, dados)
@@ -85,7 +94,8 @@ class AdaptadorDaqmx(FonteDeAquisicao):
         nidaqmx, AcquisitionType, *constantes_strain = _carregar_nidaqmx_strain()
         with nidaqmx.Task() as task:
             self._adicionar_canais_strain(task, canais, *constantes_strain)
-            self._configurar_timing(task, AcquisitionType.CONTINUOUS, taxa_hz, amostras_por_bloco)
+            buffer = self._tamanho_buffer_continuo(taxa_hz, amostras_por_bloco)
+            self._configurar_timing(task, AcquisitionType.CONTINUOUS, taxa_hz, buffer)
             while True:
                 dados = task.read(number_of_samples_per_channel=amostras_por_bloco)
                 yield self._normalizar(canais, dados)
@@ -127,6 +137,15 @@ class AdaptadorDaqmx(FonteDeAquisicao):
                 min_val=cfg.min_val,
                 max_val=cfg.max_val,
             )
+
+    @staticmethod
+    def _tamanho_buffer_continuo(taxa_hz: float, amostras_por_bloco: int) -> int:
+        # buffer com folga sobre o bloco lido (evita o -200279): o maior entre N blocos e
+        # alguns segundos de amostras. O read segue lendo um bloco por vez.
+        return max(
+            amostras_por_bloco * _FATOR_BUFFER_CONTINUO,
+            int(taxa_hz * _SEGUNDOS_BUFFER_MINIMO),
+        )
 
     @staticmethod
     def _configurar_timing(task, sample_mode, taxa_hz: float, samps_per_chan: int) -> None:

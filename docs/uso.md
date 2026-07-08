@@ -64,11 +64,14 @@ python -m ensaios_ni.apresentacao.qt.hardware
 python -m ensaios_ni.apresentacao.qt.hardware --config config/canais.toml --taxa 1024 --bloco 256
 ```
 
-Sem `--config`, o launcher de hardware abre uma **tela inicial** com o botão **"Abrir configuração…"**
-(é como o tio abre pelo `.exe`, sem digitar nada). Com `--config`, vai direto ao dashboard. Aceita
-ainda `--saida` (CSV do ensaio) e `--capacidade-janela` (pontos no gráfico; janela deslizante para
-ensaios longos). Config ausente ou inválido vira mensagem clara, sem traceback. Passo a passo de
-campo (calibrar, tara, exportar): [guia-teste-hardware.md](guia-teste-hardware.md).
+Sem `--config`, o launcher de hardware abre a **tela inicial**: uma **lista dos ensaios salvos** (os
+perfis `.toml` da pasta `~/ensaios-ni`), com **"Editar canais…"** para montar/ajustar a tabela de
+canais pela tela (sem editar arquivo à mão) e **"Abrir configuração…"** para um `.toml` avulso. É como
+o tio abre pelo `.exe`, sem digitar nada. Com `--config`, vai direto ao dashboard. Aceita ainda
+`--saida` (CSV do ensaio) e `--capacidade-janela` (pontos no gráfico; janela deslizante para ensaios
+longos). Config ausente ou inválido vira mensagem clara, sem traceback. Ver
+[ADR-023](adr/023-configuracao-de-canais-na-ui.md); passo a passo de campo (calibrar, tara, exportar):
+[guia-teste-hardware.md](guia-teste-hardware.md).
 
 ## Exportar um ensaio
 

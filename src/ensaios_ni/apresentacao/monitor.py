@@ -7,6 +7,7 @@ from ensaios_ni.apresentacao.erros import mensagem_de_erro_de_aquisicao
 from ensaios_ni.aquisicao.porta import FonteDeAquisicao
 from ensaios_ni.dominio.canais import Canais
 from ensaios_ni.dominio.conversao import calcular_tara, converter
+from ensaios_ni.dominio.filtro import media_movel
 from ensaios_ni.persistencia.csv_ensaio import GravadorEnsaioCsv
 
 
@@ -56,6 +57,15 @@ class QuadroAoVivo:
     def par_xy(self, canal_x: str, canal_y: str) -> ParXY:
         # séries alinhadas no tempo (mesmo sample clock): ponto i de X e Y é simultâneo
         return ParXY(canal_x, canal_y, self.dados[canal_x], self.dados[canal_y])
+
+    def suavizar(self, janela: int) -> "QuadroAoVivo":
+        # filtro de ruído do tio — só visualização (o CSV grava o dado cru): média móvel
+        # por canal, preservando tempos e unidades. janela <= 1 = filtro desligado.
+        return QuadroAoVivo(
+            tempos=list(self.tempos),
+            dados={canal: media_movel(serie, janela) for canal, serie in self.dados.items()},
+            unidades=dict(self.unidades),
+        )
 
 
 class MonitorAoVivo:

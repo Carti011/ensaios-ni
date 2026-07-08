@@ -14,7 +14,7 @@ opt-in.
 O [ADR-002](002-conversao-linear-e-contrato-da-porta.md) assumiu que a conversão volts→unidade
 de engenharia seria **linear, fixa em config** (`valor = ganho * volts + offset`). Era uma
 aposta razoável com a informação que tínhamos. As respostas do dono do hardware (áudios de
-22/06/2026, em [respostas-tio.md](../respostas-tio.md)) mostram que **não é assim que ele
+22/06/2026, em [contexto-hardware.md](../contexto-hardware.md)) mostram que **não é assim que ele
 trabalha**:
 
 - A correlação voltagem→engenharia **depende de cada sensor** e ele não tem fórmulas prontas.

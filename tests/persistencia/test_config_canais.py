@@ -1,13 +1,92 @@
 import pytest
 
 from ensaios_ni.dominio.canais import carregar_canais
-from ensaios_ni.persistencia.config_canais import ler_pontos, salvar_afericao, salvar_rotulo
+from ensaios_ni.persistencia.config_canais import (
+    ler_pontos,
+    remover_canal,
+    salvar_afericao,
+    salvar_canal,
+    salvar_rotulo,
+)
 
 
 def _escrever(tmp_path, conteudo):
     arq = tmp_path / "canais.toml"
     arq.write_text(conteudo, encoding="utf-8")
     return arq
+
+
+def test_salvar_canal_cria_um_canal_novo(tmp_path):
+    # o editor monta a tabela de canais pela tela: adicionar um canal a um perfil ainda sem [canais]
+    arq = tmp_path / "novo.toml"
+    arq.write_text("", encoding="utf-8")
+    salvar_canal(arq, "Mod1/ai0", {"tipo": "tensao", "unidade": "kgf", "ganho": 100.0, "offset": 0.0})
+
+    canal = carregar_canais(arq)["Mod1/ai0"]
+    assert canal.tipo == "tensao"
+    assert canal.unidade == "kgf"
+    assert canal.ganho == 100.0
+
+
+def test_salvar_canal_edita_preservando_os_outros_canais_e_comentarios(tmp_path):
+    arq = _escrever(
+        tmp_path,
+        '# canais do ensaio\n'
+        '[canais."Mod1/ai0"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "kgf"\n'
+        'ganho = 100.0\n'
+        'offset = 0.0\n'
+        '\n'
+        '[canais."Mod1/ai1"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "bar"\n'
+        'ganho = 25.0\n'
+        'offset = 0.0\n',
+    )
+    salvar_canal(arq, "Mod1/ai0", {"tipo": "tensao", "unidade": "mm", "ganho": 5.0, "offset": 1.0})
+
+    assert "# canais do ensaio" in arq.read_text(encoding="utf-8")
+    canais = carregar_canais(arq)
+    assert canais["Mod1/ai0"].unidade == "mm"  # editado
+    assert canais["Mod1/ai1"].ganho == 25.0  # preservado
+
+
+def test_remover_canal_apaga_so_aquele_canal(tmp_path):
+    arq = _escrever(
+        tmp_path,
+        '[canais."Mod1/ai0"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "kgf"\n'
+        'ganho = 100.0\n'
+        'offset = 0.0\n'
+        '\n'
+        '[canais."Mod1/ai1"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "bar"\n'
+        'ganho = 25.0\n'
+        'offset = 0.0\n',
+    )
+    remover_canal(arq, "Mod1/ai0")
+
+    canais = carregar_canais(arq)
+    assert "Mod1/ai0" not in canais
+    assert "Mod1/ai1" in canais
+
+
+def test_salvar_canal_grava_strain_com_gage_factor(tmp_path):
+    # canal de strain: o editor grava o gage_factor por canal (ADR-020); carregar_canais lê os params
+    arq = tmp_path / "strain.toml"
+    arq.write_text("", encoding="utf-8")
+    salvar_canal(
+        arq,
+        "cDAQ9184-1820306Mod3/ai0",
+        {"tipo": "strain", "unidade": "µε", "gage_factor": 2.14, "ganho": 1000000.0, "offset": 0.0},
+    )
+
+    canal = carregar_canais(arq)["cDAQ9184-1820306Mod3/ai0"]
+    assert canal.tipo == "strain"
+    assert canal.strain.gage_factor == 2.14
 
 
 def test_salvar_afericao_grava_pontos_que_viram_reta(tmp_path):

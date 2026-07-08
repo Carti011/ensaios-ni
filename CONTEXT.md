@@ -17,6 +17,7 @@ Termos físicos (hardware/extensometria) e termos de software (arquitetura).
 - **Three-wire (3 fios)** — ligação do extensômetro com 3 vias (22 AWG no setup do dono) para compensar a resistência de **cabo longo**. Relevante na config da task de strain.
 - **Gage factor** — fator de sensibilidade do extensômetro. No setup do dono **varia de 2,14 a 2,16** por lote → parâmetro configurável, nunca fixo. Errar = strain errado e silencioso.
 - **Excitação** — tensão que alimenta o sensor/ponte. No 9235 é **interna e fixa em 2,0 V**; o 9205 **não excita** (acelerômetro usa 5 V de alimentação externa).
+- **Razão de ponte (Vr / V/V, mV/V)** — saída **crua** e adimensional do 9235 antes de virar strain: `Vr = (Vch/Vex)carregado − (Vch/Vex)repouso`, faixa **±29,4 mV/V**. É o **"Raw value (mV/V)"** que o FlexLogger mostra ao lado do strain (ε) e o número que o tio quer **ler e correlacionar** ("prefere ler em voltagem"). O microstrain é derivado dela via gage factor e quarter-bridge. Ver [tarefas-futuras.md](docs/tarefas-futuras.md) (🟠) e [referencia-flexlogger.md §6](docs/referencia-flexlogger.md).
 - **Tara / null / zero** — leitura de offset com a peça em repouso, no início do ensaio, declarada como zero. No strain: `initial_bridge_voltage`. É etapa fixa do fluxo do dono.
 - **Calibração por pontos** — método real de conversão do dono: aplica carga conhecida, lê a voltagem e **monta a curva voltagem→engenharia ponto a ponto** (como o canal de calibração do AqDados). Ver [ADR-006](docs/adr/006-calibracao-por-pontos.md). O `ganho·V+offset` linear é o caso de 2 pontos. Equivale à escala **Table** do DAQmx (ver **Escala** abaixo e [referencia-flexlogger.md](docs/referencia-flexlogger.md)).
 - **Escala (Custom Scale)** — termo do NI-DAQmx/FlexLogger para a conversão volts→unidade. Quatro tipos; usamos **Linear** (`y=m·x+b`) e **Table** (pontos + interpolação linear). É o vocabulário que o dono já conhece. Ver [referencia-flexlogger.md](docs/referencia-flexlogger.md).
@@ -54,6 +55,7 @@ Termos físicos (hardware/extensometria) e termos de software (arquitetura).
 - **Adaptador DAQmx (`daqmx.py`)** — implementação real da porta (tensão pronta; strain pendente). **Único** arquivo que importa `nidaqmx`, lazy. Roda só no Windows.
 - **Adaptador Fake (`fake.py`)** — implementação sintética da porta. Roda em qualquer lugar (inclusive Mac). Habilita o TDD do domínio.
 - **Conversão** — transforma tensão/strain cru em unidade de engenharia. Linear por config (`config/canais.toml`) hoje; evoluindo para **calibração por pontos + tara** ([ADR-006](docs/adr/006-calibracao-por-pontos.md)). Nunca hardcode.
+- **Perfil** — uma **configuração de canais salva** (`.toml`), identificada por um nome de obra/ensaio. O app gerencia uma **biblioteca de perfis** numa pasta padrão (`~/ensaios-ni`); o tio escolhe por nome na tela inicial e monta/edita a tabela de canais pelo **editor de canais**, sem tocar no arquivo. Ver [ADR-023](docs/adr/023-configuracao-de-canais-na-ui.md).
 
 ## Conceitos centrais
 

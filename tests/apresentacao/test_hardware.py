@@ -76,6 +76,177 @@ def test_tela_inicial_abre_o_dashboard_a_partir_do_config(app, tmp_path):
     assert janela._tabela.item(0, 0).text() == "Carga"
 
 
+def test_tela_inicial_lista_os_perfis_salvos(app, tmp_path):
+    # a tela mostra os ensaios salvos na pasta de perfis, para o tio escolher sem abrir arquivo
+    (tmp_path / "ponte-x.toml").write_text("", encoding="utf-8")
+    (tmp_path / "laje-y.toml").write_text("", encoding="utf-8")
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert nomes == ["laje-y", "ponte-x"]  # ordenados por nome
+
+
+def test_tela_inicial_abre_o_perfil_escolhido(app, tmp_path):
+    # escolher um perfil da lista monta o dashboard, reusando o abrir_config
+    _config(tmp_path)  # cria canais.toml (válido) na pasta de perfis
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._lista_perfis.setCurrentRow(0)
+    janela = tela._abrir_perfil(tela._lista_perfis.currentItem())
+    assert isinstance(janela, JanelaMonitor)
+    assert janela._tabela.item(0, 0).text() == "Carga"  # abriu o config certo
+
+
+def test_tela_inicial_edita_os_canais_do_perfil_selecionado(app, tmp_path):
+    # o tio seleciona um ensaio e edita a tabela de canais sem abrir arquivo (ADR-023 A2)
+    from ensaios_ni.apresentacao.qt.editor_canais import PainelEditorCanais
+
+    _config(tmp_path)  # perfil com 2 canais
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._lista_perfis.setCurrentRow(0)
+    painel = tela._editar_canais_do_selecionado()
+    assert isinstance(painel, PainelEditorCanais)
+    assert painel._tabela.rowCount() == 2
+
+
+def test_editar_canais_de_perfil_corrompido_avisa_sem_crashar(app, tmp_path):
+    # perfil com TOML sintaticamente quebrado (ex.: editado à mão): abrir o editor não pode
+    # derrubar o app — vira aviso na tela, como o dashboard (abrir_config) já faz
+    (tmp_path / "quebrado.toml").write_text('[canais."Mod1/ai0"\ntipo = "tensao"\n', encoding="utf-8")
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._lista_perfis.setCurrentRow(0)
+    painel = tela._editar_canais_do_selecionado()
+    assert painel is None  # não abriu o editor
+    assert "inválido" in tela._lbl_erro.text()  # avisou na própria tela
+
+
+def test_tela_inicial_abre_o_ensaio_selecionado_pelo_botao(app, tmp_path):
+    # botão "Abrir ensaio": abre o dashboard do perfil selecionado sem precisar de duplo-clique
+    _config(tmp_path)
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._lista_perfis.setCurrentRow(0)
+    janela = tela._abrir_selecionado()
+    assert isinstance(janela, JanelaMonitor)
+    assert janela._tabela.item(0, 0).text() == "Carga"  # abriu o dashboard do ensaio certo
+
+
+def test_editar_canais_desabilitado_sem_selecao(app, tmp_path):
+    # o botão não pode ficar clicável-mas-inerte (bug de UX visto no Windows): sem perfil
+    # selecionado, fica desabilitado; ao selecionar, habilita
+    _config(tmp_path)  # 1 perfil na pasta
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    assert tela._btn_editar.isEnabled() is False
+    tela._lista_perfis.setCurrentRow(0)
+    assert tela._btn_editar.isEnabled() is True
+
+
+def test_tela_inicial_cria_ensaio_novo_e_abre_o_editor(app, tmp_path):
+    # o tio cria um ensaio pela tela (sem tocar em arquivo) e cai direto no editor de canais
+    from ensaios_ni.apresentacao.qt.editor_canais import PainelEditorCanais
+
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    painel = tela._criar_perfil("obra-nova")
+    assert isinstance(painel, PainelEditorCanais)  # abre o editor A2 no perfil novo
+    assert (tmp_path / "obra-nova.toml").exists()  # persistiu o perfil
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert nomes == ["obra-nova"]  # apareceu na lista
+
+
+def test_tela_inicial_ensaio_duplicado_avisa_na_tela_sem_abrir(app, tmp_path):
+    # criar com nome que já existe não pode dar traceback: vira aviso na própria tela
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._criar_perfil("obra")
+    painel = tela._criar_perfil("obra")  # nome repetido
+    assert painel is None
+    assert "já existe" in tela._lbl_erro.text()
+
+
+def test_tela_inicial_importa_toml_avulso_para_a_biblioteca(app, tmp_path):
+    # o tio traz um .toml de fora; importar o adota na biblioteca e ele passa a aparecer na lista
+    origem = _config(tmp_path)  # canais.toml válido, fora da biblioteca
+    pasta = tmp_path / "biblioteca"
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=pasta)
+    perfil = tela._importar_perfil(origem)
+    assert perfil is not None
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert "canais" in nomes  # adotado na biblioteca
+    assert (pasta / "canais.toml").exists()
+
+
+def test_tela_inicial_importar_invalido_avisa_na_tela(app, tmp_path):
+    # importar config quebrado não pode dar traceback nem sujar a biblioteca
+    origem = tmp_path / "quebrado.toml"
+    origem.write_text('[canais."Mod1/ai0"]\nunidade = "kgf"\n', encoding="utf-8")  # sem 'tipo'
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path / "biblioteca")
+    perfil = tela._importar_perfil(origem)
+    assert perfil is None
+    assert "inválido" in tela._lbl_erro.text()
+
+
+def test_acoes_do_ensaio_selecionado_desabilitadas_sem_selecao(app, tmp_path):
+    # Editar/Renomear/Remover agem sobre o ensaio selecionado: sem seleção, ficam desabilitados
+    _config(tmp_path)  # 1 perfil na pasta
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    assert tela._btn_abrir_ensaio.isEnabled() is False
+    assert tela._btn_renomear.isEnabled() is False
+    assert tela._btn_remover.isEnabled() is False
+    assert tela._btn_duplicar.isEnabled() is False
+    assert tela._btn_exportar.isEnabled() is False
+    tela._lista_perfis.setCurrentRow(0)
+    assert tela._btn_abrir_ensaio.isEnabled() is True
+    assert tela._btn_renomear.isEnabled() is True
+    assert tela._btn_remover.isEnabled() is True
+    assert tela._btn_duplicar.isEnabled() is True
+    assert tela._btn_exportar.isEnabled() is True
+
+
+def test_tela_inicial_duplica_o_perfil_selecionado(app, tmp_path):
+    _config(tmp_path)  # perfil "canais"
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    perfil = tela._duplicar_perfil("canais", "canais-copia")
+    assert perfil is not None
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert nomes == ["canais", "canais-copia"]
+
+
+def test_tela_inicial_exporta_o_perfil_selecionado(app, tmp_path):
+    _config(tmp_path)  # perfil "canais"
+    destino = tmp_path / "fora" / "enviar.toml"
+    destino.parent.mkdir()
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    resultado = tela._exportar_perfil("canais", destino)
+    assert resultado == destino
+    assert destino.exists()
+
+
+def test_tela_inicial_renomeia_o_perfil_selecionado(app, tmp_path):
+    _config(tmp_path)  # perfil "canais"
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    perfil = tela._renomear_perfil("canais", "ponte-nova")
+    assert perfil is not None
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert nomes == ["ponte-nova"]
+    assert (tmp_path / "ponte-nova.toml").exists()
+    assert not (tmp_path / "canais.toml").exists()
+
+
+def test_tela_inicial_renomear_para_nome_existente_avisa_na_tela(app, tmp_path):
+    (tmp_path / "a.toml").write_text("", encoding="utf-8")
+    (tmp_path / "b.toml").write_text("", encoding="utf-8")
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    perfil = tela._renomear_perfil("a", "b")  # "b" já existe
+    assert perfil is None
+    assert "já existe" in tela._lbl_erro.text()
+
+
+def test_tela_inicial_remove_o_perfil_selecionado(app, tmp_path):
+    (tmp_path / "ponte-x.toml").write_text("", encoding="utf-8")
+    (tmp_path / "laje-y.toml").write_text("", encoding="utf-8")
+    tela = TelaInicial(saida=tmp_path / "e.csv", pasta_perfis=tmp_path)
+    tela._remover_perfil("ponte-x")
+    nomes = [tela._lista_perfis.item(i).text() for i in range(tela._lista_perfis.count())]
+    assert nomes == ["laje-y"]
+    assert not (tmp_path / "ponte-x.toml").exists()
+
+
 def test_tela_inicial_config_invalido_mostra_erro_sem_abrir(app, tmp_path):
     arq = tmp_path / "canais.toml"  # canal sem 'tipo'
     arq.write_text('[canais."Mod1/ai0"]\nunidade = "kgf"\n', encoding="utf-8")

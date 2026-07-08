@@ -84,6 +84,15 @@ def carregar_canais(caminho: Path) -> Canais:
     return Canais({nome: _construir_canal(nome, cfg) for nome, cfg in dados.get("canais", {}).items()})
 
 
+def validar_canal(nome: str, cfg: dict) -> Canal:
+    """Valida a config de um canal pela mesma regra do carregar_canais (fonte única, ADR-023 dec. 4).
+
+    Levanta ConfiguracaoInvalida se o canal não pode ser construído — usado pelo editor para
+    recusar, ANTES de gravar, um canal que a releitura rejeitaria (senão o perfil trava o app).
+    """
+    return _construir_canal(nome, cfg)
+
+
 def _construir_canal(nome: str, cfg: dict) -> Canal:
     faltando = [campo for campo in CAMPOS_BASE if campo not in cfg]
     if faltando:

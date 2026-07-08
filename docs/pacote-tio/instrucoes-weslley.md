@@ -30,7 +30,7 @@ usar sozinho". Decisão de empacotamento: [ADR-022](../adr/022-empacotamento-exe
    pip install -e .[hardware,gui,excel,build]
    ```
    O extra `build` traz o PyInstaller; `hardware` = `nidaqmx`; `gui` = dashboard.
-5. **Conferir a base:** `pytest` → deve dar **220 passed** (garante que o código está saudável nessa
+5. **Conferir a base:** `pytest` → deve dar **242 passed** (garante que o código está saudável nessa
    máquina antes de empacotar).
 
 ---
@@ -110,7 +110,7 @@ no `ensaios-ni.exe`.
 
 ## Checklist antes de enviar
 
-- [ ] `pytest` deu 220 passed na máquina de build.
+- [ ] `pytest` deu 242 passed na máquina de build.
 - [ ] `dist\ensaios-ni.exe` foi gerado **depois** da última mudança de código.
 - [ ] (recomendado) Iniciar testado no `.exe` com dispositivo simulado do NI-MAX.
 - [ ] `canais.toml` preenchido (real ou exemplo) e copiado para a pasta.

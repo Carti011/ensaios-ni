@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 import pyqtgraph as pg
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
@@ -23,6 +24,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QPushButton,
+    QSpinBox,
     QSplitter,
     QTableWidget,
     QTableWidgetItem,
@@ -32,6 +34,7 @@ from PySide6.QtWidgets import (
 
 from ensaios_ni.apresentacao.afericao import Afericao
 from ensaios_ni.apresentacao.exportacao import Exportacao
+from ensaios_ni.apresentacao.tempo import formatar_duracao, parsear_tempo
 from ensaios_ni.apresentacao.monitor import AquisicaoEmAndamento, EstadoMonitor, MonitorAoVivo
 from ensaios_ni.dominio.canais import carregar_canais
 from ensaios_ni.dominio.metadata import Metadata
@@ -90,6 +93,14 @@ class JanelaMonitor(QWidget):
         self._btn_zerar.setEnabled(False)
         self._btn_exportar = QPushButton("Exportar…")  # reusa os exportadores sobre o CSV gravado
         self._btn_exportar.setEnabled(False)
+        # filtro de ruído (só visualização, não afeta o CSV): média móvel no gráfico sinal×tempo
+        self._chk_filtro = QCheckBox("Suavizar ruído")
+        self._spin_janela = QSpinBox()
+        self._spin_janela.setRange(1, 999)
+        self._spin_janela.setValue(11)
+        self._spin_janela.setSuffix(" pts")
+        self._chk_filtro.stateChanged.connect(self._redesenhar_sinais)
+        self._spin_janela.valueChanged.connect(self._redesenhar_sinais)
         # metadata do ensaio (rastreabilidade do laudo) — salva no .meta.toml ao gravar
         self._campo_obra = QLineEdit()
         self._campo_operador = QLineEdit()
@@ -139,12 +150,19 @@ class JanelaMonitor(QWidget):
         self._atualizar_estado()
 
     def _desenhar_sinais(self, quadro) -> None:
+        # filtro de ruído do tio: suaviza só para exibir (o CSV segue com o dado cru)
+        if self._chk_filtro.isChecked():
+            quadro = quadro.suavizar(self._spin_janela.value())
         # canal oculto pela seleção fica sem traço; gravação e XY não são afetados
         for nome in self._nomes:
             if nome in self._visiveis:
                 self._curvas[nome].setData(quadro.tempos, quadro.dados[nome])
             else:
                 self._curvas[nome].setData([], [])
+
+    def _redesenhar_sinais(self) -> None:
+        # o filtro mudou (ligar/desligar ou janela): redesenha o gráfico com o quadro atual
+        self._desenhar_sinais(self._monitor.quadro())
 
     def _esta_visivel(self, nome: str) -> bool:
         return nome in self._visiveis
@@ -398,6 +416,8 @@ class JanelaMonitor(QWidget):
         rodape.addWidget(self._btn_parar)
         rodape.addWidget(self._btn_zerar)
         rodape.addWidget(self._btn_exportar)
+        rodape.addWidget(self._chk_filtro)
+        rodape.addWidget(self._spin_janela)
         rodape.addStretch(1)
         rodape.addWidget(self._lbl_estado)
 
@@ -598,10 +618,11 @@ class PainelExportacao(QDialog):
             item.setCheckState(Qt.CheckState.Checked)
             self._lista_sinais.addItem(item)
 
+        self._lbl_duracao = QLabel(f"Ensaio: {formatar_duracao(exportacao.duracao_s())}")
         self._inicio = QLineEdit()
-        self._inicio.setPlaceholderText("início (s)")
+        self._inicio.setPlaceholderText("início")  # s ou hh:mm:ss
         self._fim = QLineEdit()
-        self._fim.setPlaceholderText("fim (s)")
+        self._fim.setPlaceholderText("fim")
 
         self._botoes = QDialogButtonBox()  # texto próprio: português total
         btn_exportar = self._botoes.addButton("Exportar", QDialogButtonBox.ButtonRole.AcceptRole)
@@ -632,13 +653,12 @@ class PainelExportacao(QDialog):
             self._combo_formato.currentText(),
             destino,
             sinais=self._sinais_escolhidos(),
-            inicio_s=_parse_br(self._inicio),
-            fim_s=_parse_br(self._fim),
+            inicio_s=parsear_tempo(self._inicio.text()),
+            fim_s=parsear_tempo(self._fim.text()),
         )
 
     def _montar_layout(self) -> None:
         janela = QHBoxLayout()
-        janela.addWidget(QLabel("Janela:"))
         janela.addWidget(self._inicio)
         janela.addWidget(QLabel("a"))
         janela.addWidget(self._fim)
@@ -647,6 +667,9 @@ class PainelExportacao(QDialog):
         raiz.addWidget(self._combo_formato)
         raiz.addWidget(QLabel("Sinais"))
         raiz.addWidget(self._lista_sinais)
+        raiz.addWidget(self._lbl_duracao)
+        # trecho a exportar é opcional: vazio = ensaio inteiro; aceita segundos ou hh:mm:ss
+        raiz.addWidget(QLabel("Trecho a exportar (opcional — vazio = ensaio inteiro; s ou hh:mm:ss):"))
         raiz.addLayout(janela)
         raiz.addWidget(self._botoes)
 

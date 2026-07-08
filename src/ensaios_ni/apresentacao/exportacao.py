@@ -23,6 +23,12 @@ class Exportacao:
         """Canais disponíveis no ensaio gravado, para o usuário escolher o que exportar."""
         return carregar_csv(self._caminho).canais
 
+    def duracao_s(self) -> float:
+        """Duração do ensaio (instante da última amostra), em segundos — referência para a janela."""
+        serie = carregar_csv(self._caminho)
+        n = len(next(iter(serie.dados.values()), []))
+        return (n - 1) / serie.taxa_hz if n > 1 else 0.0
+
     def exportar(
         self,
         formato: str,

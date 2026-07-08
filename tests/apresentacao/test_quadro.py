@@ -1,3 +1,5 @@
+import statistics
+
 import pytest
 
 from ensaios_ni.apresentacao.monitor import QuadroAoVivo
@@ -60,3 +62,21 @@ def test_par_xy_pareia_carga_e_deformacao_ponto_a_ponto():
     assert par.canal_y == "Mod3/ai0"
     assert par.xs == [10.0, 20.0, 30.0]
     assert par.ys == [100.0, 200.0, 300.0]
+
+
+def test_suavizar_filtra_cada_canal_preservando_tempos_e_unidades():
+    # filtro de ruído do tio: só visualização — o eixo de tempo e as unidades ficam intactos
+    quadro = QuadroAoVivo(
+        tempos=[0.0, 0.25, 0.5, 0.75, 1.0],
+        dados={"Mod3/ai0": [0.0, 2.0, 0.0, 2.0, 0.0]},  # ruidoso
+        unidades={"Mod3/ai0": "µε"},
+    )
+
+    suave = quadro.suavizar(janela=3)
+
+    assert suave.tempos == quadro.tempos
+    assert suave.unidades == quadro.unidades
+    assert len(suave.dados["Mod3/ai0"]) == 5
+    assert statistics.pvariance(suave.dados["Mod3/ai0"]) < statistics.pvariance(
+        quadro.dados["Mod3/ai0"]
+    )

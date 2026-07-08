@@ -1,0 +1,138 @@
+import os
+
+import pytest
+
+pytest.importorskip("PySide6")
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")  # headless, sem display
+
+from ensaios_ni.apresentacao.editor_canais import EditorDeCanais  # noqa: E402
+from ensaios_ni.apresentacao.qt.editor_canais import (  # noqa: E402
+    DialogoCanal,
+    PainelEditorCanais,
+)
+
+
+@pytest.fixture(scope="module")
+def app():
+    from PySide6.QtWidgets import QApplication
+
+    return QApplication.instance() or QApplication([])
+
+
+def _perfil(tmp_path):
+    arq = tmp_path / "perfil.toml"
+    arq.write_text(
+        '[canais."Mod1/ai0"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "kgf"\n'
+        'rotulo = "Carga"\n'
+        'ganho = 100.0\n'
+        'offset = 0.0\n',
+        encoding="utf-8",
+    )
+    return arq
+
+
+def _perfil_dois(tmp_path):
+    arq = tmp_path / "perfil.toml"
+    arq.write_text(
+        '[canais."Mod1/ai0"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "kgf"\n'
+        'rotulo = "Carga"\n'
+        'ganho = 100.0\n'
+        'offset = 0.0\n'
+        '\n'
+        '[canais."Mod1/ai1"]\n'
+        'tipo = "tensao"\n'
+        'unidade = "bar"\n'
+        'rotulo = "Pressão"\n'
+        'ganho = 25.0\n'
+        'offset = 0.0\n',
+        encoding="utf-8",
+    )
+    return arq
+
+
+def test_painel_lista_os_canais_do_perfil(app, tmp_path):
+    painel = PainelEditorCanais(EditorDeCanais(_perfil(tmp_path)))
+    assert painel._tabela.rowCount() == 1
+    assert painel._tabela.item(0, 0).text() == "Carga"  # exibe a etiqueta (Nome do Sinal)
+
+
+def test_painel_abre_e_lista_mesmo_com_canal_invalido(app, tmp_path):
+    # antes: abrir o editor de um perfil com canal inválido crashava (carregar_canais no __init__).
+    # agora: abre e lista os dois canais, pra o tio poder remover o problemático.
+    arq = tmp_path / "perfil.toml"
+    arq.write_text(
+        '[canais."Mod1/ai0"]\ntipo = "tensao"\nunidade = "kgf"\nrotulo = "Carga"\nganho = 100.0\noffset = 0.0\n'
+        '[canais."fre"]\ntipo = "tensao"\nunidade = "kgf"\n',  # inválido: sem ganho/offset
+        encoding="utf-8",
+    )
+    painel = PainelEditorCanais(EditorDeCanais(arq))  # não pode levantar
+    assert painel._tabela.rowCount() == 2
+    assert painel._tabela.item(1, 0).text() == "fre"  # o canal quebrado aparece, pra ser removido
+
+
+def test_remover_o_canal_selecionado_atualiza_a_tabela(app, tmp_path):
+    painel = PainelEditorCanais(EditorDeCanais(_perfil_dois(tmp_path)))
+    painel._tabela.setCurrentCell(0, 0)  # seleciona "Carga"
+    painel._remover_selecionado()
+    assert painel._tabela.rowCount() == 1
+    assert painel._tabela.item(0, 0).text() == "Pressão"  # sobrou o outro
+
+
+def test_dialogo_preserva_os_campos_de_um_canal_de_tensao(app):
+    entrada = {"tipo": "tensao", "unidade": "kgf", "rotulo": "Carga", "ganho": 100.0, "offset": 0.0}
+    nome, campos = DialogoCanal("Mod1/ai0", entrada).campos()
+    assert nome == "Mod1/ai0"
+    assert campos == entrada
+
+
+def test_dialogo_inclui_o_gage_factor_quando_strain(app):
+    entrada = {"tipo": "strain", "unidade": "µε", "gage_factor": 2.14, "ganho": 1000000.0, "offset": 0.0}
+    _nome, campos = DialogoCanal("cDAQ9184-1820306Mod3/ai0", entrada).campos()
+    assert campos["gage_factor"] == 2.14
+    assert campos["tipo"] == "strain"
+
+
+def test_aplicar_canal_adiciona_e_atualiza_a_tabela(app, tmp_path):
+    arq = tmp_path / "vazio.toml"
+    arq.write_text("", encoding="utf-8")
+    painel = PainelEditorCanais(EditorDeCanais(arq))
+    assert painel._tabela.rowCount() == 0
+    painel._aplicar_canal(
+        "Mod1/ai0", {"tipo": "tensao", "unidade": "kgf", "rotulo": "Carga", "ganho": 100.0, "offset": 0.0}
+    )
+    assert painel._tabela.rowCount() == 1
+    assert painel._tabela.item(0, 0).text() == "Carga"
+
+
+def test_dialogo_exibe_numeros_em_decimal_virgula_br(app):
+    # o tio lê em BR: o campo mostra 2,14 (não 2.14); o parse segue aceitando vírgula e ponto
+    dialogo = DialogoCanal("Mod3/ai0", {"tipo": "strain", "unidade": "µε", "gage_factor": 2.14})
+    assert dialogo._gage_factor.text() == "2,14"
+    _nome, campos = dialogo.campos()
+    assert campos["gage_factor"] == 2.14  # exibição BR não quebra o parse
+
+
+def test_dialogo_desabilita_aplicar_ate_endereco_e_unidade(app):
+    # validação inline (à la PainelAfericao): sem popup pós-clique — o Aplicar só habilita quando válido
+    dialogo = DialogoCanal()
+    assert dialogo._aplicar.isEnabled() is False  # vazio: não aplica
+    dialogo._endereco.setText("Mod1/ai0")
+    assert dialogo._aplicar.isEnabled() is False  # falta a unidade
+    dialogo._unidade.setText("kgf")
+    assert dialogo._aplicar.isEnabled() is True  # essencial preenchido
+
+
+def test_editor_reabre_os_campos_de_um_canal_para_reeditar(app, tmp_path):
+    # reabrir para editar mostra os campos crus do canal (o presenter os lê tolerante ao perfil)
+    painel = PainelEditorCanais(EditorDeCanais(_perfil(tmp_path)))
+    assert painel._editor.campos("Mod1/ai0") == {
+        "tipo": "tensao",
+        "unidade": "kgf",
+        "rotulo": "Carga",
+        "ganho": 100.0,
+        "offset": 0.0,
+    }

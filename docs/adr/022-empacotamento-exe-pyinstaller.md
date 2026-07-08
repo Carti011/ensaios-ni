@@ -18,10 +18,20 @@ adoção). O `.spec` e o guia são preparados no Mac; **o binário só se gera e
 > runtime, e o PyInstaller não empacota o `.dist-info` por padrão. Como o `import nidaqmx` é lazy, só
 > aparecia ao **adquirir**, não ao abrir. Corrigido no `.spec` com `copy_metadata("nidaqmx")` e
 > `("nitypes")` alimentando o `datas=` (função defensiva `_metadados`). Depois do fix, o `Iniciar`
-> sobre dispositivo simulado do NI-MAX (`cDAQ1Mod3/ai0`, strain) rodou — o gráfico correu e **fechar o
-> NI-MAX derrubou a leitura**, prova de aquisição real do driver simulado. **A afirmação "sem ajuste"
-> acima vale só para abrir/montar; a aquisição empacotada exigiu o `copy_metadata`.** Falta o
-> **Iniciar no hardware real do tio** (driver + chassi).
+> sobre dispositivo simulado do NI-MAX (`cDAQ1Mod3/ai0`, strain) rodou — o gráfico correu com os dados
+> sintéticos do driver simulado. **A aquisição é real** pela arquitetura (o `AdaptadorDaqmx` chama o
+> `nidaqmx`, sem cache no nosso código; o próprio bug do `nitypes` confirmou que o wrapper foi de fato
+> carregado). **A afirmação "sem ajuste" acima vale só para abrir/montar; a aquisição empacotada exigiu
+> o `copy_metadata`.** Falta o **Iniciar no hardware real do tio** (driver + chassi).
+>
+> **Correção (03/07/2026).** Uma versão anterior desta nota dizia que "fechar o NI-MAX derrubou a
+> leitura" seria a prova de aquisição real — **estava equivocado**. Dispositivo simulado vive no
+> **driver NI-DAQmx** (serviço do Windows), **não** no app NI-MAX; qualquer cliente DAQmx o lê com o
+> NI-MAX **aberto ou fechado** ([contexto-hardware.md §2](../contexto-hardware.md)). Reconfirmado no
+> Windows do dev (03/07): o `Iniciar` do `.exe` funciona com o **NI-MAX fechado** — comportamento
+> esperado, não bug. O erro "nenhum módulo encontrado" só apareceria se os simulados fossem removidos
+> ou o nome do canal no `.toml` não batesse. A aquisição empacotada segue **real** (pela arquitetura,
+> acima); apenas o teste citado como prova estava mal interpretado.
 
 ## Contexto
 

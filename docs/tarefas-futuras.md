@@ -1,66 +1,204 @@
 # Tarefas futuras — ensaios-ni
 
 Backlog de coisas que **não bloqueiam** o trabalho atual, mas devem ser feitas quando houver
-oportunidade. Não esquecer. Marcar `[x]` quando concluída e mover o aprendizado para o ADR/handoff
-correspondente.
+oportunidade. Só o que está **pendente** fica aqui — o que foi concluído sai do arquivo e vive no
+`CHANGELOG.md`/handoff/ADR correspondente.
+
+---
+
+## Panorama — pendências (atualizado 07/07/2026)
+
+Visão rápida do que falta, agrupada por **quem/o que desbloqueia**. O detalhe de cada item está nas
+seções abaixo. O **levantamento de requisitos de 04/07** (imagens + áudios do tio) está resumido na
+subseção *Levantamento de requisitos* logo adiante.
+
+> **Fechados em 07/07 (saíram do backlog; ver CHANGELOG):** o **crash do editor de canais** (canal
+> incompleto era gravado e derrubava o app — agora recusa antes de gravar e abre tolerante), o **botão
+> "Abrir ensaio"** na tela inicial e a **exportação com duração legível + `hh:mm:ss` + trecho opcional**.
+
+### Dependem do tio / hardware — 4 (decidem a adoção)
+
+- **1. Validar o número físico** — NI-MAX × software, por variação carregado−repouso.
+- **2. Iniciar do `.exe`** no hardware real do tio.
+- **3. TXT no AqAnalysis** — importar de verdade no AqDAnalysis dele. **Feedback 04/07:** hoje "sai
+  numa coluna só" e confuso; o tio quer **colunas separadas** (tempo · canal · …) com a **unidade
+  embaixo do nome** e o arquivo abrindo sem atrito (ver §1 e item 9).
+- **4. Erro `-200279` ao gravar** — **corrigido no código** (buffer com folga na aquisição contínua);
+  **falta validar no Windows/hardware** do tio. Ver 🔴 abaixo.
+
+### Dependem de decisão + Windows — 2
+
+- **5. Ler em voltagem (V/V) e correlacionar** — **reforçado pelo tio (04/07):** ele *prefere* ler o
+  cru em tensão/mV/V e aplicar a curva, inclusive no strain. Decide o modelo de aferição; **vira ADR**.
+  Ver 🟠 abaixo.
+- **6. Sincronização tensão × strain** (start-trigger).
+
+### Dá pra fazer no Mac agora — 6
+
+- **7. Decimal vírgula-BR** no formulário do canal — ✅ **feito (04/07)**.
+- **8. Validação inline** no diálogo do canal — ✅ **feito (04/07)**.
+- **9. Excel/TXT "do jeito do tio"** — colunas separadas, **unidade no cabeçalho**, metadata no topo,
+  aba de resumo (junta com o §1 e o item 3).
+- **10. Filtro de ruído no sinal ao vivo** — ✅ **feito (04/07):** média móvel de visualização no
+  gráfico sinal×tempo (não afeta o CSV). Ver 🟡 abaixo.
+- **11. Calibração "Ganho e Ponto de Referência"** *(baixa prioridade)*.
+- **12. Guia de uso pro tio** (README/tutorial) — deixar **pra frente** (pedido do Weslley).
+
+### Windows / fases futuras — 3
+
+- **13. Parte B — discovery** de dispositivos (monta com `fake` no Mac, valida no Windows).
+- **14. FFT ao vivo** (Fase 7 — a maior; **o tio confirmou o Frequency Graph do FlexLogger em 04/07**).
+- **15. Robustez de longa duração** (rotação de arquivo, recuperação de queda de rede) — **decisão do
+  Weslley (07/07): NÃO especular.** Deixar rodar até o limite que o formato aguenta e **iterar sob
+  feedback** do tio — só construir rotação/TDMS se ele esbarrar de verdade e reportar (alinhado ao
+  [ADR-019](adr/019-foco-em-validacao-fisica-e-adocao.md); a estratégia possível está registrada na 🟡
+  abaixo, para o dia em que precisar). Ver 🟡 abaixo.
+
+*(+1 condicional: parametrizar o exportador TXT — só se a validação do #3 pedir; ver §2.)*
 
 ---
 
 ## Urgências para a adoção (Fase 5–6)
 
-> Consolidado de uma avaliação crítica de 28/06/2026. Estas pendências **decidem
-> se o tio larga o FlexLogger** — têm prioridade sobre o resto do backlog. Por gravidade:
+> Estas pendências **decidem se o tio larga o FlexLogger** — têm prioridade sobre o resto. Por gravidade:
+
+### Feedback de campo — teste remoto do tio (03/07/2026)
+
+O tio rodou o software sobre o **hardware real** dele (teste proposital com **um único módulo** — o
+9235/strain) e mandou o retorno por áudio. Resumo do que ele reportou:
+
+- ✅ **Funciona:** o software **lê**, **identifica a DAQ** e **leu a deformação** que ele aplicou na
+  peça (o 9235). Palavras dele: "tá fazendo tudo perfeito, só precisa refinar".
+- ⚠️ **Erro recorrente ao gravar (a arrumar):** **todo início de gravação dispara um erro** logo em
+  seguida, de forma repetida — apesar dele, a leitura continua ("lê bonitinho"). O **texto exato do
+  erro ainda é desconhecido** (falta print/mensagem — ver pergunta ao tio). → item 🔴 abaixo.
+- 🟠 **Ver/capturar a tensão no canal de strain (decisão de produto):** o botão **"Capturar tensão"
+  fica cinza** no canal de strain (é o design atual — a captura ao vivo é injetada só em canais de
+  tensão/9205). O tio quer ver/capturar a **tensão crua do 9235** para inserir ponto de aferição e
+  **correlacionar com o test panel do NI-MAX** (que mostra V/V), inclusive para investigar o erro
+  acima. → item 🟠 abaixo.
+- **Não é bug:** o software "identificar só um módulo" era **esperado** — o teste usou só um módulo de
+  propósito.
+
+> A confirmar com o Weslley: se esse teste rodou o **`.exe`** ou o `python -m` — se foi o `.exe` no
+> hardware real, avança o status da Fase 6 no [roadmap.md](roadmap.md). Os áudios são material do tio
+> (**não versionados**, conforme [onde-pesquisar.md](onde-pesquisar.md)); só esta análise textual fica
+> no repo.
+
+### Levantamento de requisitos — imagens + áudios do tio (04/07/2026)
+
+O tio (OFM) enviou um bloco de **imagens + áudios** como levantamento de requisitos (a pedido do
+Weslley). As mídias **não** são versionadas (material do tio, [onde-pesquisar.md](onde-pesquisar.md));
+só esta análise fica no repo. O que ele mostrou/pediu:
+
+- **O erro ao gravar tem nome.** Um print do nosso software no Windows dele capturou o **DAQmx Status
+  Code `-200279`** ("attempted to read samples that are no longer available… increasing the buffer
+  size, reading the data more frequently, or specifying a fixed number of samples… might correct the
+  problem"). É **buffer overrun** na leitura contínua — **não** é chassi/rede. Casa com o áudio ("lê
+  tudo bonitinho, só dá erro depois de um tempinho"). → detalha o 🔴 abaixo.
+- **Filtro de ruído.** Olhando o gráfico ruidoso do strain, pediu um **filtro** para ver o "sinal
+  verdadeiro" ("tem algum filtro que passa pra tirar o ruído? consegue embutir?"). → 🟡 novo abaixo.
+- **Exportação em coluna só.** O TXT "sai numa coluna só" e confuso, e não abre associado (cai no
+  bloco de notas); quer **colunas separadas** (tempo · canal 0 · canal 1 · …) com a **unidade embaixo
+  do nome do canal**, para montar gráficos. → §1 e item 9.
+- **Prefere ler em voltagem e correlacionar.** Afere pela **leitura de tensão do canal** no AqDados e
+  *prefere* ler o cru em **voltagem/mV/V** e aplicar a curva — "porque consigo fazer a curva e
+  qualquer tipo de ligação (meia ponte etc.)". → 🟠 abaixo.
+- **Como o FlexLogger adquire o 9235 (evidência).** As telas confirmam que os **parâmetros do strain
+  batem 1:1 com os nossos** (quarter bridge, 120 Ω, internal, 2 V, **gage factor 2,14**, single
+  element) e que o FlexLogger exibe **Live value (ε) + Raw value (mV/V)** lado a lado — a evidência
+  direta do pedido de V/V. Mostra ainda o dashboard dele (Gauge/Meter, High Speed Graph, **Frequency
+  Spectrum Graph/FFT**, XY Graph). Detalhe em [referencia-flexlogger.md §6](referencia-flexlogger.md).
+  **Atenção:** isto é evidência de **requisito e de núcleo técnico**, não mandato de copiar a UX do
+  FlexLogger — o espelho de produto segue o **Lynx/AqDados** ([ADR-010](adr/010-paridade-com-o-lynx.md)).
+
+**Respostas do tio às 3 perguntas enviadas:** (1) *erro* — "lê tudo bonitinho, só dá erro depois de um
+tempinho"; **não confirmou** se o CSV sai completo (sub-pendência). (2) *aferição de strain* — usa a
+leitura de tensão do canal; prefere voltagem + correlação. (3) *NI-MAX* — mostra o 9235 em **µε
+(strain)**, não em V/V (ainda vai conferir se dá pra ver em voltagem).
 
 **🔴 Bloqueia a adoção (sem isto, o tio não usa):**
 
-- [~] **Validar no hardware real** — **validação FUNCIONAL feita (29/06/2026):** o software lê o NI
-      9235 real e responde à deformação aplicada (força na chapa → gráfico coerente com a direção).
-      **Falta** a comparação numérica fina com o test panel do NI-MAX (mesma unidade, por **variação**
-      carregado−repouso) e validar o TXT no AqDAnalysis. Guia:
-      [guia-teste-hardware.md](guia-teste-hardware.md). (Fase 5)
-- [~] **Empacotar em `.exe`** — **buildado e validado no Windows:** `pyinstaller
-      packaging/ensaios-ni.spec` gera `dist/ensaios-ni.exe` (one-file, sem console); abre a tela
-      inicial e monta o dashboard (01/07). Em **02/07** o **`Iniciar` foi validado no simulado do
-      NI-MAX** (aquisição empacotada exercitada pela 1ª vez) — precisou de `copy_metadata` no `.spec`
-      para `nidaqmx`/`nitypes` (bug de metadata do PyInstaller: `No package metadata was found for
-      nitypes`). **Falta** só o `Iniciar` no **hardware real do tio**.
+- [~] **Validar no hardware real** — validação **funcional** feita (29/06): o software lê o NI 9235
+      real e responde à deformação. **Falta** a comparação numérica com o test panel do NI-MAX (mesma
+      unidade, por **variação** carregado−repouso). Guia: [guia-teste-hardware.md](guia-teste-hardware.md). (Fase 5)
+- [~] **Empacotar em `.exe`** — builda e o **`Iniciar` foi validado no simulado do NI-MAX** (02/07,
+      após o fix do `copy_metadata`/`nitypes`). **Falta** o `Iniciar` no **hardware real do tio**.
       ([ADR-022](adr/022-empacotamento-exe-pyinstaller.md), Fase 6)
 - [ ] **Validar o TXT no AqAnalysis** — ver §1 abaixo; é o elo da análise. Sem isto ele não fecha o
       trabalho.
+- [~] **Erro `-200279` ao gravar no hardware do tio (03–04/07)** — **causa identificada** pelo print do
+      levantamento (04/07): o **DAQmx Status Code `-200279`** ("attempted to read samples that are no
+      longer available… increasing the buffer size, reading the data more frequently, or specifying a
+      fixed number of samples to read might correct the problem") — **buffer overrun** na aquisição
+      contínua do 9235 no chassi Ethernet: o nosso loop de leitura não drena o buffer circular no ritmo
+      do hardware real e ele sobrescreve amostras. Aparece "depois de um tempinho" (o buffer enche); a
+      leitura segue exibindo. **Só no hardware/rede real**, nunca no simulado. **Corrigido no código
+      (04/07):** `_tamanho_buffer_continuo` no [daqmx.py](../src/ensaios_ni/aquisicao/daqmx.py) dá
+      **folga** ao buffer de entrada (o maior entre 10× o bloco e 5 s de amostras), mantendo o `read`
+      por bloco fixo — a mitigação que a própria NI recomenda. Testado por mock no Mac; **falta validar
+      no Windows/hardware do tio** (o `-200279` não reproduz no simulado nem no Mac). Se persistir lá,
+      escalar: bloco maior / gravação assíncrona / **thread de leitura dedicada** (possível ADR — mexe
+      no modelo "passo() sem thread" do [ADR-015](adr/015-ux-e-fluxo-do-dashboard.md)). **Sub-pendências:**
+      (i) confirmar com o tio se o **CSV sai completo** apesar do erro; (ii) a tradução amigável
+      ([erros.py](../src/ensaios_ni/apresentacao/erros.py)) ainda mostra "confira o chassi/IP" para o
+      `-200279` — o Weslley optou por **resolver a causa, não maquiar a mensagem**, então fica como
+      polimento opcional. Ver [contexto-hardware.md §3](contexto-hardware.md).
 
 **🟠 Ameaça a perfeição metrológica do laudo:**
 
+- [ ] **Ver/capturar a tensão (razão de ponte V/V) do canal de strain (9235)** — pedido direto do tio
+      (03/07), **reforçado no levantamento de 04/07**: ele *prefere* ler em voltagem e correlacionar,
+      para controlar a curva e permitir outras ligações (meia ponte etc.), e o FlexLogger dele exibe
+      **Live ε + Raw mV/V** ([referencia-flexlogger.md §6](referencia-flexlogger.md)). Hoje o "Capturar
+      tensão" da aferição é injetado **só em canais de tensão** (9205) e fica
+      **cinza** no strain, porque o 9235 entrega **strain** direto (via `add_ai_strain_gage_chan`, com
+      gage factor e quarter-bridge aplicados no driver) e strain não se afere por pontos de tensão.
+      **Mas há um "número de tensão" real no 9235:** o módulo é **ratiométrico** — mede a **razão de
+      ponte V/V** (`Vr = (Vch/Vex)carregado − (Vch/Vex)repouso`, faixa ±29,4 mV/V), da qual o strain é
+      derivado. Essa razão V/V é **o que o test panel do NI-MAX mostra** — logo, expô-la resolveria a
+      **correlação NI-MAX × software** (hoje travada por unidades diferentes: V/V no NI-MAX × µε no
+      software, o "ajuste fino" pendente da validação física da Fase 5) e daria ao tio o que ele pediu
+      para diagnosticar o erro. Caminho técnico: ler a razão de ponte via **`BridgeUnits`/canal de bridge**
+      do `nidaqmx` — **assinatura exata a confirmar contra a doc oficial e o NI-MAX no Windows** (regra:
+      não inventar assinatura, [contexto-hardware.md §4](contexto-hardware.md)). **Decisão de produto
+      pendente:** (a) habilitar a captura de V/V no strain (para aferição/diagnóstico), ou (b) só um
+      *display* de V/V ao lado do µε, ou (c) manter cinza e explicar ao tio por que strain já vem
+      calibrado. **O levantamento de 04/07 empurra para (a)/(b)** — o tio quer ver e usar o V/V.
+      **Próximo passo: virar ADR** (a leitura de V/V entra na porta e muda o modelo de aferição do
+      strain). Refina [ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md)/[ADR-020](adr/020-parametros-de-strain-por-canal.md).
 - [ ] **Sincronização tensão × strain (start-trigger)** — o XY carga × deformação precisa dos canais
       **simultâneos**; hoje há offset entre tasks. Só valida no Windows.
       ([ADR-007](adr/007-aquisicao-continua.md)/[ADR-009](adr/009-leitura-de-strain-9235.md))
-- [x] **Capturar a leitura ao vivo na aferição** — **feito (01/07/2026):** botão **"Capturar tensão"**
-      no painel de aferição lê a tensão crua do canal ao vivo (`MonitorAoVivo.ler_tensao_atual`) e a
-      insere na tabela; o operador só digita a carga conhecida — o "Leitura do A/D" do AqDados. Só em
-      canais de tensão (célula de carga, LVDT, acelerômetro). Atende o **pedido direto do tio
-      (30/06/2026):** *"falar pra ele [o software] que o valor de tensão que você está lendo é tal
-      valor de engenharia"*. ([ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
-- [x] **Alerta de correlação baixa na aferição** — **feito (01/07/2026):** correlação **abaixo de
-      95%** pinta o indicador e mostra um aviso no painel de aferição, mas **não bloqueia** o Aplicar
-      (o tio decide — como o resto do fluxo). Limiar = constante `Afericao.CORRELACAO_MINIMA`.
-      ([ADR-006](adr/006-calibracao-por-pontos.md)/[ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md))
-
-- [x] **Launcher do dashboard com hardware real** — **feito (30/06/2026):** novo entrypoint
-      `apresentacao/qt/hardware.py` (`python -m ensaios_ni.apresentacao.qt.hardware --config
-      canais.toml --taxa --bloco --saida --capacidade-janela`) abre o dashboard completo
-      (metadata/exportar/tara/aferir) ligado ao `AdaptadorDaqmx(canais=...)`, repassando canais +
-      config; config ausente/inválido/TOML quebrado vira mensagem amigável. O `...qt.janela` segue
-      como demo `fake`. (Fase 5)
 
 **🟡 Paridade total / robustez:**
 
-- [~] **FFT / frequência ao vivo** — **escopo decidido (01/07/2026):** vamos substituir o FlexLogger
-      também no dinâmico, com FFT ao vivo no dashboard ([ADR-021](adr/021-fft-ao-vivo-paridade-dinamica.md),
-      resolve o ADR-árbitro que faltava). Vira a **Fase 7** ([roadmap.md](roadmap.md)), **depois** do
-      `.exe`. A análise pesada segue no AqDAnalysis via TXT ([ADR-011](adr/011-estrategia-de-exportacao.md)).
+- [x] **Filtro de ruído no sinal ao vivo (04/07)** — ✅ **feito:** `dominio/filtro.py::media_movel`
+      (média móvel centrada, pura) + `QuadroAoVivo.suavizar` + controle **"Suavizar ruído"** (janela em
+      pts) no rodapé do dashboard. É **só visualização** (o CSV/laudo mantém o dado cru); espelha o
+      **Filtro Passa Banda** do AqDados. **Evoluções possíveis** (se o tio pedir): passa-banda de
+      verdade (exigiria scipy), aplicar também no XY, escolher o tipo de filtro. Distinto do **clamp**
+      (conversão) e da **remoção de outliers** (pós-processo, no AqDAnalysis).
+- [~] **FFT / frequência ao vivo** — escopo decidido ([ADR-021](adr/021-fft-ao-vivo-paridade-dinamica.md)):
+      FFT ao vivo no dashboard, substituindo o FlexLogger também no dinâmico. É a **Fase 7**
+      ([roadmap.md](roadmap.md)), **depois** do `.exe`. Análise pesada segue no AqDAnalysis via TXT.
 - [ ] **Robustez de longa duração** — rotação de arquivo + recuperação de queda de rede do chassi
-      Ethernet; um ensaio de meses num único CSV é inviável (volume + memória). Inclui o **exportar
-      ensaios gigantes pela entrada** (`carregar_csv` lê o CSV inteiro em memória).
-      [ADR-012](adr/012-serie-temporal-e-exportadores.md).
+      Ethernet; um ensaio de meses num único CSV é inviável (volume + memória). Inclui exportar
+      ensaios gigantes (o `carregar_csv` lê o CSV inteiro em memória).
+      [ADR-012](adr/012-serie-temporal-e-exportadores.md). **Estratégia discutida (07/07, aguarda o
+      tio → ADR):** (1) **rotação de arquivo** na gravação (segmentar por tempo/tamanho, numerado/datado
+      — cada pedaço é recuperável e cabe no Excel, que trava em ~1 M linhas ≈ 14,5 h a 20 Hz); (2)
+      **juntar no AqDAnalysis** do tio, que já tem "Concatenação de Séries Temporais"
+      ([referencia-lynx §2.3](referencia-lynx.md)); (3) **Excel só por trecho/resumo**, nunca o ensaio
+      inteiro. **TDMS** (formato nativo NI, o que o FlexLogger usa) entra só se a taxa/volume exigir
+      ([ADR-003](adr/003-persistencia-csv-do-ensaio.md) já o reservou). Perguntas enviadas ao tio (04–07/07):
+      ele faz ensaios de dias/meses? como resolve hoje? que formato/extensão usa?
+      **Resposta do tio (áudio 07/07):** o fluxo dele é **Excel** — o FlexLogger entrega direto no Excel;
+      o AqDados entrega **TXT** que ele abre no bloco de notas e **copia/cola no Excel** ("abre todinho").
+      Não ficou claro se os ensaios passam de ~1 M linhas (limite do Excel). **Decisão do Weslley (07/07):
+      não especular** rotação/TDMS agora — deixar rodar até o limite que o formato aguenta e corrigir só
+      se o tio esbarrar e reportar. Nota positiva: o nosso **`csv-excel-br`** já abre direto no Excel
+      (duplo-clique), com menos passos que o copiar/colar dele — o caminho de análise do tio já está coberto.
 
 ---
 
@@ -71,19 +209,25 @@ separador TAB, encoding utf-8 e cabeçalho de uma linha são escolhas a confirma
 [ADR-011](adr/011-estrategia-de-exportacao.md) e o comentário no topo de
 `src/ensaios_ni/persistencia/exportadores/txt_aqanalysis.py`.
 
+> **Feedback do tio (04/07):** ao abrir a exportação, o texto "sai numa coluna só" e confuso, e o TXT
+> não tem app associado (cai no bloco de notas). O que ele quer: **uma coluna por sinal** (tempo ·
+> canal 0 · canal 1 · …) com a **unidade numa segunda linha de cabeçalho** (nome em cima, unidade
+> embaixo), colunas separadas de verdade (TAB), para montar gráficos. Reforça o **cabeçalho de duas
+> linhas** e a checagem de separador/decimal — e conecta com o item 9 (Excel/TXT "do jeito do tio").
+> Ainda **não** foi importado no AqDAnalysis de verdade (as vias A/B abaixo seguem valendo).
+
 Como fechar (qualquer uma das vias valida):
 
 - [ ] **Via A — TXT legítimo do tio.** O tio exporta um TXT qualquer no AqDAnalysis e envia. Com um
       arquivo real em mãos, comparo o layout (separador, encoding, cabeçalho, nomes de unidade) e
       ajusto o exportador para casar. **O Weslley já pediu o arquivo a ele (25/06/2026) e aguarda.**
 - [ ] **Via B — testar na casa do tio.** Ir ao computador do tio (Fase 5, junto da calibração
-      física) e tentar **importar o nosso TXT** no AqDAnalysis dele. Ver se entra; ajustar separador/
-      decimal/cabeçalho no wizard de importação. É o teste definitivo (o critério de "funcionou").
+      física) e tentar **importar o nosso TXT** no AqDAnalysis dele. Ajustar separador/decimal/
+      cabeçalho no wizard de importação. É o teste definitivo (o critério de "funcionou").
 
 > Expectativa fundamentada: o "Importa Arquivo Texto" do AqDAnalysis é quase certamente um **wizard
-> configurável** (o usuário escolhe separador/decimal e aponta as colunas), padrão da indústria de
-> software de aquisição. Se for, não há "formato secreto": o nosso TXT limpo + a escolha do tio no
-> wizard bastam. A validação confirma isso.
+> configurável** (escolhe separador/decimal e aponta as colunas). Se for, não há "formato secreto":
+> o nosso TXT limpo + a escolha do tio no wizard bastam.
 
 ## 2. Plano B — parametrizar o exportador TXT
 
@@ -95,73 +239,60 @@ fixar um novo formato, **tornar o `txt-aqanalysis` parametrizável**:
 - [ ] opção de incluir a **taxa de amostragem no cabeçalho** (alguns importadores ASCII usam isso
       para reconstruir o eixo de tempo/frequência).
 
-Assim, "acertar o formato" vira "gerar a variante que o wizard pedir", sem reescrever código.
 Implementar **só quando a validação indicar necessidade** — não especular antes.
 
 ---
 
-## 3. Nome do sinal (rótulo humano) nos canais — UI e config
+## 3. Configuração de canais na UI ([ADR-023](adr/023-configuracao-de-canais-na-ui.md)) — em andamento
 
-Hoje a tabela de canais e os seletores X/Y do dashboard mostram o **endereço físico** do
-canal (`Mod1/ai0` = "Módulo 1, entrada analógica 0"), que vem do NI-MAX/DAQmx. **O tio não
-reconhece isso** — pra ele é como "tomada nº 1 da parede". Ele pensa no sensor pelo **que mede**:
-"Carga", "Sg1 bico", "Sg2 reforço". O AqDados dele tem uma coluna **"Nome do Sinal"** (apelido
-humano) **separada** do canal físico — ver [referencia-lynx.md](referencia-lynx.md) §1.1.
+O tio não deve editar o `canais.toml` à mão. Design fechado no ADR-023: biblioteca de **perfis**
+`.toml` gerenciada pelo app + **editor** de canais na tela + **discovery** dos dispositivos atrás da
+porta. Fatiado; estado atual:
 
-Causa raiz: o `Canal` (`dominio/canais.py`) só guarda o endereço físico (`nome`) + unidade; não
-existe campo de rótulo, então a UI não tem o que exibir além do endereço. (Levantado em
-26/06/2026, ao revisar o seletor XY da fatia 2 do dashboard.)
+**Parte A — no Mac:**
 
-Como fechar (backend primeiro, frontend depois — commits separados):
+- [x] **A1 — Biblioteca de perfis.** A tela inicial lista os ensaios salvos (`~/ensaios-ni/*.toml`) e
+      abre o escolhido. (`apresentacao/perfis.py` + `TelaInicial`.)
+- [x] **A2 — Editor de canais.** Tabela de canais na UI (Adicionar/Editar/Remover) + formulário por
+      canal, persistindo no `.toml`. (`apresentacao/editor_canais.py` + `qt/editor_canais.py`.)
+- [x] **A3 — Gerência de perfis (completa, 04/07).** Criar, Importar, Renomear, Remover, Duplicar e
+      Exportar — todos pela tela, com validação de nome e erros de domínio
+      (`PerfilJaExiste`/`PerfilNaoExiste`/`NomeDePerfilInvalido`/`ImportacaoInvalida`). **Fecha a
+      Parte A do [ADR-023](adr/023-configuracao-de-canais-na-ui.md)** (biblioteca + editor + gerência);
+      a biblioteca não nasce mais vazia numa máquina nova.
 
-- [x] **Backend** — campo opcional `rotulo` (nome do sinal) no `Canal` e no carregamento do
-      TOML (`carregar_canais`), com **fallback** para o `nome` (endereço) via property `etiqueta`;
-      validado como string. Documentado em `config/canais.exemplo.toml` e no `CONTEXT.md`.
-- [x] **Frontend** — tabela (coluna "Sinal") e seletores X/Y exibem o **rótulo**, mantendo o
-      endereço físico como identidade interna (`UserRole`/`itemData`). Editar o rótulo na tabela
-      persiste no TOML (`salvar_rotulo`). Sem `rotulo`, cai no endereço.
+**Parte B — precisa do Windows (hardware/simulado):**
 
-> **Concluído na fatia 3 do dashboard (27/06/2026) — ver [ADR-017](adr/017-afericao-na-ui-e-escrita-de-config.md).**
-> Era critério de **adoção**: o tio só reconhece o que ele nomeou (o "Nome do Sinal" do AqDados).
+- [ ] **B — Discovery de dispositivos.** Porta de inventário (`daqmx` lista `System.local().devices`;
+      `fake` lista sintética) + botão "Detectar canais" que preenche a tabela do editor. Só depois do
+      feedback do tio ([ADR-019](adr/019-foco-em-validacao-fisica-e-adocao.md)).
+
+**Refinamentos menores da A2** (não bloqueiam):
+
+- [x] **Botão "Editar canais…" não dava feedback sem perfil selecionado** (descoberto no Windows,
+      03/07; **corrigido em 04/07**). O botão nasce **desabilitado** e habilita ao selecionar um
+      ensaio (`currentItemChanged` → `_sincronizar_botoes`), como o "Aferir".
+- [x] **UX da tela inicial com muitos botões** — **resolvido (04/07):** a tela foi reorganizada em
+      **dois grupos** (ações do ensaio selecionado × ações da biblioteca/avulso), em vez de uma fileira
+      única. Resta a ambiguidade menor entre "Importar…" (adota na biblioteca) e "Abrir configuração…"
+      (abre avulso) — aceitável por ora; fundir num fluxo só é opção futura, não bloqueia.
+- [x] Exibir os números do formulário do canal em **decimal vírgula (BR)** — ✅ feito (04/07); o parse
+      já aceitava vírgula e ponto, agora a exibição também usa vírgula.
+- [x] Validação **inline** no diálogo (Aplicar só habilita com endereço + unidade) — ✅ feito (04/07);
+      substituiu o popup pós-clique.
 
 ---
 
-## 4. Interface gráfica para configurar os canais (discovery de dispositivos)
+## Outras pendências conhecidas (menores)
 
-Hoje o `canais.toml` é editado à mão (ou preenchido pelo Weslley antes de enviar o `.exe`). Para um
-usuário leigo em TI, **abrir e editar um arquivo de configuração é atrito real** — o tio observou que
-no **FlexLogger não precisou disso**: "já reconhecia tudo". De fato, o FlexLogger/AqDados fazem
-**discovery automático** dos dispositivos (via NI-MAX) e oferecem um **assistente** para montar a
-tabela de canais por tipo de sensor.
-
-É factível para nós — o `nidaqmx` lista os dispositivos e canais físicos presentes
-(`System.local().devices` e os canais de cada módulo). A ideia:
-
-- [ ] **Descobrir os canais** do chassi conectado e listá-los na UI (sem digitar endereço).
-- [ ] **Montar a tabela de canais pela tela** (nome do sinal, unidade, tipo, conversão) e **salvar o
-      `canais.toml`**, reusando o escritor `tomlkit` que já existe (`persistencia/config_canais.py`).
-- [ ] Assim o tio **cria o config sem editar arquivo** — liga o chassi, escolhe os canais e nomeia.
-
-Valor: remove o último passo manual entre "recebeu o `.exe`" e "está adquirindo" — puxa forte a
-**adoção**. Escopo: fatia de UI nova, **candidata a ADR** quando priorizada. **Prioridade:** depois do
-primeiro envio/feedback — se preencher o `canais.toml` pelo Weslley já resolver o primeiro contato,
-isso pode esperar; não construir especulativamente antes do feedback do tio. O discovery (listar
-dispositivos) só roda no Windows; a montagem/escrita do TOML é testável no Mac.
-
-## Outras pendências conhecidas (menores — já nos ADRs)
-
-Não detalhadas aqui para não duplicar; o ADR é a fonte de verdade. As de maior impacto estão
-consolidadas em **Urgências** no topo.
-
-- [x] **Mensagens de erro amigáveis na aquisição** — **feito (02/07/2026):** `apresentacao/erros.py`
-      (`mensagem_de_erro_de_aquisicao`) traduz os erros do `MonitorAoVivo.passo()`: **driver NI-DAQmx
-      ausente** (orienta instalar), **erro do driver NI** em sub-casos — **chassi não encontrado**
-      (cabo/IP/NI-MAX) e **canal do config inexistente** (nomes no NI-MAX → `canais.toml`) — sempre
-      com o detalhe técnico, e **fallback** que mantém o texto original. Detecta o driver pela origem
-      da exceção; os sub-casos por palavras-chave do DAQmx (fundadas na doc da NI, **a confirmar no
-      Windows**). Sem importar `nidaqmx`. Polimento da Fase 6 (ver [roadmap.md](roadmap.md)).
-- [ ] **Excel "do jeito do tio"** — metadata no cabeçalho (obra, data, sensor, taxa), aba de resumo.
-      Camada de entrega, a definir com o gosto dele. [ADR-011](adr/011-estrategia-de-exportacao.md).
+- [ ] **Guia de uso dentro do app para o tio (README/tutorial)** — instruções em linguagem leiga de
+      como operar o programa (criar/importar ensaio, editar canais, aferir, tarar, iniciar, exportar),
+      acessível **de dentro do app** (ex.: botão "Ajuda"/"Como usar") ou junto do `.exe`. Complementa o
+      `LEIA.txt` do [pacote-tio](pacote-tio/README.md), que hoje só cobre abrir o programa. **Para mais
+      pra frente** (pedido do Weslley, 04/07) — não agora.
+- [ ] **Excel/TXT "do jeito do tio"** — **colunas separadas de verdade** (tempo · canal · …) com a
+      **unidade embaixo do nome** (cabeçalho de duas linhas), metadata no cabeçalho (obra, data,
+      sensor, taxa) e aba de resumo. **Feedback 04/07:** o arquivo "sai numa coluna só" e confuso (ver
+      §1). Camada de entrega, a definir com o gosto dele. [ADR-011](adr/011-estrategia-de-exportacao.md).
 - [ ] **Calibração "Ganho e Ponto de Referência"** — segundo modo de aferição do AqDados; redutível
       ao linear, baixa prioridade. [ADR-006](adr/006-calibracao-por-pontos.md).
-- [x] ~~**Dashboard — decidir a stack**~~ → decidido: **PyQt6/pyqtgraph** ([ADR-013](adr/013-stack-do-dashboard.md)); construído na **Fase 4** (ver [roadmap.md](roadmap.md)).

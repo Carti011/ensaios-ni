@@ -41,6 +41,29 @@ def salvar_rotulo(caminho: Path, canal: str, rotulo: str) -> None:
     _editar_canal(caminho, canal, lambda secao: secao.__setitem__("rotulo", rotulo))
 
 
+def salvar_canal(caminho: Path, canal: str, campos: dict[str, Any]) -> None:
+    """Cria ou substitui a seção de um canal no TOML (fatia A2 do editor — ADR-023).
+
+    Preserva os demais canais e comentários (tomlkit). A validação semântica fica no
+    `carregar_canais`; a calibração por pontos continua no `salvar_afericao` (fluxo à parte).
+    """
+    caminho = Path(caminho)
+    texto = caminho.read_text(encoding="utf-8") if caminho.exists() else ""
+    doc = tomlkit.parse(texto)
+    if "canais" not in doc:
+        doc["canais"] = tomlkit.table()
+    doc["canais"][canal] = campos
+    caminho.write_text(tomlkit.dumps(doc), encoding="utf-8")
+
+
+def remover_canal(caminho: Path, canal: str) -> None:
+    """Remove a seção de um canal do TOML, preservando os demais canais e comentários."""
+    caminho = Path(caminho)
+    doc = tomlkit.parse(caminho.read_text(encoding="utf-8"))
+    del doc["canais"][canal]
+    caminho.write_text(tomlkit.dumps(doc), encoding="utf-8")
+
+
 def _editar_canal(caminho: Path, canal: str, editar: Callable[[Any], None]) -> None:
     """Lê o TOML, aplica a edição na seção do canal e regrava.
 
