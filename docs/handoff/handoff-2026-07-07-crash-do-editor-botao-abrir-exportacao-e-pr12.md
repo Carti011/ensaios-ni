@@ -52,7 +52,7 @@ Substituir o **FlexLogger** (única peça paga da pilha NI) por software própri
 
 - **Mergear a PR #12** (`main ← develop`) — decisão/ação do Weslley.
 - **Rebuild do `.exe` no Windows** + teste pelo executável — o Weslley está fazendo (apagar `build\`/`dist\`, `python -m PyInstaller`).
-- **Ensaios longos → aguarda o tio** (perguntas enviadas): decide a estratégia de arquivo (rotação/TDMS) e vira ADR.
+- **Ensaios longos → RESOLVIDO (07/07):** o tio respondeu (áudio) que o fluxo dele é **Excel** (FlexLogger direto; AqDados via TXT + copiar/colar); o Weslley decidiu **não especular** — deixar rodar até o limite e corrigir sob feedback, **sem ADR de arquivo agora**. Registrado em [tarefas-futuras.md](../tarefas-futuras.md). Nota: o `csv-excel-br` já abre direto no Excel (cobre o fluxo dele).
 - **V/V do strain (ADR-024)** — decisão de produto + confirmar a assinatura `BridgeUnits` no Windows.
 - **Validação de campo (Fase 5):** número físico vs NI-MAX, `-200279` real, TXT no AqDAnalysis, Iniciar do `.exe` no hardware — tudo depende do hardware do tio.
 
@@ -61,7 +61,7 @@ Substituir o **FlexLogger** (única peça paga da pilha NI) por software própri
 1. **Windows:** `git pull` (→ `8811f0f`), `python -m pytest -q` (→ 315), apagar `build\`/`dist\`, `python -m PyInstaller packaging\ensaios-ni.spec`, e **testar pelo `.exe`** (ver §8 e o roteiro no fim).
 2. **Mergear a PR #12** quando o Weslley aprovar.
 3. **Reenviar o `.exe` novo ao tio** (pacote em [pacote-tio/](../pacote-tio/README.md)) com fix + botão + exportação.
-4. **Quando o tio responder sobre ensaios longos:** abrir o ADR de estratégia de arquivo (rotação/TDMS/concatenação no AqDAnalysis).
+4. **Ensaios longos:** decisão fechada (07/07) — **não especular**, deixar rodar até o limite e corrigir sob feedback do tio. Nada a fazer agora; a estratégia possível (rotação/TDMS/concatenação no AqDAnalysis) fica registrada em [tarefas-futuras.md](../tarefas-futuras.md) para o dia em que o tio esbarrar.
 5. **ADR-024 — V/V do strain** (a frente estrutural pendente): rota (a) capturar V/V no strain, (b) só exibir, (c) manter; confirmar `BridgeUnits`/`ai_bridge_units` na doc do `nidaqmx` no Windows (não inventar assinatura).
 6. Backlog: robustez de longa duração, Parte B (discovery), FFT ao vivo (Fase 7). Ver [tarefas-futuras.md](../tarefas-futuras.md).
 
@@ -106,5 +106,5 @@ formatar_duracao(183300) -> "2 d 2 h 55 min"
 1. **Ler, nesta ordem:** este handoff → [roadmap.md](../roadmap.md) (status) → [tarefas-futuras.md](../tarefas-futuras.md) (Panorama). ADRs: só o índice [adr/README.md](../adr/README.md), abrir um específico só se colidir.
 2. **Confirmar com o Weslley:** (a) o resultado do **rebuild + teste do `.exe`** no Windows (passou o passo do editor incompleto → avisa e não cai? o botão "Abrir ensaio"? a exportação com duração/hh:mm:ss?); (b) se **mergeou a PR #12**; (c) se o **tio respondeu** sobre ensaios longos.
 3. `uv run pytest -q` → **315 passed** (confirma a base).
-4. **Decidir a frente:** ADR-024 (V/V do strain) é a próxima estrutural; ou o ADR de arquivo para ensaios longos, se o tio respondeu; ou reenviar o `.exe` ao tio.
+4. **Decidir a frente:** **ADR-024 (V/V do strain)** é a próxima estrutural; ou reenviar o `.exe` ao tio. (Ensaios longos: decisão fechada em 07/07 — **não especular**.)
 5. Regras de sempre: `import nidaqmx` só em `daqmx.py` (lazy); `import PySide6` só em `apresentacao/qt/`; Presenter puro + widget fino; strain nunca usa os defaults da API; filtro/seleção de canais são **só visualização** (o CSV grava o cru); português em tudo (UI também); commits backend/frontend separados; **nunca commitar mídia do tio**; **nada de merge autônomo na `main`** nem commit/push sem o Weslley pedir; ao mexer na contagem de testes, usar strings específicas, nunca `replace_all` de número cru.
