@@ -48,10 +48,11 @@ subseção *Levantamento de requisitos* logo adiante.
 
 - **13. Parte B — discovery** de dispositivos (monta com `fake` no Mac, valida no Windows).
 - **14. FFT ao vivo** (Fase 7 — a maior; **o tio confirmou o Frequency Graph do FlexLogger em 04/07**).
-- **15. Robustez de longa duração** (rotação de arquivo, recuperação de queda de rede) — **estratégia
-  discutida (07/07):** rotação de arquivo na gravação + concatenação no AqDAnalysis (o tio já tem) +
-  Excel só por trecho; TDMS só se o volume exigir. **Aguarda o tio** dizer se faz ensaios de dias/meses
-  e como resolve hoje → vira ADR. Ver 🟡 abaixo.
+- **15. Robustez de longa duração** (rotação de arquivo, recuperação de queda de rede) — **decisão do
+  Weslley (07/07): NÃO especular.** Deixar rodar até o limite que o formato aguenta e **iterar sob
+  feedback** do tio — só construir rotação/TDMS se ele esbarrar de verdade e reportar (alinhado ao
+  [ADR-019](adr/019-foco-em-validacao-fisica-e-adocao.md); a estratégia possível está registrada na 🟡
+  abaixo, para o dia em que precisar). Ver 🟡 abaixo.
 
 *(+1 condicional: parametrizar o exportador TXT — só se a validação do #3 pedir; ver §2.)*
 
@@ -192,6 +193,12 @@ leitura de tensão do canal; prefere voltagem + correlação. (3) *NI-MAX* — m
       inteiro. **TDMS** (formato nativo NI, o que o FlexLogger usa) entra só se a taxa/volume exigir
       ([ADR-003](adr/003-persistencia-csv-do-ensaio.md) já o reservou). Perguntas enviadas ao tio (04–07/07):
       ele faz ensaios de dias/meses? como resolve hoje? que formato/extensão usa?
+      **Resposta do tio (áudio 07/07):** o fluxo dele é **Excel** — o FlexLogger entrega direto no Excel;
+      o AqDados entrega **TXT** que ele abre no bloco de notas e **copia/cola no Excel** ("abre todinho").
+      Não ficou claro se os ensaios passam de ~1 M linhas (limite do Excel). **Decisão do Weslley (07/07):
+      não especular** rotação/TDMS agora — deixar rodar até o limite que o formato aguenta e corrigir só
+      se o tio esbarrar e reportar. Nota positiva: o nosso **`csv-excel-br`** já abre direto no Excel
+      (duplo-clique), com menos passos que o copiar/colar dele — o caminho de análise do tio já está coberto.
 
 ---
 
